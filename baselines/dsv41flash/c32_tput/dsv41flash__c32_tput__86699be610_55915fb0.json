@@ -198,8 +198,8 @@
     "model_rev": "dba1be0a40aa45a94ad051997016db3960a90277",
     "draft_id": null,
     "draft_rev": null,
-    "corpus_id": null,
-    "corpus_rev": null,
+    "corpus_id": "semianalysisai/cc-traces-weka-062126",
+    "corpus_rev": "23f152f6f0f9399a85901b89a6458def0ef16729",
     "served_model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
     "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
     "editable_packages": [
@@ -218,10 +218,7 @@
       "num_questions": 1319,
       "concurrency": null
     },
-    "missing": [
-      "corpus_id",
-      "corpus_rev"
-    ],
-    "source": "evidence/2026-11-19_0432_port/raw/dsv41flash__c32_tput.json + evidence/2026-11-19_0830_launch/raw/dsv41flash__c32_tput.json"
+    "missing": [],
+    "source": "evidence/2026-11-19_0432_port/raw/dsv41flash__c32_tput.json + evidence/2026-11-19_0830_launch/raw/dsv41flash__c32_tput.json + evidence/2026-11-19_0830_launch/corpus_pins.yaml#dsv41flash/c32_tput"
   }
 }

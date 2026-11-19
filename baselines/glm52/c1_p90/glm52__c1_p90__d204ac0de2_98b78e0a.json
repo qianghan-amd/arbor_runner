@@ -189,7 +189,7 @@
     "draft_id": null,
     "draft_rev": null,
     "corpus_id": "semianalysisai/cc-traces-weka-062126",
-    "corpus_rev": null,
+    "corpus_rev": "23f152f6f0f9399a85901b89a6458def0ef16729",
     "served_model_name": "amd/GLM-5.2-MXFP4",
     "workspace_root": "/sgl-workspace/sglang",
     "editable_packages": [
@@ -213,9 +213,7 @@
       "num_questions": 1319,
       "concurrency": 64
     },
-    "missing": [
-      "corpus_rev"
-    ],
-    "source": "evidence/2026-11-19_0432_port/raw/glm52__c1_p90.json + evidence/2026-11-19_0830_launch/raw/glm52__c1_p90.json"
+    "missing": [],
+    "source": "evidence/2026-11-19_0432_port/raw/glm52__c1_p90.json + evidence/2026-11-19_0830_launch/raw/glm52__c1_p90.json + evidence/2026-11-19_0830_launch/corpus_pins.yaml#glm52/c1_p90"
   }
 }

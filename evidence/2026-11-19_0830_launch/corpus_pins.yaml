@@ -1,0 +1,14 @@
+# Corpus revisions recovered after the launch collection (2026-11-19 ~23:30Z), read-only on crusoe2_006/crs5.
+# add_launch.py uses these only where a cell's own env.sh / dl.sh did not name the corpus or its revision.
+cells:
+  glm52/c1_p90:
+    corpus_id: semianalysisai/cc-traces-weka-062126
+    corpus_rev: 23f152f6f0f9399a85901b89a6458def0ef16729
+    source: "named in the campaign's own logs: experiments/glm52-c1-p90-sa/logs (cc-traces-weka-062126@23f152f6f0f9399a85901b89a6458def0ef16729)"
+  dsv41flash/c32_tput:
+    corpus_id: semianalysisai/cc-traces-weka-062126
+    corpus_rev: 23f152f6f0f9399a85901b89a6458def0ef16729
+    source: >-
+      the campaign's logs name datasets--semianalysisai--cc-traces-weka-062126 and its env.sh reads the shared hub
+      (HF_HUB_HOST=/shared_nfs/huggingface/hub); that hub holds exactly one snapshot of the dataset, 23f152f6f0f9...,
+      created 2026-08-19, before the campaign (2026-11-07)
