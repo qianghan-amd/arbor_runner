@@ -1,0 +1,8 @@
+#!/bin/bash
+# Tests must pass before a commit (enabled by scripts/setup_dev.sh: git config core.hooksPath .githooks).
+# A piped "pytest | tail" once hid a failure and a commit went in red (2026-11-19).
+cd "$(git rev-parse --show-toplevel)" || exit 1
+PY=.venv/bin/python; [ -x "$PY" ] || PY=.venv/Scripts/python
+[ -x "$PY" ] || { echo "pre-commit: no .venv (run bash scripts/setup_dev.sh)"; exit 1; }
+"$PY" -m pytest -q tests >/tmp/arbor-ab-precommit.log 2>&1 || { tail -25 /tmp/arbor-ab-precommit.log; echo "pre-commit: tests failed, commit refused"; exit 1; }
+tail -1 /tmp/arbor-ab-precommit.log
