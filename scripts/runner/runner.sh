@@ -276,7 +276,10 @@ PY
             -e EVAL_CONCURRENT_REQUESTS="$GSM8K_CONC" -e EVAL_RESULT_DIR="$cin/gsm8k" -e EVAL_LIMIT="$nq" -e HF_HUB_OFFLINE=0 \
             "$CONTAINER" bash -c "cd /workspace/InferenceX && timeout 5400 bash -c 'source benchmarks/benchmark_lib.sh && \
             run_lm_eval --port $PORT --task infx/evals/gsm8k.yaml --results-dir $cin/gsm8k'" > "$out/gsm8k.log" 2>&1
-        ls "$out"/gsm8k/results_*.json "$out"/gsm8k/*/results_*.json >/dev/null 2>&1 || { log "$TAG: GSM8K produced no results"; return 1; }
+        # lm-eval writes results_*.json directly in the dir or one level below; `ls a b` fails when either is absent
+        # (smoke job 299522 had results and was failed by that), so: any match at depth 1-2
+        [ -n "$(find "$out/gsm8k" -maxdepth 2 -name 'results_*.json' -print -quit 2>/dev/null)" ] \
+            || { log "$TAG: GSM8K produced no results"; return 1; }
     else
         in_c "cd /tmp && timeout 5400 python3 -m sglang.test.few_shot_gsm8k --num-questions $nq --port $PORT --parallel $GSM8K_CONC" \
             > "$out/gsm8k.log" 2>&1
