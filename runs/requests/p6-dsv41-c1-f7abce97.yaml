@@ -7,4 +7,7 @@ campaign_minutes: 180
 exclude_nodes: [crsuse2-m2m-v3-177]
 backend_options: { qos: amd-agentx-qos, account: amd-agentx }
 targets:
-  - { model: dsv41flash, target: c1_p90 }
+# weights: the pinned snapshot in the shared HF hub (verified 2026-11-19: 48/48 shards, index + config byte-identical
+# to dba1be0a40), used instead of downloading; recorded as weights_source user_path.
+# Added after job 299696 was submitted: that run downloaded the weights (see its weights.json).
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }

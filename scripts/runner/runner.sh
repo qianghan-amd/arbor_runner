@@ -160,7 +160,14 @@ prepare() {
         local render video; render=$(getent group render | cut -d: -f3); video=$(getent group video | cut -d: -f3)
         # user-supplied weights: the hub's snapshots/<rev> is a symlink to them (fetch.py), so they are mounted
         # read-only at the same absolute path for the link to resolve in the container
-        local wmount=(); [ -n "${WEIGHTS_PATH:-}" ] && wmount=(-v "$WEIGHTS_PATH:$WEIGHTS_PATH:ro")
+        local wmount=() wroot
+        if [ -n "${WEIGHTS_PATH:-}" ]; then
+            wroot=$WEIGHTS_PATH
+            # an HF hub snapshot's shards are relative links into ../../blobs: mount the whole models--X entry
+            # (the shared hub's DSv4.1, Kimi K3 and GLM-5.2 snapshots are laid out so, verified 2026-11-19)
+            case "$WEIGHTS_PATH" in */models--*/snapshots/*) wroot=${WEIGHTS_PATH%/snapshots/*} ;; esac
+            wmount=(-v "$wroot:$wroot:ro")
+        fi
         docker run -d --name "$CONTAINER" --entrypoint /bin/bash ${wmount[@]+"${wmount[@]}"} \
             --network host --ipc host --device /dev/kfd --device /dev/dri \
             --group-add "${render:-109}" --group-add "${video:-44}" \

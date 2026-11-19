@@ -69,7 +69,10 @@ targets:
 ```
 
 - `weights_path` is an absolute path, as the node sees it, to a directory holding the model files
-  (`config.json`, `model.safetensors.index.json`, the shards). Without it, nothing changes: the weights are downloaded
+  (`config.json`, `model.safetensors.index.json`, the shards). An HF hub snapshot works directly, e.g. the shared hub's
+  `/shared_nfs/huggingface/hub/models--<org>--<name>/snapshots/<pinned rev>` (its shards are links into `../../blobs`;
+  the runner mounts the whole `models--<org>--<name>` entry). On Crusoe the shared hub holds the pinned weights of
+  DSv4.1 Flash, Kimi K3, MiniMax M3.1 Flash and GLM-5.2 (not Muse Spark; checked 2026-11-19). Without it, nothing changes: the weights are downloaded
   at the baseline's pinned revision.
 - The weights must be the **pinned** ones: the runner downloads only `config.json` and `model.safetensors.index.json`
   at the pinned revision and requires both to be byte-identical to yours, and every indexed shard to exist; otherwise

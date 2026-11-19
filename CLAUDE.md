@@ -15,6 +15,9 @@ new class of problem in the repo (script, config, check, doc), never as a one-of
   commit (user decision 2026-11-19).
 - Bytes are LF everywhere (`.gitattributes`). Provenance sha256 values in `baselines/` are over LF files. Python on
   Windows: pass `newline="\n"` to `write_text`/`open`. `git archive`: `-c core.autocrlf=false -c core.eol=lf`.
+- Windows Git Bash rewrites `/abs/paths` passed as arguments to native programs (python, scp's local side) into
+  `C:/.../Git/abs/paths`: set `MSYS_NO_PATHCONV=1`, or build such paths inside the program. (A request got
+  `weights_path: C:/Users/.../Git/shared_nfs/...` once; submit_ab_test.py refused it as not absolute.)
 - Edit code that contains backslash escapes with an editor tool, not a shell heredoc or `sed`: the shell layer turned
   `b"\r\n"` into raw bytes once. After any scripted edit: `python -m py_compile` and `grep -c $'\r'`.
 
