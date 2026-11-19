@@ -152,7 +152,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/gsm8k/deepseek-ai__DeepSeek-V4.1-Flash/results_2026-11-08T16-52-19.471790.json#results.gsm8k"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/dsv41flash__c32_tput.json sha256=7d27f3f3f874b3d59b78dc7b9d401cc1f6c593cf3ff076253a54923deeda0319",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/dsv41flash__c32_tput.json sha256=41449dbae2436a722c318b3e4be2ae86d243457ed2eeb6d1eec9228f700d75fe",
     "_source": "DSv4.1 Flash (measure_before_campaign -> measure_after_campaign)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json#request_metrics.throughput.per_gpu.total_tput_tps",

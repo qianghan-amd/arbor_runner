@@ -1,0 +1,1512 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/env.sh",
+   "sha256": "3b94b7d697848b333629404c0686eb499ce75e714afaa2d4c469ebee511d26e5",
+   "size": 1621,
+   "mtime": 1794015172,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/dsv41f-c32-tput",
+    "LOGS": "$EXP/logs",
+    "ARBOR": "$TOP/codebases/Arbor",
+    "INFX": "$TOP/codebases/InferenceX",
+    "PY": "$TOP/.venv/bin/python",
+    "CONFIG": "$ARBOR/configs/mi355x/dsv41flash-fp4-agentx-c32-tput.json",
+    "CONFIG_REL": "configs/mi355x/dsv41flash-fp4-agentx-c32-tput.json",
+    "PACK_YAML": "$ARBOR/packs/agentx-dsv41flash-c32/pack.yaml",
+    "SESSIONS": "$EXP/sessions",
+    "SESSION": "$SESSIONS/c32-tput",
+    "BASELINE_DIR": "$EXP/baseline",
+    "MMAP_CACHE": "$EXP/aiperf_mmap_cache",
+    "AGENT_HOME": "$EXP/agent_home",
+    "IMAGE_TAG": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "IMAGE_DIGEST": "sha256:2a1ade1954e64230fcd63d9f840bdfca68e357c550cdb48bd2e56d52e55a3430",
+    "IMAGE_REF": "vllm/vllm-openai-rocm@$IMAGE_DIGEST",
+    "CONTAINER": "dsv41f_c32_tput",
+    "HF_HUB_HOST": "/shared_nfs/huggingface/hub",
+    "MODEL_C": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "WORKSPACE_ROOT": "$(cat \"$EXP/WORKSPACE_ROOT\" 2>/dev/null || echo /usr/local/lib/python3.12/dist-packages/vllm)"
+   }
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/spur-272282.out",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "size": 0,
+   "mtime": 1794026292,
+   "head": []
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/c32-tput/reports/trace/meta.json",
+   "sha256": "46df789c296df8f1f76f15b20b28078d31725e073d7a59bc04acb8cfb6ddc8e5",
+   "size": 32283,
+   "mtime": 1794142439,
+   "json": {
+    "arbor_session_dir": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/c32-tput",
+    "started": "2026-11-07T12:17:59.712609+00:00",
+    "arbor_git_sha": "508c4949b3a40e894e6123425b768f458e48eedf",
+    "config": {
+     "_note": "DeepSeek-V4.1-Flash FP4, vLLM TP4 on MI355X (Crusoe, Spur partition amd-spur-v2, QOS amd-hyperloom-qos), InferenceX AgentX replay at C32, objective total tok/s per GPU. The launch is the InferenceX recipe benchmarks/single_node/agentic/dsv41flash_fp4_mi355x_vllm_mtp.sh at 86699be610 as CI run 34657748450 ran it (packs/agentx-dsv41flash-c32/knowledge/operating-point.md). Provisioned by /shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/ (prepare.sh: image by digest, container, git baseline of the vLLM tree).",
+     "pack": "agentx-dsv41flash-c32",
+     "identity": "inference:agentx:mi355x:vllm:fp4:dsv41flash:c32:tp4:tput",
+     "goal": "Raise DeepSeek-V4.1-Flash's total (input + output) throughput per GPU on the InferenceX AgentX replay at C32 on four MI355X GPUs, from the CI-aligned launch, without losing p50 interactivity.",
+     "docker_container": "dsv41f_c32_tput",
+     "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
+     "session_root": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/c32-tput",
+     "session_mount": "/workspace/sessions",
+     "framework": "vllm",
+     "model_path": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+     "model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+     "tp": 4,
+     "port": 8889,
+     "gpu_ids": "0,1,2,3",
+     "server_flags": "--language-model-only --tokenizer-mode deepseek_v41 --tool-call-parser deepseek_v41 --enable-auto-tool-choice --reasoning-parser deepseek_v41 --moe-backend aiter_triton_mxfp4_bf16 --gpu-memory-utilization 0.9 --speculative-config '{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"synthetic\",\"synthetic_acceptance_length\":3.51,\"enable_adaptive_verification\":false}' --max-model-len 1048576 --max-num-seqs 64 --max-cudagraph-capture-size 512 --max-num-batched-tokens 16384 --disable-uvicorn-access-log",
+     "_server_flags_note": "Verbatim from the recipe for CONC=32: MAX_NUM_SEQS=2*CONC=64, CAPTURE_SIZE=first power of two >= 64*(1+5)=384 -> 512.",
+     "server_env": {
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE": "1",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "1",
+      "OMP_NUM_THREADS": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+      "VLLM_USE_RUST_FRONTEND": "1",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPYCACHEPREFIX": "/tmp/inferencex-pycache",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HUB_OFFLINE": "1",
+      "MODEL_PREFIX": "dsv41flash",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+      "TP": "4",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache",
+      "GSM8K_LIMIT": "400",
+      "GSM8K_MIN": "0.5513"
+     },
+     "_duration_note": "CI measures 3600 s. Iterations measure 600 s so a 24 h campaign gets ~20 iterations; the bar and the noise bands come from two cold 600 s replays on this node, and the CI-aligned 3600 s figure is measured separately at the start and the end (experiments/dsv41f-c32-tput).",
+     "concurrency": 32,
+     "num_prompts": 320,
+     "bench_timeout": 5400,
+     "bench_script": "/workspace/Arbor/packs/agentx-dsv41flash-c32/validator/bench.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-dsv41flash-c32/validator/correctness.sh",
+     "baseline_record": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/baseline/baseline_c32_d600.json",
+     "review_gate": false,
+     "time_budget_minutes": 1440,
+     "editable_packages": [
+      {
+       "name": "aiter",
+       "path": "/usr/local/lib/python3.12/dist-packages/aiter",
+       "rebuild": null
+      }
+     ],
+     "target": {
+      "total_throughput_per_gpu": 20355.664,
+      "p50_interactivity": 25.324,
+      "_source": "SET BY THE CAMPAIGN SBATCH from this node's measured bar: total_throughput_per_gpu 14539.76034 x 1.40, pooled from 2 COLD replay(s)."
+     },
+     "_gsm8k_note": "GSM8K_MIN 0.5513 = this node's full-set baseline score 0.6240 (1319 questions, synthetic acceptance on) less 3 standard errors of a 400-question subset."
+    },
+    "host": "crsuse2-m2m-v3-244",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "3172c7f1-4312-4592-b76d-f8298697fb47",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/3172c7f1-4312-4592-b76d-f8298697fb47.jsonl",
+      "first_seen": "2026-11-07T12:18:19.273233+00:00",
+      "last_seen": "2026-11-07T12:37:15.232951+00:00"
+     },
+     {
+      "session_id": "5a7e70d0-3535-4967-bd7c-840915bc0a32",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/5a7e70d0-3535-4967-bd7c-840915bc0a32.jsonl",
+      "first_seen": "2026-11-07T12:38:15.235332+00:00",
+      "last_seen": "2026-11-07T13:35:14.250234+00:00"
+     },
+     {
+      "session_id": "2ac21d33-793e-453b-b760-ddf2be7a5cbe",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/2ac21d33-793e-453b-b760-ddf2be7a5cbe.jsonl",
+      "first_seen": "2026-11-07T13:36:28.041551+00:00",
+      "last_seen": "2026-11-07T13:38:50.020892+00:00"
+     },
+     {
+      "session_id": "95f744df-f339-4740-8bee-a6059d519d3b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/95f744df-f339-4740-8bee-a6059d519d3b.jsonl",
+      "first_seen": "2026-11-07T13:39:44.225637+00:00",
+      "last_seen": "2026-11-07T13:45:13.886863+00:00"
+     },
+     {
+      "session_id": "df1dd18e-2b30-4f6b-910c-425b4da72596",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/df1dd18e-2b30-4f6b-910c-425b4da72596.jsonl",
+      "first_seen": "2026-11-07T13:45:47.894374+00:00",
+      "last_seen": "2026-11-07T13:51:14.073883+00:00"
+     },
+     {
+      "session_id": "4adc11e6-8f57-480d-83a7-f46886ec20a6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/4adc11e6-8f57-480d-83a7-f46886ec20a6.jsonl",
+      "first_seen": "2026-11-07T13:51:23.168695+00:00",
+      "last_seen": "2026-11-07T14:38:55.313385+00:00"
+     },
+     {
+      "session_id": "506968ab-ac6d-4e2b-815a-99a1c6bf7f24",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/506968ab-ac6d-4e2b-815a-99a1c6bf7f24.jsonl",
+      "first_seen": "2026-11-07T14:40:03.793802+00:00",
+      "last_seen": "2026-11-07T14:40:28.269799+00:00"
+     },
+     {
+      "session_id": "30359d97-2944-45f8-b0ea-c8eaee4d4d3c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/30359d97-2944-45f8-b0ea-c8eaee4d4d3c.jsonl",
+      "first_seen": "2026-11-07T14:53:40.541909+00:00",
+      "last_seen": "2026-11-07T14:58:19.450445+00:00"
+     },
+     {
+      "session_id": "ed48a307-e670-45a9-b019-653ea77a5ff1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/ed48a307-e670-45a9-b019-653ea77a5ff1.jsonl",
+      "first_seen": "2026-11-07T14:58:53.428935+00:00",
+      "last_seen": "2026-11-07T15:05:19.436601+00:00"
+     },
+     {
+      "session_id": "2e43446d-0353-4b88-9124-a5e8332c5486",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/2e43446d-0353-4b88-9124-a5e8332c5486.jsonl",
+      "first_seen": "2026-11-07T15:05:25.298890+00:00",
+      "last_seen": "2026-11-07T15:42:58.960823+00:00"
+     },
+     {
+      "session_id": "117f670c-8db0-48fc-9862-327944fc8347",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/117f670c-8db0-48fc-9862-327944fc8347.jsonl",
+      "first_seen": "2026-11-07T15:44:56.295939+00:00",
+      "last_seen": "2026-11-07T15:45:53.259899+00:00"
+     },
+     {
+      "session_id": "89eb40bb-f61b-4533-a156-ebba05c040ec",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/89eb40bb-f61b-4533-a156-ebba05c040ec.jsonl",
+      "first_seen": "2026-11-07T15:46:24.242637+00:00",
+      "last_seen": "2026-11-07T15:51:49.324594+00:00"
+     },
+     {
+      "session_id": "7c3a7f2a-a32f-4eda-9461-eddcaa38d15a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-dsv41flash-codebases-Arbor/7c3a7f2a-a32f-4eda-9461-eddcaa38d15a.jsonl",
+      "first_seen": "2026-11-07T15:51:55.214951+00:00",
+      "last_seen": "2026-11-07T15:53:07.284378+00:00"
+     },
+     {
+      "session_id": "9abb05b6-7064-4bbb-823f-6df6184c5746",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/9abb05b6-7064-4bbb-823f-6df6184c5746.jsonl",
+      "first_seen": "2026-11-07T16:05:08.769833+00:00",
+      "last_seen": "2026-11-07T16:06:13.123309+00:00"
+     },
+     {
+      "session_id": "b66805b3-f2f8-42ae-9fb3-fa9c1f51bde0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/b66805b3-f2f8-42ae-9fb3-fa9c1f51bde0.jsonl",
+      "first_seen": "2026-11-07T16:06:41.660539+00:00",
+      "last_seen": "2026-11-07T16:15:12.293503+00:00"
+     },
+     {
+      "session_id": "93ec4cfd-d898-4863-b65c-bbd67decf1ba",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/93ec4cfd-d898-4863-b65c-bbd67decf1ba.jsonl",
+      "first_seen": "2026-11-07T16:15:16.822605+00:00",
+      "last_seen": "2026-11-07T16:52:47.968584+00:00"
+     },
+     {
+      "session_id": "7384dadc-7314-4f0b-a8ef-06b82ee5accc",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/7384dadc-7314-4f0b-a8ef-06b82ee5accc.jsonl",
+      "first_seen": "2026-11-07T16:54:48.087940+00:00",
+      "last_seen": "2026-11-07T17:02:55.653936+00:00"
+     },
+     {
+      "session_id": "8602e3b5-31a1-447f-b6dd-30a770d3b081",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/8602e3b5-31a1-447f-b6dd-30a770d3b081.jsonl",
+      "first_seen": "2026-11-07T17:04:01.126944+00:00",
+      "last_seen": "2026-11-07T17:09:09.921042+00:00"
+     },
+     {
+      "session_id": "8454db48-9430-4ff5-9c4d-b2c1241d3f22",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/8454db48-9430-4ff5-9c4d-b2c1241d3f22.jsonl",
+      "first_seen": "2026-11-07T17:10:07.390690+00:00",
+      "last_seen": "2026-11-07T18:00:36.305963+00:00"
+     },
+     {
+      "session_id": "5656c2c6-6a72-44d2-9716-966312cb9eeb",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/5656c2c6-6a72-44d2-9716-966312cb9eeb.jsonl",
+      "first_seen": "2026-11-07T18:01:16.539968+00:00",
+      "last_seen": "2026-11-07T18:06:38.660927+00:00"
+     },
+     {
+      "session_id": "4c82c978-1475-4de5-b022-849c4edc6a0a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/4c82c978-1475-4de5-b022-849c4edc6a0a.jsonl",
+      "first_seen": "2026-11-07T18:06:43.583191+00:00",
+      "last_seen": "2026-11-07T18:43:28.876543+00:00"
+     },
+     {
+      "session_id": "6b980882-d496-4ca7-ac0e-591598db959c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/6b980882-d496-4ca7-ac0e-591598db959c.jsonl",
+      "first_seen": "2026-11-07T18:45:25.450055+00:00",
+      "last_seen": "2026-11-07T18:49:44.022794+00:00"
+     },
+     {
+      "session_id": "af9bf5a2-8ffe-4958-a27f-faafc3052aab",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/af9bf5a2-8ffe-4958-a27f-faafc3052aab.jsonl",
+      "first_seen": "2026-11-07T18:50:45.243689+00:00",
+      "last_seen": "2026-11-07T18:59:35.042191+00:00"
+     },
+     {
+      "session_id": "1d36b829-9a15-4ee9-a0e4-84aed5d2a428",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/1d36b829-9a15-4ee9-a0e4-84aed5d2a428.jsonl",
+      "first_seen": "2026-11-07T19:00:17.588981+00:00",
+      "last_seen": "2026-11-07T19:05:40.393199+00:00"
+     },
+     {
+      "session_id": "61b6c519-a77a-4ef4-a89f-472a7010f7a2",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/61b6c519-a77a-4ef4-a89f-472a7010f7a2.jsonl",
+      "first_seen": "2026-11-07T19:05:47.090830+00:00",
+      "last_seen": "2026-11-07T19:42:29.856557+00:00"
+     },
+     {
+      "session_id": "75a787ee-4f40-46f5-9854-1d6c31e9ec7d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/75a787ee-4f40-46f5-9854-1d6c31e9ec7d.jsonl",
+      "first_seen": "2026-11-07T19:44:27.083172+00:00",
+      "last_seen": "2026-11-07T19:46:15.162438+00:00"
+     },
+     {
+      "session_id": "8b4ec6f8-9abb-4285-9cae-0faacc56e64e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/8b4ec6f8-9abb-4285-9cae-0faacc56e64e.jsonl",
+      "first_seen": "2026-11-07T19:47:07.047124+00:00",
+      "last_seen": "2026-11-07T20:24:31.411191+00:00"
+     },
+     {
+      "session_id": "9ea5f41f-30d1-4fee-b231-1184f19545bc",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/9ea5f41f-30d1-4fee-b231-1184f19545bc.jsonl",
+      "first_seen": "2026-11-07T20:25:32.895321+00:00",
+      "last_seen": "2026-11-07T20:53:05.254601+00:00"
+     },
+     {
+      "session_id": "bdeb540d-818e-430a-9ec0-9e0793198791",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/bdeb540d-818e-430a-9ec0-9e0793198791.jsonl",
+      "first_seen": "2026-11-07T20:54:06.290417+00:00",
+      "last_seen": "2026-11-07T20:56:25.762934+00:00"
+     },
+     {
+      "session_id": "186ef0ff-9431-425e-b8da-adf06504c462",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/186ef0ff-9431-425e-b8da-adf06504c462.jsonl",
+      "first_seen": "2026-11-07T20:56:58.860798+00:00",
+      "last_seen": "2026-11-07T21:02:18.529522+00:00"
+     },
+     {
+      "session_id": "d57da362-e493-4cc6-9c7e-ce2ef7f2f8a5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/d57da362-e493-4cc6-9c7e-ce2ef7f2f8a5.jsonl",
+      "first_seen": "2026-11-07T21:02:47.897970+00:00",
+      "last_seen": "2026-11-07T21:38:10.478028+00:00"
+     },
+     {
+      "session_id": "ecce9e3a-8c73-47c8-a7b4-d67114100aa1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/ecce9e3a-8c73-47c8-a7b4-d67114100aa1.jsonl",
+      "first_seen": "2026-11-07T21:39:17.261414+00:00",
+      "last_seen": "2026-11-07T21:48:47.118518+00:00"
+     },
+     {
+      "session_id": "6d16debe-0fd4-4f89-8de4-792c38611679",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/6d16debe-0fd4-4f89-8de4-792c38611679.jsonl",
+      "first_seen": "2026-11-07T21:49:45.597494+00:00",
+      "last_seen": "2026-11-07T22:39:00.980211+00:00"
+     },
+     {
+      "session_id": "23b89b6e-6aa1-4223-9e2c-7924772fe831",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/23b89b6e-6aa1-4223-9e2c-7924772fe831.jsonl",
+      "first_seen": "2026-11-07T22:39:46.178702+00:00",
+      "last_seen": "2026-11-07T22:40:58.739884+00:00"
+     },
+     {
+      "session_id": "6b268265-bfec-496e-b4a5-5ae2a9cd1615",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/6b268265-bfec-496e-b4a5-5ae2a9cd1615.jsonl",
+      "first_seen": "2026-11-07T22:45:14.850337+00:00",
+      "last_seen": "2026-11-07T23:18:32.476600+00:00"
+     },
+     {
+      "session_id": "cfd16f43-9295-4bd1-902c-720ece6ed22d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/cfd16f43-9295-4bd1-902c-720ece6ed22d.jsonl",
+      "first_seen": "2026-11-07T23:19:25.695655+00:00",
+      "last_seen": "2026-11-07T23:19:29.985982+00:00"
+     },
+     {
+      "session_id": "8e42eb5a-2ab4-45b1-a2e4-0c60a11df2b0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/8e42eb5a-2ab4-45b1-a2e4-0c60a11df2b0.jsonl",
+      "first_seen": "2026-11-08T00:20:31.430157+00:00",
+      "last_seen": "2026-11-08T00:50:23.104015+00:00"
+     },
+     {
+      "session_id": "7af9fd46-a004-418f-93ac-24ce53954db7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/7af9fd46-a004-418f-93ac-24ce53954db7.jsonl",
+      "first_seen": "2026-11-08T00:51:18.912221+00:00",
+      "last_seen": "2026-11-08T00:56:10.846704+00:00"
+     },
+     {
+      "session_id": "d3d1d718-23af-4249-92d1-e47d1c8d6ca5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/d3d1d718-23af-4249-92d1-e47d1c8d6ca5.jsonl",
+      "first_seen": "2026-11-08T00:56:50.213918+00:00",
+      "last_seen": "2026-11-08T01:03:16.016323+00:00"
+     },
+     {
+      "session_id": "45a6c089-3ec0-4053-b1c0-6ebc282bb319",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/45a6c089-3ec0-4053-b1c0-6ebc282bb319.jsonl",
+      "first_seen": "2026-11-08T01:03:22.246015+00:00",
+      "last_seen": "2026-11-08T01:36:41.452558+00:00"
+     },
+     {
+      "session_id": "01fdc26b-790a-4ea3-9547-e1bdd9c7e58f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/01fdc26b-790a-4ea3-9547-e1bdd9c7e58f.jsonl",
+      "first_seen": "2026-11-08T01:37:48.381851+00:00",
+      "last_seen": "2026-11-08T01:43:27.585873+00:00"
+     },
+     {
+      "session_id": "4fa9f177-9d78-4230-8202-d6a798bc8455",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/4fa9f177-9d78-4230-8202-d6a798bc8455.jsonl",
+      "first_seen": "2026-11-08T01:44:23.463207+00:00",
+      "last_seen": "2026-11-08T01:47:03.545462+00:00"
+     },
+     {
+      "session_id": "57f659ba-bb71-4ec4-87c8-516ba8d49aaa",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/57f659ba-bb71-4ec4-87c8-516ba8d49aaa.jsonl",
+      "first_seen": "2026-11-08T01:47:52.948788+00:00",
+      "last_seen": "2026-11-08T02:03:15.342921+00:00"
+     },
+     {
+      "session_id": "0bd0d2d0-9c06-41bd-ae0e-35210cf9e4ce",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/0bd0d2d0-9c06-41bd-ae0e-35210cf9e4ce.jsonl",
+      "first_seen": "2026-11-08T02:03:54.321632+00:00",
+      "last_seen": "2026-11-08T02:09:15.260527+00:00"
+     },
+     {
+      "session_id": "f22f4a4d-66cb-4e16-99fc-141009dea724",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/f22f4a4d-66cb-4e16-99fc-141009dea724.jsonl",
+      "first_seen": "2026-11-08T04:52:27.047589+00:00",
+      "last_seen": "2026-11-08T04:53:28.083756+00:00"
+     },
+     {
+      "session_id": "0b179c6a-231f-4a2a-9576-62ab1c74b10a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/0b179c6a-231f-4a2a-9576-62ab1c74b10a.jsonl",
+      "first_seen": "2026-11-08T04:54:05.178825+00:00",
+      "last_seen": "2026-11-08T05:00:34.407755+00:00"
+     },
+     {
+      "session_id": "6f9f0a02-de41-4601-ae44-efd41d4c188a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/6f9f0a02-de41-4601-ae44-efd41d4c188a.jsonl",
+      "first_seen": "2026-11-08T05:00:42.029285+00:00",
+      "last_seen": "2026-11-08T05:55:19.356259+00:00"
+     },
+     {
+      "session_id": "1169aa97-9617-41b1-8573-ab4e7b9b03ee",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/1169aa97-9617-41b1-8573-ab4e7b9b03ee.jsonl",
+      "first_seen": "2026-11-08T05:57:01.371505+00:00",
+      "last_seen": "2026-11-08T05:57:44.760940+00:00"
+     },
+     {
+      "session_id": "1ada07a4-359f-4a6c-be62-a36ce1c1eaa8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/1ada07a4-359f-4a6c-be62-a36ce1c1eaa8.jsonl",
+      "first_seen": "2026-11-08T05:58:31.715242+00:00",
+      "last_seen": "2026-11-08T06:03:47.073058+00:00"
+     },
+     {
+      "session_id": "e88e458e-534a-4e60-9e79-f2d3c3b3ec07",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/e88e458e-534a-4e60-9e79-f2d3c3b3ec07.jsonl",
+      "first_seen": "2026-11-08T06:04:42.186707+00:00",
+      "last_seen": "2026-11-08T06:06:54.964361+00:00"
+     },
+     {
+      "session_id": "c59294e6-a7fa-477d-b4b5-6cb7b45232af",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/c59294e6-a7fa-477d-b4b5-6cb7b45232af.jsonl",
+      "first_seen": "2026-11-08T06:07:34.472410+00:00",
+      "last_seen": "2026-11-08T06:12:19.931464+00:00"
+     },
+     {
+      "session_id": "bab91dca-d98e-42f9-b307-edc45ed0080b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/bab91dca-d98e-42f9-b307-edc45ed0080b.jsonl",
+      "first_seen": "2026-11-08T06:12:25.521188+00:00",
+      "last_seen": "2026-11-08T06:46:08.090055+00:00"
+     },
+     {
+      "session_id": "a9fee3c2-6f51-4a44-8029-8e3b4ec54c94",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/a9fee3c2-6f51-4a44-8029-8e3b4ec54c94.jsonl",
+      "first_seen": "2026-11-08T06:46:57.573402+00:00",
+      "last_seen": "2026-11-08T06:47:07.231862+00:00"
+     },
+     {
+      "session_id": "966fa0fc-f5f4-40ee-9dd7-5150686407c4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/966fa0fc-f5f4-40ee-9dd7-5150686407c4.jsonl",
+      "first_seen": "2026-11-08T06:48:02.829195+00:00",
+      "last_seen": "2026-11-08T08:06:03.034430+00:00"
+     },
+     {
+      "session_id": "f8efce02-c45d-48e8-b28d-7a1af36f91d4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/f8efce02-c45d-48e8-b28d-7a1af36f91d4.jsonl",
+      "first_seen": "2026-11-08T08:07:09.244951+00:00",
+      "last_seen": "2026-11-08T08:18:47.685770+00:00"
+     },
+     {
+      "session_id": "5af9a5d8-4898-44ff-b3cc-eafdfe509a13",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/5af9a5d8-4898-44ff-b3cc-eafdfe509a13.jsonl",
+      "first_seen": "2026-11-08T08:19:49.126777+00:00",
+      "last_seen": "2026-11-08T08:32:50.224572+00:00"
+     },
+     {
+      "session_id": "ea9218d3-cf11-48b7-a755-b8c37ed2c269",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/ea9218d3-cf11-48b7-a755-b8c37ed2c269.jsonl",
+      "first_seen": "2026-11-08T08:33:35.476115+00:00",
+      "last_seen": "2026-11-08T08:38:56.274332+00:00"
+     },
+     {
+      "session_id": "ee84e949-72fa-4708-858c-786911be4db5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/ee84e949-72fa-4708-858c-786911be4db5.jsonl",
+      "first_seen": "2026-11-08T08:39:00.354691+00:00",
+      "last_seen": "2026-11-08T09:32:06.779318+00:00"
+     },
+     {
+      "session_id": "66ca10ce-8238-41e9-8f00-884e4891951d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/66ca10ce-8238-41e9-8f00-884e4891951d.jsonl",
+      "first_seen": "2026-11-08T09:33:00.092051+00:00",
+      "last_seen": "2026-11-08T09:39:03.779861+00:00"
+     },
+     {
+      "session_id": "2de79cfe-a125-40d4-a9bf-f80551c68402",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/2de79cfe-a125-40d4-a9bf-f80551c68402.jsonl",
+      "first_seen": "2026-11-08T09:40:01.842105+00:00",
+      "last_seen": "2026-11-08T10:00:41.367538+00:00"
+     },
+     {
+      "session_id": "4c01f60c-1de6-4d9b-aa64-7f601963c304",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/4c01f60c-1de6-4d9b-aa64-7f601963c304.jsonl",
+      "first_seen": "2026-11-08T10:01:11.285093+00:00",
+      "last_seen": "2026-11-08T10:06:37.318136+00:00"
+     },
+     {
+      "session_id": "61892a90-e527-4d68-99a9-96bf95c6ced1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/61892a90-e527-4d68-99a9-96bf95c6ced1.jsonl",
+      "first_seen": "2026-11-08T10:06:41.974466+00:00",
+      "last_seen": "2026-11-08T10:42:12.047691+00:00"
+     },
+     {
+      "session_id": "1ec6fc11-0e01-40e7-bcda-8f26967d8b32",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/1ec6fc11-0e01-40e7-bcda-8f26967d8b32.jsonl",
+      "first_seen": "2026-11-08T10:43:04.515961+00:00",
+      "last_seen": "2026-11-08T10:43:17.893764+00:00"
+     },
+     {
+      "session_id": "6e974932-668b-4f9c-93f3-49729bb98519",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/6e974932-668b-4f9c-93f3-49729bb98519.jsonl",
+      "first_seen": "2026-11-08T10:44:15.048162+00:00",
+      "last_seen": "2026-11-08T11:21:28.399453+00:00"
+     },
+     {
+      "session_id": "ae7a9d8a-7c1c-44cb-93c8-0e10ca7efbcd",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/ae7a9d8a-7c1c-44cb-93c8-0e10ca7efbcd.jsonl",
+      "first_seen": "2026-11-08T11:22:36.378443+00:00",
+      "last_seen": "2026-11-08T11:25:10.399229+00:00"
+     },
+     {
+      "session_id": "033c7653-045c-4a4f-8a59-332f1239df58",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/033c7653-045c-4a4f-8a59-332f1239df58.jsonl",
+      "first_seen": "2026-11-08T11:25:53.593948+00:00",
+      "last_seen": "2026-11-08T11:31:46.158817+00:00"
+     },
+     {
+      "session_id": "638782ff-a578-4231-93ab-6157c2f08430",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/638782ff-a578-4231-93ab-6157c2f08430.jsonl",
+      "first_seen": "2026-11-08T11:31:51.613513+00:00",
+      "last_seen": "2026-11-08T12:46:43.049866+00:00"
+     },
+     {
+      "session_id": "01c20583-ddd6-4193-8c05-8ae7de823530",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor/01c20583-ddd6-4193-8c05-8ae7de823530.jsonl",
+      "first_seen": "2026-11-08T12:47:34.120405+00:00",
+      "last_seen": "2026-11-08T12:53:59.685532+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json",
+   "sha256": "caccba0389667b60305c83da1b888531f1a1d319647147475ddc4decde0445c0",
+   "size": 5727,
+   "mtime": 1794156453,
+   "json": {
+    "hw": "mi355x",
+    "conc": 32,
+    "image": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "recipe_fingerprint": "",
+    "model": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "infmax_model_prefix": "dsv41flash",
+    "framework": "vllm",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 1,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 2389,
+    "num_requests_successful": 2035,
+    "request_accounting": {
+     "records_total": 2389,
+     "records_profiled": 2035,
+     "records_dropped_total": 354,
+     "records_warmup_dropped": 354,
+     "records_error_dropped": 3,
+     "error_categories": {
+      "InvalidInferenceResultError": 3
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3621,
+      "mean": 0.56172,
+      "p50": 0.0,
+      "p75": 1,
+      "p90": 2,
+      "p95": 2,
+      "std": 0.81437
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.67268,
+       "p50": 0.78206,
+       "p75": 1.6026,
+       "p90": 3.42421,
+       "p95": 5.65689,
+       "std": 2.72645
+      },
+      "e2el": {
+       "mean": 45.32294,
+       "p50": 16.82148,
+       "p75": 43.0594,
+       "p90": 102.17533,
+       "p95": 187.0333,
+       "std": 86.20071
+      },
+      "itl": {
+       "mean": 0.05241,
+       "p50": 0.04647,
+       "p75": 0.05688,
+       "p90": 0.07223,
+       "p95": 0.08739,
+       "std": 0.02621
+      },
+      "tpot": {
+       "mean": 0.05241,
+       "p50": 0.04647,
+       "p75": 0.05688,
+       "p90": 0.07223,
+       "p95": 0.08739,
+       "std": 0.02621
+      },
+      "intvty": {
+       "mean": 19.07949,
+       "p50": 21.51854,
+       "p75": 17.58059,
+       "p90": 13.84408,
+       "p95": 11.44293,
+       "std": 5.44902
+      },
+      "e2e_norm_intvty": {
+       "mean": 15.29679,
+       "p50": 19.5729,
+       "p75": 15.70448,
+       "p90": 11.7591,
+       "p95": 9.81724,
+       "std": 5.26631
+      },
+      "full_response_itl": {
+       "mean": 0.05242,
+       "p50": 0.04647,
+       "p75": 0.05688,
+       "p90": 0.07223,
+       "p95": 0.08739,
+       "std": 0.02621
+      },
+      "full_response_intvty": {
+       "mean": 19.07803,
+       "p50": 21.51853,
+       "p75": 17.58056,
+       "p90": 13.84407,
+       "p95": 11.44291,
+       "std": 5.44764
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 121476.14693,
+       "p50": 90671,
+       "p75": 148576.5,
+       "p90": 220362.2,
+       "p95": 316121.6,
+       "std": 110913.35239
+      },
+      "output_actual": {
+       "mean": 873.27813,
+       "p50": 300,
+       "p75": 811.5,
+       "p90": 2016.2,
+       "p95": 3754.7,
+       "std": 1757.86691
+      },
+      "output_expected": {
+       "mean": 1456.38855,
+       "p50": 626,
+       "p75": 1675,
+       "p90": 3857,
+       "p95": 5482.25,
+       "std": 2267.87986
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 68172.89029
+      },
+      "output": {
+       "tokens_per_second": 490.08711
+      },
+      "total": {
+       "tokens_per_second": 68662.9774
+      },
+      "duration_seconds": 3626.13288,
+      "per_gpu": {
+       "total_tput_tps": 17165.74435,
+       "output_tput_tps": 122.52178,
+       "input_tput_tps": 17043.22257
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.9672
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "vllm",
+     "metric_count": 48,
+     "cache": {
+      "gpu_cache_hit_rate": 0.89051,
+      "cpu_cache_hit_rate": 0.0,
+      "external_cache_hit_rate": 0.0,
+      "overall_cache_hit_rate": 0.89051,
+      "prefix_cache_hits": 287029184,
+      "prefix_cache_queries": 316138990,
+      "external_prefix_cache_hits": 0.0,
+      "external_prefix_cache_queries": 0.0,
+      "cached_tokens_by_source": {},
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.14822,
+      "gpu_total_tokens": null,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 250535786,
+      "generation_total": 1805027,
+      "requests_completed": 2035,
+      "prompt_by_source": {
+       "gpu_cache_hit": 236765632,
+       "cpu_or_external_cache_hit": 0.0,
+       "computed": 29109806,
+       "raw": {
+        "external_kv_transfer": 0.0,
+        "local_cache_hit": 236765632,
+        "local_compute": 29109806
+       }
+      }
+     },
+     "sources": [
+      {
+       "id": "combined|http://localhost:8889/metrics|engine=0",
+       "role": "combined",
+       "prompt_tokens": 250535786,
+       "generation_tokens": 1805027,
+       "prefix_cache_hit_rate": 0.90792,
+       "gpu_kv_cache_usage_pct": 0.14822
+      }
+     ]
+    },
+    "kv_cache_pool_tokens": null,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/r1/bench_output.json",
+   "sha256": "34db8c7833a272f4899d1f12a9011e935198141d9a0dcbe74aaadefa2f142c59",
+   "size": 664,
+   "mtime": 1794156455,
+   "json": {
+    "total_throughput_per_gpu": 17165.74435,
+    "p50_interactivity": 21.51854,
+    "output_throughput": 122.52178,
+    "input_throughput_per_gpu": 17043.22257,
+    "total_throughput": 68662.9774,
+    "p90_interactivity": 13.84408,
+    "mean_interactivity": 19.07949,
+    "median_ttft_s": 0.78206,
+    "p90_ttft_s": 3.42421,
+    "median_tpot_s": 0.04647,
+    "p90_tpot_s": 0.07223,
+    "gpu_cache_hit_rate": 0.89051,
+    "num_requests_successful": 2035,
+    "num_requests_total": 2389,
+    "num_gpus": 4,
+    "conc": 32,
+    "duration_s": 3600,
+    "replay_exit_code": 0,
+    "agg_json_path": "/workspace/sessions/measure_before_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json",
+    "status": "ok"
+   }
+  }
+ ],
+ "before_gsm8k_results": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/gsm8k/deepseek-ai__DeepSeek-V4.1-Flash/results_2026-11-08T16-52-19.471790.json",
+   "sha256": "d0c5d8ed68f2d1aa8e21f51c704e122ed1bfe8898a6bc64841183802e7808ade",
+   "size": 9546,
+   "mtime": 1794156739,
+   "json": {
+    "results": {
+     "gsm8k": {
+      "name": "gsm8k",
+      "alias": "gsm8k",
+      "sample_len": 1319,
+      "exact_match,strict-match": 0.4306292645943897,
+      "exact_match_stderr,strict-match": 0.013639285985979927,
+      "exact_match,flexible-extract": 0.6239575435936315,
+      "exact_match_stderr,flexible-extract": 0.013342532064849774
+     }
+    },
+    "group_subtasks": {},
+    "configs": {
+     "gsm8k": {
+      "task": "gsm8k",
+      "dataset_path": "openai/gsm8k",
+      "dataset_name": "main",
+      "training_split": "train",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+       "sampler": "default",
+       "split": "train",
+       "process_docs": null,
+       "fewshot_indices": null,
+       "samples": null,
+       "doc_to_text": "Question: {{question}}\nAnswer:",
+       "doc_to_choice": null,
+       "doc_to_target": "{{answer}}",
+       "gen_prefix": null,
+       "fewshot_delimiter": "\n\n",
+       "target_delimiter": " "
+      },
+      "num_fewshot": 5,
+      "metric_list": [
+       {
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "higher_is_better": true,
+        "ignore_case": true,
+        "ignore_punctuation": false,
+        "regexes_to_ignore": [
+         ",",
+         "\\$",
+         "(?s).*#### ",
+         "\\.$"
+        ]
+       }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+       "until": [
+        "Question:",
+        "</s>",
+        "<|im_end|>"
+       ],
+       "do_sample": false,
+       "temperature": 0
+      },
+      "repeats": 1,
+      "filter_list": [
+       {
+        "name": "strict-match",
+        "filter": [
+         {
+          "function": "regex",
+          "regex_pattern": "#### (\\-?[0-9\\.\\,]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       },
+       {
+        "name": "flexible-extract",
+        "filter": [
+         {
+          "function": "regex",
+          "group_select": -1,
+          "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+       "version": 3.0,
+       "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+       "base_url": "http://127.0.0.1:8889/v1/completions",
+       "tokenizer": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+       "num_concurrent": 32,
+       "max_retries": 3,
+       "tokenized_requests": false,
+       "config_source": "inline"
+      }
+     }
+    },
+    "versions": {
+     "gsm8k": 3.0
+    },
+    "n-shot": {
+     "gsm8k": 5
+    },
+    "higher_is_better": {
+     "gsm8k": {
+      "exact_match": true
+     }
+    },
+    "n-samples": {
+     "gsm8k": {
+      "original": 1319,
+      "effective": 1319
+     }
+    },
+    "config": {
+     "model": "local-completions",
+     "model_args": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "base_url": "http://127.0.0.1:8889/v1/completions",
+      "tokenizer": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+      "num_concurrent": 32,
+      "max_retries": 3,
+      "tokenized_requests": false
+     },
+     "batch_size": "1",
+     "batch_sizes": [],
+     "device": "cuda:0",
+     "use_cache": null,
+     "limit": 1319.0,
+     "bootstrap_iters": 100000,
+     "gen_kwargs": {
+      "temperature": 0
+     },
+     "random_seed": 1234,
+     "numpy_seed": 1234,
+     "torch_seed": 1234,
+     "fewshot_seed": 1234
+    },
+    "git_hash": null,
+    "date": 1794156462.8616717,
+    "pretty_env_info": "PyTorch version: 2.12.0+git6bbd260\nIs debug build: False\nCUDA used to build PyTorch: N/A\nROCM used to build PyTorch: 7.2.53211\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nClang version: 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.3 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nCMake version: version 3.31.10\nLibc version: glibc-2.35\n\nPython version: 3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0] (64-bit runtime)\nPython platform: Linux-6.8.12-322.crusoe.amd64-g275dd86317a7-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration:  (gfx950:sramecc+:xnack-)\nNvidia driver version: Could not collect\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: 7.2.53211\nMIOpen runtime version: 3.5.1\nIs XNNPACK available: True\nCaching allocator config: N/A\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  236\nOn-line CPU(s) list:                     0-235\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9575F 64-Core Processor\nCPU family:                              26\nModel:                                   2\nThread(s) per core:                      2\nCore(s) per socket:                      59\nSocket(s):                               2\nStepping:                                1\nBogoMIPS:                                6599.99\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 clzero xsaveerptr wbnoinvd arat npt lbrv nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload vgif vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid movdiri movdir64b fsrm avx512_vp2intersect flush_l1d arch_capabilities srso_user_kernel_no\nVirtualization:                          AMD-V\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               5.5 MiB (118 instances)\nL1i cache:                               3.7 MiB (118 instances)\nL2 cache:                                118 MiB (118 instances)\nL3 cache:                                512 MiB (16 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-117\nNUMA node1 CPU(s):                       118-235\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n\nVersions of relevant libraries:\n[pip3] conch-triton-kernels==1.2.1\n[pip3] numpy==2.3.5\n[pip3] onnx==1.22.0\n[pip3] onnx-ir==1.0.0\n[pip3] onnxscript==0.7.2\n[pip3] onnxslim==0.1.96\n[pip3] torch==2.12.0+git6bbd260\n[pip3] torch_c_dlpack_ext==0.1.5\n[pip3] torchaudio==2.11.0+34c52a6\n[pip3] torchvision==0.27.1+df56172\n[pip3] triton==3.7.1+gitf0b55c07\n[conda] Could not collect",
+    "transformers_version": "5.17.0",
+    "lm_eval_version": "0.4.13",
+    "upper_git_hash": null,
+    "tokenizer_pad_token": "<dropped>",
+    "tokenizer_eos_token": "<dropped>",
+    "tokenizer_bos_token": "<dropped>",
+    "eot_token_id": 1,
+    "max_length": 2047,
+    "task_hashes": {},
+    "model_source": "local-completions",
+    "model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "model_name_sanitized": "deepseek-ai__DeepSeek-V4.1-Flash",
+    "system_instruction": null,
+    "system_instruction_sha": null,
+    "fewshot_as_multiturn": null,
+    "chat_template": null,
+    "chat_template_sha": null,
+    "total_evaluation_time_seconds": "279.3769805689808"
+   }
+  }
+ ],
+ "before_correctness": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_before_campaign/correctness.json",
+   "sha256": "713808356be5e5e55e677dad27590e5fe210b50d7ba2961d5ff793049569dae1",
+   "size": 117,
+   "mtime": 1794156742,
+   "json": {
+    "passed": true,
+    "score": 0.6239575435936315,
+    "error": null,
+    "gsm8k_limit": 1319,
+    "gsm8k_min": 0.0,
+    "floor": "model"
+   }
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_after_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json",
+   "sha256": "a9f1f62813ac88045f28dc18fede5dfcd8ec99b90e020439e2d39b0f86729e0d",
+   "size": 5759,
+   "mtime": 1794149189,
+   "json": {
+    "hw": "mi355x",
+    "conc": 32,
+    "image": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "recipe_fingerprint": "",
+    "model": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "infmax_model_prefix": "dsv41flash",
+    "framework": "vllm",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 1,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 3709,
+    "num_requests_successful": 3354,
+    "request_accounting": {
+     "records_total": 3709,
+     "records_profiled": 3354,
+     "records_dropped_total": 355,
+     "records_warmup_dropped": 354,
+     "records_error_dropped": 3,
+     "error_categories": {
+      "InvalidInferenceResultError": 2,
+      "ClientOSError": 1
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3622,
+      "mean": 0.92573,
+      "p50": 1,
+      "p75": 1,
+      "p90": 2,
+      "p95": 3,
+      "std": 1.13926
+     },
+     "latency": {
+      "ttft": {
+       "mean": 0.98636,
+       "p50": 0.39783,
+       "p75": 0.99288,
+       "p90": 2.18814,
+       "p95": 3.56695,
+       "std": 1.74179
+      },
+      "e2el": {
+       "mean": 18.06187,
+       "p50": 7.72029,
+       "p75": 19.27868,
+       "p90": 44.91573,
+       "p95": 69.70829,
+       "std": 29.84011
+      },
+      "itl": {
+       "mean": 0.01875,
+       "p50": 0.01517,
+       "p75": 0.01998,
+       "p90": 0.02931,
+       "p95": 0.03691,
+       "std": 0.01403
+      },
+      "tpot": {
+       "mean": 0.01875,
+       "p50": 0.01517,
+       "p75": 0.01998,
+       "p90": 0.02931,
+       "p95": 0.03691,
+       "std": 0.01403
+      },
+      "intvty": {
+       "mean": 53.32899,
+       "p50": 65.92706,
+       "p75": 50.05799,
+       "p90": 34.12318,
+       "p95": 27.09245,
+       "std": 20.99691
+      },
+      "e2e_norm_intvty": {
+       "mean": 39.20292,
+       "p50": 57.80904,
+       "p75": 41.68199,
+       "p90": 27.68709,
+       "p95": 20.45957,
+       "std": 19.84795
+      },
+      "full_response_itl": {
+       "mean": 0.01875,
+       "p50": 0.01517,
+       "p75": 0.01998,
+       "p90": 0.02931,
+       "p95": 0.03691,
+       "std": 0.01403
+      },
+      "full_response_intvty": {
+       "mean": 53.32645,
+       "p50": 65.92696,
+       "p75": 50.05792,
+       "p90": 34.12305,
+       "p95": 27.09232,
+       "std": 20.9928
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 147720.40787,
+       "p50": 110149.5,
+       "p75": 192062.5,
+       "p90": 279510.3,
+       "p95": 357933.6,
+       "std": 132663.00397
+      },
+      "output_actual": {
+       "mean": 985.0799,
+       "p50": 387,
+       "p75": 1055,
+       "p90": 2501.3,
+       "p95": 3930.15,
+       "std": 1686.4023
+      },
+      "output_expected": {
+       "mean": 1417.55267,
+       "p50": 645,
+       "p75": 1663,
+       "p90": 3624.8,
+       "p95": 5290,
+       "std": 2150.4897
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 136663.45693
+      },
+      "output": {
+       "tokens_per_second": 911.34615
+      },
+      "total": {
+       "tokens_per_second": 137574.80308
+      },
+      "duration_seconds": 3625.36013,
+      "per_gpu": {
+       "total_tput_tps": 34393.70077,
+       "output_tput_tps": 227.83654,
+       "input_tput_tps": 34165.86423
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.97597
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "vllm",
+     "metric_count": 48,
+     "cache": {
+      "gpu_cache_hit_rate": 0.92818,
+      "cpu_cache_hit_rate": 0.0,
+      "external_cache_hit_rate": 0.0,
+      "overall_cache_hit_rate": 0.92818,
+      "prefix_cache_hits": 526114496,
+      "prefix_cache_queries": 562858061,
+      "external_prefix_cache_hits": 0.0,
+      "external_prefix_cache_queries": 0.0,
+      "cached_tokens_by_source": {},
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.13588,
+      "gpu_total_tokens": null,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 496237062,
+      "generation_total": 3311860,
+      "requests_completed": 3354,
+      "prompt_by_source": {
+       "gpu_cache_hit": 474891968,
+       "cpu_or_external_cache_hit": 0.0,
+       "computed": 36743565,
+       "raw": {
+        "external_kv_transfer": 0.0,
+        "local_cache_hit": 474891968,
+        "local_compute": 36743565
+       }
+      }
+     },
+     "sources": [
+      {
+       "id": "combined|http://localhost:8889/metrics|engine=0",
+       "role": "combined",
+       "prompt_tokens": 496237062,
+       "generation_tokens": 3311860,
+       "prefix_cache_hit_rate": 0.93472,
+       "gpu_kv_cache_usage_pct": 0.13588
+      }
+     ]
+    },
+    "kv_cache_pool_tokens": null,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_after_campaign/r1/bench_output.json",
+   "sha256": "4deafed2898270f5df5e8cbfe301a8dded40f71c079df7c827aff4739bf5a23b",
+   "size": 665,
+   "mtime": 1794149191,
+   "json": {
+    "total_throughput_per_gpu": 34393.70077,
+    "p50_interactivity": 65.92706,
+    "output_throughput": 227.83654,
+    "input_throughput_per_gpu": 34165.86423,
+    "total_throughput": 137574.80308,
+    "p90_interactivity": 34.12318,
+    "mean_interactivity": 53.32899,
+    "median_ttft_s": 0.39783,
+    "p90_ttft_s": 2.18814,
+    "median_tpot_s": 0.01517,
+    "p90_tpot_s": 0.02931,
+    "gpu_cache_hit_rate": 0.92818,
+    "num_requests_successful": 3354,
+    "num_requests_total": 3709,
+    "num_gpus": 4,
+    "conc": 32,
+    "duration_s": 3600,
+    "replay_exit_code": 0,
+    "agg_json_path": "/workspace/sessions/measure_after_campaign/r1/agg_dsv41flash_vllm_agentx_conc32.json",
+    "status": "ok"
+   }
+  }
+ ],
+ "ci_ref_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c32-tput/sessions/measure_ci_ref/r1/agg_dsv41flash_vllm_agentx_conc32.json",
+   "sha256": "d7247135fb7271a87ec9175451b7834b327c1caa516c4b6f9f7215fca8c68473",
+   "size": 5712,
+   "mtime": 1794048010,
+   "json": {
+    "hw": "mi355x",
+    "conc": 32,
+    "image": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "recipe_fingerprint": "",
+    "model": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "infmax_model_prefix": "dsv41flash",
+    "framework": "vllm",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 1,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 2367,
+    "num_requests_successful": 2013,
+    "request_accounting": {
+     "records_total": 2367,
+     "records_profiled": 2013,
+     "records_dropped_total": 354,
+     "records_warmup_dropped": 354,
+     "records_error_dropped": 1,
+     "error_categories": {
+      "InvalidInferenceResultError": 1
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3624,
+      "mean": 0.55519,
+      "p50": 0.0,
+      "p75": 1,
+      "p90": 2,
+      "p95": 2,
+      "std": 0.81361
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.65233,
+       "p50": 0.7807,
+       "p75": 1.60542,
+       "p90": 3.4389,
+       "p95": 5.72381,
+       "std": 2.5723
+      },
+      "e2el": {
+       "mean": 45.9725,
+       "p50": 16.8237,
+       "p75": 43.09203,
+       "p90": 104.64044,
+       "p95": 189.83168,
+       "std": 87.2465
+      },
+      "itl": {
+       "mean": 0.05312,
+       "p50": 0.04679,
+       "p75": 0.0577,
+       "p90": 0.07493,
+       "p95": 0.08931,
+       "std": 0.02533
+      },
+      "tpot": {
+       "mean": 0.05312,
+       "p50": 0.04679,
+       "p75": 0.0577,
+       "p90": 0.07493,
+       "p95": 0.08931,
+       "std": 0.02533
+      },
+      "intvty": {
+       "mean": 18.82516,
+       "p50": 21.37104,
+       "p75": 17.33048,
+       "p90": 13.3463,
+       "p95": 11.19717,
+       "std": 5.54186
+      },
+      "e2e_norm_intvty": {
+       "mean": 15.78806,
+       "p50": 19.34445,
+       "p75": 15.30978,
+       "p90": 11.52928,
+       "p95": 9.21212,
+       "std": 5.37206
+      },
+      "full_response_itl": {
+       "mean": 0.05312,
+       "p50": 0.0468,
+       "p75": 0.0577,
+       "p90": 0.07493,
+       "p95": 0.08931,
+       "std": 0.02533
+      },
+      "full_response_intvty": {
+       "mean": 18.82402,
+       "p50": 21.36926,
+       "p75": 17.33046,
+       "p90": 13.34629,
+       "p95": 11.19715,
+       "std": 5.54028
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 121807.9389,
+       "p50": 91334,
+       "p75": 148862,
+       "p90": 220586,
+       "p95": 317655.6,
+       "std": 111332.45276
+      },
+      "output_actual": {
+       "mean": 873.42673,
+       "p50": 301,
+       "p75": 812,
+       "p90": 2021,
+       "p95": 3756.6,
+       "std": 1756.92096
+      },
+      "output_expected": {
+       "mean": 1447.69752,
+       "p50": 626,
+       "p75": 1675,
+       "p90": 3835.5,
+       "p95": 5415,
+       "std": 2257.2982
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 67566.55055
+      },
+      "output": {
+       "tokens_per_second": 484.48756
+      },
+      "total": {
+       "tokens_per_second": 68051.03811
+      },
+      "duration_seconds": 3629.00546,
+      "per_gpu": {
+       "total_tput_tps": 17012.75953,
+       "output_tput_tps": 121.12189,
+       "input_tput_tps": 16891.63764
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.96714
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "vllm",
+     "metric_count": 48,
+     "cache": {
+      "gpu_cache_hit_rate": 0.88875,
+      "cpu_cache_hit_rate": 0.0,
+      "external_cache_hit_rate": 0.0,
+      "overall_cache_hit_rate": 0.88875,
+      "prefix_cache_hits": 284945472,
+      "prefix_cache_queries": 314347023,
+      "external_prefix_cache_hits": 0.0,
+      "external_prefix_cache_queries": 0.0,
+      "cached_tokens_by_source": {},
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.14988,
+      "gpu_total_tokens": null,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 248876185,
+      "generation_total": 1793683,
+      "requests_completed": 2013,
+      "prompt_by_source": {
+       "gpu_cache_hit": 234892352,
+       "cpu_or_external_cache_hit": 0.0,
+       "computed": 29401551,
+       "raw": {
+        "external_kv_transfer": 0.0,
+        "local_cache_hit": 234892352,
+        "local_compute": 29401551
+       }
+      }
+     },
+     "sources": [
+      {
+       "id": "combined|http://localhost:8889/metrics|engine=0",
+       "role": "combined",
+       "prompt_tokens": 248876185,
+       "generation_tokens": 1793683,
+       "prefix_cache_hit_rate": 0.90647,
+       "gpu_kv_cache_usage_pct": 0.14988
+      }
+     ]
+    },
+    "kv_cache_pool_tokens": null,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ]
+}

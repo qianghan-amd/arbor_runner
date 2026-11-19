@@ -1,0 +1,1509 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/env.sh",
+   "sha256": "f901a69ccfd5131d667d9bac163957762238e6e46cb298b4969d5f63f88e7eae",
+   "size": 2038,
+   "mtime": 1794195040,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/glm52-c16-tput",
+    "LOGS": "$EXP/logs",
+    "ARBOR": "$TOP/codebases/Arbor-glm52",
+    "INFX": "$TOP/codebases/InferenceX-glm52",
+    "PY": "$TOP/.venv/bin/python",
+    "CONFIG": "$ARBOR/configs/mi355x/glm52-fp4-agentx-c16-tput.json",
+    "CONFIG_REL": "configs/mi355x/glm52-fp4-agentx-c16-tput.json",
+    "PACK_YAML": "$ARBOR/packs/agentx-glm52-c16/pack.yaml",
+    "SESSIONS": "$EXP/sessions",
+    "SESSION": "$SESSIONS/c16-tput",
+    "BASELINE_DIR": "$EXP/baseline",
+    "AGENT_HOME": "$EXP/agent_home",
+    "NODE_LOCAL": "/mnt/m2m_nobackup/qiangh_glm52",
+    "MMAP_CACHE": "$NODE_LOCAL/aiperf_mmap_cache",
+    "IMAGE_TAG": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "IMAGE_DIGEST": "sha256:a95431225d5079bb398a3f49e7049630f62a2489197fbfd3c5ff84b02f026145",
+    "IMAGE_REF": "lmsysorg/sglang-rocm@$IMAGE_DIGEST",
+    "CONTAINER": "glm52_c16_tput",
+    "HF_HUB_HOST": "/shared_nfs/huggingface/hub",
+    "MODEL_C": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+    "N_SHARDS": "282",
+    "WORKSPACE_ROOT": "$(cat \"$EXP/WORKSPACE_ROOT\" 2>/dev/null || echo unset)"
+   }
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/spur-275767.out",
+   "sha256": "b4a6c06672677cf0e25ec72bec83beae33305cee4b8087f168962014373b02bb",
+   "size": 11,
+   "mtime": 1794366006,
+   "head": [
+    "Terminated"
+   ]
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/c16-tput/reports/trace/meta.json",
+   "sha256": "13f33a6b741d84d3a727d131c67df59f35a83c9332a77f928b99a519e4dece14",
+   "size": 39689,
+   "mtime": 1794318747,
+   "json": {
+    "arbor_session_dir": "/home/qiangh/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/c16-tput",
+    "started": "2026-11-09T13:47:28.673536+00:00",
+    "arbor_git_sha": "3f1880b7a6f8c4c63071b0fef0af060e5c6afba6",
+    "config": {
+     "_note": "GLM-5.2-MXFP4, SGLang TP4/EP4 on MI355X (Crusoe, amd-spur-v2, amd-hyperloom-qos), InferenceX AgentX replay at C16, objective total tok/s per GPU. Launch = InferenceX recipe benchmarks/single_node/agentic/glm5.2_fp4_mi355x_sglang_mtp.sh at d204ac0de2, the TP4 C16 point of CI run 31501371582 (25517.70 total tok/s, 6379.42 tok/s/GPU, GSM8K 0.9689). C16, not C32 (user, 2026-11-09): CI has no C32 (or C24) point, and the C32 smoke thrashed the prefix cache (hit ~0 %). Provisioned by experiments/glm52-c16-tput/prepare.sh.",
+     "pack": "agentx-glm52-c16",
+     "identity": "inference:agentx:mi355x:sglang:fp4:glm52:c16:tp4:tput",
+     "goal": "Raise GLM-5.2-MXFP4's total (input + output) throughput per GPU on the InferenceX AgentX replay at C16 on four MI355X GPUs, from the CI-aligned SGLang launch, without losing p50 interactivity.",
+     "docker_container": "glm52_c16_tput",
+     "workspace_root": "/sgl-workspace/sglang/python/sglang",
+     "session_root": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/c16-tput",
+     "session_mount": "/workspace/sessions",
+     "framework": "sglang",
+     "model_path": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+     "model_name": "amd/GLM-5.2-MXFP4",
+     "tp": 4,
+     "port": 8890,
+     "gpu_ids": "0,1,2,3",
+     "server_flags": "--trust-remote-code --tp 4 --ep-size 4 --kv-cache-dtype fp8_e4m3 --dsa-prefill-backend tilelang --dsa-decode-backend tilelang --tool-call-parser glm47 --reasoning-parser glm45 --chunked-prefill-size 131072 --mem-fraction-static 0.80 --max-running-requests 16 --cuda-graph-max-bs 16 --speculative-algorithm EAGLE --speculative-num-steps 3 --speculative-eagle-topk 1 --speculative-num-draft-tokens 4 --enable-hierarchical-cache --hicache-ratio 1.5 --hicache-write-policy write_through --hicache-io-backend direct --hicache-mem-layout page_first_direct --watchdog-timeout 1800 --enable-metrics",
+     "_server_flags_note": "Verbatim from the recipe for TP=4 EP_SIZE=4 DP_ATTENTION=false KV_OFFLOADING=dram KV_OFFLOAD_BACKEND=hicache CONC=16; Arbor's sglang adapter adds --model-path, --served-model-name, --host, --port.",
+     "server_env": {
+      "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+      "SGLANG_OPT_USE_TOPK_V2": "false",
+      "PYTHONNOUSERSITE": "1",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "SGLANG_SIMULATE_ACC_LEN": "2.99",
+      "SGLANG_SIMULATE_ACC_METHOD": "match-expected",
+      "SGLANG_SIMULATE_ACC_TOKEN_MODE": "real-draft-token",
+      "PYTHONUNBUFFERED": "1",
+      "PYTORCH_HIP_ALLOC_CONF": "expandable_segments:True",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HUB_OFFLINE": "1",
+      "MODEL_PREFIX": "glm5.2",
+      "FRAMEWORK": "sglang",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+      "TP": "4",
+      "EP_SIZE": "4",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "dram",
+      "KV_OFFLOAD_BACKEND": "hicache",
+      "TOTAL_CPU_DRAM_GB": "1199",
+      "DURATION": "600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache",
+      "GSM8K_LIMIT": "400",
+      "GSM8K_MIN": "0.6415"
+     },
+     "concurrency": 16,
+     "num_prompts": 320,
+     "bench_timeout": 14400,
+     "_bench_timeout_note": "14400 s: the AgentX warmup (354 requests) took ~90+ min at C32 on this node (2026-11-09); 5400 s killed the first C32 smoke during warmup.",
+     "bench_script": "/workspace/Arbor/packs/agentx-glm52-c16/validator/bench.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-glm52-c16/validator/correctness.sh",
+     "baseline_record": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/baseline/baseline_c16_d600.json",
+     "review_gate": false,
+     "time_budget_minutes": 1440,
+     "editable_packages": [
+      {
+       "name": "aiter",
+       "path": "/sgl-workspace/aiter/aiter",
+       "rebuild": null
+      }
+     ],
+     "_duration_note": "CI measures 3600 s. Iterations measure 600 s; the bar and noise bands come from two cold 600 s replays on this node; the CI-aligned 3600 s reference (this config, before the campaign) is also the campaign's before number; the after number is measured at the end the same way.",
+     "_gsm8k_note": "GSM8K_MIN 0.6415 = this node's full-set baseline score 0.7096 (1319 questions, simulated MTP acceptance on, as the throughput runs serve) less 3 standard errors of a 400-question subset.",
+     "_target_removed": {
+      "total_throughput_per_gpu": 7270.677,
+      "p50_interactivity": 104.861,
+      "_source": "SET BY THE CAMPAIGN SBATCH from this node's measured bar: total_throughput_per_gpu 5193.34105 x 1.40, pooled from 2 COLD replay(s).",
+      "_why": "the user asks for the full 24 h campaign"
+     }
+    },
+    "host": "crsuse2-m2m-v3-242",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "ff4d41ac-74b1-4bd4-baf4-061eb5a1558d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/ff4d41ac-74b1-4bd4-baf4-061eb5a1558d.jsonl",
+      "first_seen": "2026-11-09T13:47:32.874725+00:00",
+      "last_seen": "2026-11-09T13:52:29.450346+00:00"
+     },
+     {
+      "session_id": "6b1ab938-6ebd-4ec2-bf2d-9bfe24800b33",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/6b1ab938-6ebd-4ec2-bf2d-9bfe24800b33.jsonl",
+      "first_seen": "2026-11-09T13:53:44.462985+00:00",
+      "last_seen": "2026-11-09T13:55:17.308172+00:00"
+     },
+     {
+      "session_id": "db1ff951-6188-43b4-8f82-43aa7474a332",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/db1ff951-6188-43b4-8f82-43aa7474a332.jsonl",
+      "first_seen": "2026-11-09T13:55:52.913667+00:00",
+      "last_seen": "2026-11-09T14:01:25.060210+00:00"
+     },
+     {
+      "session_id": "bfeaa298-ab35-4cc9-b1d7-6daf974e18b9",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/bfeaa298-ab35-4cc9-b1d7-6daf974e18b9.jsonl",
+      "first_seen": "2026-11-09T14:01:31.227268+00:00",
+      "last_seen": "2026-11-09T15:02:24.824792+00:00"
+     },
+     {
+      "session_id": "347a5c60-210e-466b-9284-2251780d8720",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/347a5c60-210e-466b-9284-2251780d8720.jsonl",
+      "first_seen": "2026-11-09T15:05:00.095752+00:00",
+      "last_seen": "2026-11-09T15:06:20.150909+00:00"
+     },
+     {
+      "session_id": "f403d084-c315-4a67-9279-f78c47c9f2e7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/f403d084-c315-4a67-9279-f78c47c9f2e7.jsonl",
+      "first_seen": "2026-11-09T15:06:36.152585+00:00",
+      "last_seen": "2026-11-09T15:06:36.152589+00:00"
+     },
+     {
+      "session_id": "e1ff7350-a662-48bd-b0fe-58750a95fff1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/e1ff7350-a662-48bd-b0fe-58750a95fff1.jsonl",
+      "first_seen": "2026-11-09T15:07:11.643072+00:00",
+      "last_seen": "2026-11-09T15:14:36.910782+00:00"
+     },
+     {
+      "session_id": "496b4c88-70f7-40de-8f93-bca33544fc62",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/496b4c88-70f7-40de-8f93-bca33544fc62.jsonl",
+      "first_seen": "2026-11-09T15:15:21.662100+00:00",
+      "last_seen": "2026-11-09T15:20:58.883561+00:00"
+     },
+     {
+      "session_id": "de477c3e-2788-459f-99b6-2ffbb3b88fb5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/de477c3e-2788-459f-99b6-2ffbb3b88fb5.jsonl",
+      "first_seen": "2026-11-09T15:21:04.779536+00:00",
+      "last_seen": "2026-11-09T16:55:10.535040+00:00"
+     },
+     {
+      "session_id": "ada9ba7e-28aa-4d7c-8999-847d3c442379",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/ada9ba7e-28aa-4d7c-8999-847d3c442379.jsonl",
+      "first_seen": "2026-11-09T16:57:41.657186+00:00",
+      "last_seen": "2026-11-09T16:58:59.073304+00:00"
+     },
+     {
+      "session_id": "86f4f14a-7fb8-4726-a1e3-b5113aeeed3c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/86f4f14a-7fb8-4726-a1e3-b5113aeeed3c.jsonl",
+      "first_seen": "2026-11-09T16:59:20.011101+00:00",
+      "last_seen": "2026-11-09T16:59:20.011108+00:00"
+     },
+     {
+      "session_id": "eef162e3-0a7b-4d55-a815-7239f7df6558",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/eef162e3-0a7b-4d55-a815-7239f7df6558.jsonl",
+      "first_seen": "2026-11-09T16:59:58.645681+00:00",
+      "last_seen": "2026-11-09T17:00:50.318913+00:00"
+     },
+     {
+      "session_id": "122f2210-0d3e-4712-9756-92d551dac4fa",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/122f2210-0d3e-4712-9756-92d551dac4fa.jsonl",
+      "first_seen": "2026-11-09T17:01:06.912418+00:00",
+      "last_seen": "2026-11-09T17:01:06.912422+00:00"
+     },
+     {
+      "session_id": "a7d4567b-409e-49f2-b1bd-37261cf0171b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/a7d4567b-409e-49f2-b1bd-37261cf0171b.jsonl",
+      "first_seen": "2026-11-09T17:01:43.113231+00:00",
+      "last_seen": "2026-11-09T17:04:39.466908+00:00"
+     },
+     {
+      "session_id": "852a4f39-d8e9-4f19-90a5-602b9cc7050a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/852a4f39-d8e9-4f19-90a5-602b9cc7050a.jsonl",
+      "first_seen": "2026-11-09T17:05:13.195581+00:00",
+      "last_seen": "2026-11-09T17:10:50.983132+00:00"
+     },
+     {
+      "session_id": "805cc1f9-66f7-4c2a-b1eb-98d4eb0b2a81",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/805cc1f9-66f7-4c2a-b1eb-98d4eb0b2a81.jsonl",
+      "first_seen": "2026-11-09T17:10:57.392309+00:00",
+      "last_seen": "2026-11-09T18:13:47.258990+00:00"
+     },
+     {
+      "session_id": "36454543-18bb-4f27-86f9-48d4259cf06c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/36454543-18bb-4f27-86f9-48d4259cf06c.jsonl",
+      "first_seen": "2026-11-09T18:16:22.704320+00:00",
+      "last_seen": "2026-11-09T19:07:30.846066+00:00"
+     },
+     {
+      "session_id": "65f72366-d4f6-4907-a3bd-aef6fd7b22b1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/65f72366-d4f6-4907-a3bd-aef6fd7b22b1.jsonl",
+      "first_seen": "2026-11-09T19:08:15.098934+00:00",
+      "last_seen": "2026-11-09T19:13:27.627801+00:00"
+     },
+     {
+      "session_id": "17ab3a92-8e8b-4a7a-beeb-79295eef02f7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/17ab3a92-8e8b-4a7a-beeb-79295eef02f7.jsonl",
+      "first_seen": "2026-11-09T19:13:36.608534+00:00",
+      "last_seen": "2026-11-09T20:23:13.384100+00:00"
+     },
+     {
+      "session_id": "cffec347-b53f-4424-9467-04225f91706a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/cffec347-b53f-4424-9467-04225f91706a.jsonl",
+      "first_seen": "2026-11-09T20:24:51.654534+00:00",
+      "last_seen": "2026-11-09T20:55:28.526911+00:00"
+     },
+     {
+      "session_id": "c74a9f3d-f6e8-423e-aa62-fd17ccb119c2",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/c74a9f3d-f6e8-423e-aa62-fd17ccb119c2.jsonl",
+      "first_seen": "2026-11-09T20:56:30.563958+00:00",
+      "last_seen": "2026-11-09T20:56:40.417096+00:00"
+     },
+     {
+      "session_id": "25c3525f-4dcd-4bcd-b4b5-b64d71364cb6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/25c3525f-4dcd-4bcd-b4b5-b64d71364cb6.jsonl",
+      "first_seen": "2026-11-09T20:57:08.556679+00:00",
+      "last_seen": "2026-11-09T21:02:40.490469+00:00"
+     },
+     {
+      "session_id": "e858226f-3663-4eb3-a717-b99631127afc",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/e858226f-3663-4eb3-a717-b99631127afc.jsonl",
+      "first_seen": "2026-11-09T21:02:50.956679+00:00",
+      "last_seen": "2026-11-09T22:19:55.379835+00:00"
+     },
+     {
+      "session_id": "2f6eee0e-0d72-44f3-a22e-1707ac153769",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/2f6eee0e-0d72-44f3-a22e-1707ac153769.jsonl",
+      "first_seen": "2026-11-09T22:21:31.129322+00:00",
+      "last_seen": "2026-11-09T22:21:54.971830+00:00"
+     },
+     {
+      "session_id": "06094775-3cc0-4991-b1bb-8015101edb40",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/06094775-3cc0-4991-b1bb-8015101edb40.jsonl",
+      "first_seen": "2026-11-09T22:22:59.993356+00:00",
+      "last_seen": "2026-11-09T22:25:27.329031+00:00"
+     },
+     {
+      "session_id": "f306e8cb-9be3-4fcf-9b65-b670e027f664",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/f306e8cb-9be3-4fcf-9b65-b670e027f664.jsonl",
+      "first_seen": "2026-11-09T22:26:00.402956+00:00",
+      "last_seen": "2026-11-09T22:26:00.402960+00:00"
+     },
+     {
+      "session_id": "dd7f7fd7-d6f6-4957-a67b-d6ceb51c677e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/dd7f7fd7-d6f6-4957-a67b-d6ceb51c677e.jsonl",
+      "first_seen": "2026-11-09T22:26:35.999067+00:00",
+      "last_seen": "2026-11-09T22:28:44.740001+00:00"
+     },
+     {
+      "session_id": "cc186c71-ed3f-4024-a4b7-80f2ecea5c8f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/cc186c71-ed3f-4024-a4b7-80f2ecea5c8f.jsonl",
+      "first_seen": "2026-11-09T22:29:04.999409+00:00",
+      "last_seen": "2026-11-09T22:46:28.166239+00:00"
+     },
+     {
+      "session_id": "9947e8b1-b807-4359-941e-35c7b04194c8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/9947e8b1-b807-4359-941e-35c7b04194c8.jsonl",
+      "first_seen": "2026-11-09T22:47:40.541606+00:00",
+      "last_seen": "2026-11-09T23:21:00.054625+00:00"
+     },
+     {
+      "session_id": "a0b7cd07-0a70-4965-90d8-02bfdb475bc6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/a0b7cd07-0a70-4965-90d8-02bfdb475bc6.jsonl",
+      "first_seen": "2026-11-09T23:21:50.931064+00:00",
+      "last_seen": "2026-11-09T23:27:17.770889+00:00"
+     },
+     {
+      "session_id": "9272b01d-5104-4e63-8672-8fbfed88daed",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/9272b01d-5104-4e63-8672-8fbfed88daed.jsonl",
+      "first_seen": "2026-11-09T23:27:22.932313+00:00",
+      "last_seen": "2026-11-10T00:51:56.484235+00:00"
+     },
+     {
+      "session_id": "67d3f0f7-00a3-4e9a-8b3e-f1e7d3d862ed",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/67d3f0f7-00a3-4e9a-8b3e-f1e7d3d862ed.jsonl",
+      "first_seen": "2026-11-10T00:54:25.654500+00:00",
+      "last_seen": "2026-11-10T00:55:27.097923+00:00"
+     },
+     {
+      "session_id": "81992c66-ffca-4dc3-98e7-c422a44657ea",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/81992c66-ffca-4dc3-98e7-c422a44657ea.jsonl",
+      "first_seen": "2026-11-10T00:55:49.624307+00:00",
+      "last_seen": "2026-11-10T00:55:56.552965+00:00"
+     },
+     {
+      "session_id": "4cf76b9c-b02a-4be5-a10d-e0d95f30633c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/4cf76b9c-b02a-4be5-a10d-e0d95f30633c.jsonl",
+      "first_seen": "2026-11-10T00:56:32.712252+00:00",
+      "last_seen": "2026-11-10T00:59:50.043623+00:00"
+     },
+     {
+      "session_id": "ae563413-290b-4430-a483-4bd7edea3730",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/ae563413-290b-4430-a483-4bd7edea3730.jsonl",
+      "first_seen": "2026-11-10T01:00:27.031333+00:00",
+      "last_seen": "2026-11-10T01:06:00.690196+00:00"
+     },
+     {
+      "session_id": "73bd2e3d-b563-4a2d-8b48-23df53a64a54",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/73bd2e3d-b563-4a2d-8b48-23df53a64a54.jsonl",
+      "first_seen": "2026-11-10T01:06:07.405981+00:00",
+      "last_seen": "2026-11-10T02:29:04.888560+00:00"
+     },
+     {
+      "session_id": "a14457b8-aa9e-4f07-93bb-70b4b1525a61",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/a14457b8-aa9e-4f07-93bb-70b4b1525a61.jsonl",
+      "first_seen": "2026-11-10T02:31:32.986837+00:00",
+      "last_seen": "2026-11-10T02:33:00.108630+00:00"
+     },
+     {
+      "session_id": "6affc4e6-82eb-4882-8097-d9ee2d4b1c34",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/6affc4e6-82eb-4882-8097-d9ee2d4b1c34.jsonl",
+      "first_seen": "2026-11-10T02:33:52.770913+00:00",
+      "last_seen": "2026-11-10T02:36:59.372226+00:00"
+     },
+     {
+      "session_id": "b380da52-551f-4d65-bcaf-cb5f49dd1a62",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/b380da52-551f-4d65-bcaf-cb5f49dd1a62.jsonl",
+      "first_seen": "2026-11-10T02:37:29.156573+00:00",
+      "last_seen": "2026-11-10T02:37:29.156577+00:00"
+     },
+     {
+      "session_id": "49e52395-a37c-45b3-81fd-bd2020ada42c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/49e52395-a37c-45b3-81fd-bd2020ada42c.jsonl",
+      "first_seen": "2026-11-10T02:38:06.235163+00:00",
+      "last_seen": "2026-11-10T02:42:37.607434+00:00"
+     },
+     {
+      "session_id": "0785f9da-4a8e-4e53-be66-504f8a09ee9e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/0785f9da-4a8e-4e53-be66-504f8a09ee9e.jsonl",
+      "first_seen": "2026-11-10T02:42:59.248609+00:00",
+      "last_seen": "2026-11-10T02:42:59.248613+00:00"
+     },
+     {
+      "session_id": "cd9e7eaf-a7b2-4a42-946e-248d9f506797",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/cd9e7eaf-a7b2-4a42-946e-248d9f506797.jsonl",
+      "first_seen": "2026-11-10T02:43:35.863738+00:00",
+      "last_seen": "2026-11-10T03:19:27.172735+00:00"
+     },
+     {
+      "session_id": "839ddbbd-92e2-47f9-b2ea-0bcd967ee712",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/839ddbbd-92e2-47f9-b2ea-0bcd967ee712.jsonl",
+      "first_seen": "2026-11-10T03:19:57.898048+00:00",
+      "last_seen": "2026-11-10T03:19:57.898052+00:00"
+     },
+     {
+      "session_id": "8ce68f67-1943-4789-a394-f5047ea674b6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/8ce68f67-1943-4789-a394-f5047ea674b6.jsonl",
+      "first_seen": "2026-11-10T03:20:33.558633+00:00",
+      "last_seen": "2026-11-10T03:23:38.933441+00:00"
+     },
+     {
+      "session_id": "a717e91c-daac-4360-886f-60d83a6fb89e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/a717e91c-daac-4360-886f-60d83a6fb89e.jsonl",
+      "first_seen": "2026-11-10T03:24:20.632317+00:00",
+      "last_seen": "2026-11-10T03:29:50.224091+00:00"
+     },
+     {
+      "session_id": "25a2bb78-6ca3-40b9-94bb-1b81580fbd0a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/25a2bb78-6ca3-40b9-94bb-1b81580fbd0a.jsonl",
+      "first_seen": "2026-11-10T03:29:55.273984+00:00",
+      "last_seen": "2026-11-10T04:39:08.615542+00:00"
+     },
+     {
+      "session_id": "b952cbb3-3597-48ef-94ba-b1a24b6d4f01",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/b952cbb3-3597-48ef-94ba-b1a24b6d4f01.jsonl",
+      "first_seen": "2026-11-10T04:40:49.503104+00:00",
+      "last_seen": "2026-11-10T04:40:49.503108+00:00"
+     },
+     {
+      "session_id": "aac593d4-efa2-49d9-825e-30285dc6abd8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/aac593d4-efa2-49d9-825e-30285dc6abd8.jsonl",
+      "first_seen": "2026-11-10T04:41:55.704794+00:00",
+      "last_seen": "2026-11-10T04:46:28.178982+00:00"
+     },
+     {
+      "session_id": "031927ff-7c9b-48f9-9d32-7c7c44874ed3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/031927ff-7c9b-48f9-9d32-7c7c44874ed3.jsonl",
+      "first_seen": "2026-11-10T04:47:00.575059+00:00",
+      "last_seen": "2026-11-10T04:47:00.575064+00:00"
+     },
+     {
+      "session_id": "d3c6beb5-1367-4f2c-8f3a-2a329561085d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/d3c6beb5-1367-4f2c-8f3a-2a329561085d.jsonl",
+      "first_seen": "2026-11-10T04:47:35.187997+00:00",
+      "last_seen": "2026-11-10T04:52:05.849719+00:00"
+     },
+     {
+      "session_id": "2a15036a-14c5-4785-972b-4f58733a493d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/2a15036a-14c5-4785-972b-4f58733a493d.jsonl",
+      "first_seen": "2026-11-10T04:52:42.886379+00:00",
+      "last_seen": "2026-11-10T04:52:42.886383+00:00"
+     },
+     {
+      "session_id": "0e5da005-13a9-48a0-b2ee-ecc492277e81",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/0e5da005-13a9-48a0-b2ee-ecc492277e81.jsonl",
+      "first_seen": "2026-11-10T04:53:18.967744+00:00",
+      "last_seen": "2026-11-10T05:06:24.257748+00:00"
+     },
+     {
+      "session_id": "d11d31dd-3039-4e9d-996f-df6c76604ba2",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/d11d31dd-3039-4e9d-996f-df6c76604ba2.jsonl",
+      "first_seen": "2026-11-10T05:07:00.847378+00:00",
+      "last_seen": "2026-11-10T05:07:00.847383+00:00"
+     },
+     {
+      "session_id": "2f283e75-4081-4b97-946b-99db25e2f0be",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/2f283e75-4081-4b97-946b-99db25e2f0be.jsonl",
+      "first_seen": "2026-11-10T05:07:36.745447+00:00",
+      "last_seen": "2026-11-10T05:14:07.314267+00:00"
+     },
+     {
+      "session_id": "20abd8ac-b095-4fb4-9bfc-1d2381d4cfee",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/20abd8ac-b095-4fb4-9bfc-1d2381d4cfee.jsonl",
+      "first_seen": "2026-11-10T05:14:56.941294+00:00",
+      "last_seen": "2026-11-10T05:20:31.506124+00:00"
+     },
+     {
+      "session_id": "3a37f0b8-3839-4d3a-aba3-a857ec46f6c6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/3a37f0b8-3839-4d3a-aba3-a857ec46f6c6.jsonl",
+      "first_seen": "2026-11-10T05:20:37.972487+00:00",
+      "last_seen": "2026-11-10T06:41:46.491759+00:00"
+     },
+     {
+      "session_id": "d691e47f-e369-4ed0-a806-92647107ba44",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/d691e47f-e369-4ed0-a806-92647107ba44.jsonl",
+      "first_seen": "2026-11-10T06:43:21.993485+00:00",
+      "last_seen": "2026-11-10T06:43:21.993489+00:00"
+     },
+     {
+      "session_id": "7eef4808-a571-4fce-8ca1-9c653b974438",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/7eef4808-a571-4fce-8ca1-9c653b974438.jsonl",
+      "first_seen": "2026-11-10T06:44:33.942120+00:00",
+      "last_seen": "2026-11-10T06:46:07.206085+00:00"
+     },
+     {
+      "session_id": "00c0b337-d56e-4c1d-b608-c3990cd7aaac",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/00c0b337-d56e-4c1d-b608-c3990cd7aaac.jsonl",
+      "first_seen": "2026-11-10T06:46:38.975264+00:00",
+      "last_seen": "2026-11-10T06:52:21.804396+00:00"
+     },
+     {
+      "session_id": "93dc9618-5175-40ab-b45f-5b02c2d3f727",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/93dc9618-5175-40ab-b45f-5b02c2d3f727.jsonl",
+      "first_seen": "2026-11-10T06:52:28.916069+00:00",
+      "last_seen": "2026-11-10T08:00:14.571687+00:00"
+     },
+     {
+      "session_id": "3c925e1b-8c7f-4996-bbd0-a7cc21d20a40",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/3c925e1b-8c7f-4996-bbd0-a7cc21d20a40.jsonl",
+      "first_seen": "2026-11-10T08:01:50.294424+00:00",
+      "last_seen": "2026-11-10T08:02:08.498086+00:00"
+     },
+     {
+      "session_id": "9b48642d-d41f-47cc-a88a-6c434870750e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/9b48642d-d41f-47cc-a88a-6c434870750e.jsonl",
+      "first_seen": "2026-11-10T08:03:18.094220+00:00",
+      "last_seen": "2026-11-10T08:03:59.455594+00:00"
+     },
+     {
+      "session_id": "b9f08e86-0c3c-4b26-b9d8-521acb810808",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/b9f08e86-0c3c-4b26-b9d8-521acb810808.jsonl",
+      "first_seen": "2026-11-10T08:04:44.192257+00:00",
+      "last_seen": "2026-11-10T08:06:18.814831+00:00"
+     },
+     {
+      "session_id": "acc27c69-5d5c-464c-a58d-d738f8f815e6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/acc27c69-5d5c-464c-a58d-d738f8f815e6.jsonl",
+      "first_seen": "2026-11-10T08:06:51.285209+00:00",
+      "last_seen": "2026-11-10T08:14:26.494667+00:00"
+     },
+     {
+      "session_id": "ee6f3273-063c-4b00-b9b8-bcf49e3dddb9",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/ee6f3273-063c-4b00-b9b8-bcf49e3dddb9.jsonl",
+      "first_seen": "2026-11-10T08:11:44.762800+00:00",
+      "last_seen": "2026-11-10T08:13:47.788946+00:00"
+     },
+     {
+      "session_id": "c0dc9edf-4b44-44f5-b3bc-fbf61629232b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/c0dc9edf-4b44-44f5-b3bc-fbf61629232b.jsonl",
+      "first_seen": "2026-11-10T08:14:22.010709+00:00",
+      "last_seen": "2026-11-10T08:19:58.343203+00:00"
+     },
+     {
+      "session_id": "51a77822-ebcb-49ac-92d8-60f0d6ab12d2",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/51a77822-ebcb-49ac-92d8-60f0d6ab12d2.jsonl",
+      "first_seen": "2026-11-10T08:20:05.032540+00:00",
+      "last_seen": "2026-11-10T09:33:51.217211+00:00"
+     },
+     {
+      "session_id": "435bcc12-7fc4-4c98-a7e8-5effefa8c266",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/435bcc12-7fc4-4c98-a7e8-5effefa8c266.jsonl",
+      "first_seen": "2026-11-10T09:35:28.833046+00:00",
+      "last_seen": "2026-11-10T09:35:28.833051+00:00"
+     },
+     {
+      "session_id": "3e5be08f-5cfc-4ee6-9bd6-c7ce3d159c2a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/3e5be08f-5cfc-4ee6-9bd6-c7ce3d159c2a.jsonl",
+      "first_seen": "2026-11-10T09:43:28.894808+00:00",
+      "last_seen": "2026-11-10T09:43:55.961858+00:00"
+     },
+     {
+      "session_id": "520455d7-d9a7-4287-a46f-055ffb3556dd",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/520455d7-d9a7-4287-a46f-055ffb3556dd.jsonl",
+      "first_seen": "2026-11-10T09:44:25.415496+00:00",
+      "last_seen": "2026-11-10T09:50:13.932121+00:00"
+     },
+     {
+      "session_id": "83b9a3f9-c7ae-4f46-9de2-c68ff2623aa4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/83b9a3f9-c7ae-4f46-9de2-c68ff2623aa4.jsonl",
+      "first_seen": "2026-11-10T09:50:20.060651+00:00",
+      "last_seen": "2026-11-10T10:44:18.492069+00:00"
+     },
+     {
+      "session_id": "0b731461-02fc-4e1e-a57e-e4fc1ec9b118",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/0b731461-02fc-4e1e-a57e-e4fc1ec9b118.jsonl",
+      "first_seen": "2026-11-10T11:06:18.719225+00:00",
+      "last_seen": "2026-11-10T11:06:33.516822+00:00"
+     },
+     {
+      "session_id": "73541ed6-f7b7-47b4-a9af-18f31484a22a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/73541ed6-f7b7-47b4-a9af-18f31484a22a.jsonl",
+      "first_seen": "2026-11-10T11:07:18.586993+00:00",
+      "last_seen": "2026-11-10T11:07:49.022666+00:00"
+     },
+     {
+      "session_id": "dcae3549-7284-4ec4-90e8-aa7fa632be94",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/dcae3549-7284-4ec4-90e8-aa7fa632be94.jsonl",
+      "first_seen": "2026-11-10T11:08:18.580337+00:00",
+      "last_seen": "2026-11-10T11:13:59.714899+00:00"
+     },
+     {
+      "session_id": "f1fcb66a-59d3-473f-afe4-230f803bdf4d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/f1fcb66a-59d3-473f-afe4-230f803bdf4d.jsonl",
+      "first_seen": "2026-11-10T11:14:07.155435+00:00",
+      "last_seen": "2026-11-10T12:21:16.863925+00:00"
+     },
+     {
+      "session_id": "a29c525b-68fa-4e97-b7bf-305ebfb8676a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/a29c525b-68fa-4e97-b7bf-305ebfb8676a.jsonl",
+      "first_seen": "2026-11-10T12:45:08.369168+00:00",
+      "last_seen": "2026-11-10T12:47:49.982619+00:00"
+     },
+     {
+      "session_id": "bf0d2745-d0b8-427d-9ea6-51ef07ab9d9a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/bf0d2745-d0b8-427d-9ea6-51ef07ab9d9a.jsonl",
+      "first_seen": "2026-11-10T12:48:21.267605+00:00",
+      "last_seen": "2026-11-10T12:48:38.462033+00:00"
+     },
+     {
+      "session_id": "792049df-e350-4f84-9453-33cf6b209a2c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/792049df-e350-4f84-9453-33cf6b209a2c.jsonl",
+      "first_seen": "2026-11-10T12:49:16.653653+00:00",
+      "last_seen": "2026-11-10T12:52:17.424243+00:00"
+     },
+     {
+      "session_id": "47e0d8ba-341f-4f49-b6e5-91004ac69715",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/47e0d8ba-341f-4f49-b6e5-91004ac69715.jsonl",
+      "first_seen": "2026-11-10T12:52:52.208485+00:00",
+      "last_seen": "2026-11-10T12:58:25.644182+00:00"
+     },
+     {
+      "session_id": "b39693e4-f4e4-47be-86b4-1ed1e2114976",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/b39693e4-f4e4-47be-86b4-1ed1e2114976.jsonl",
+      "first_seen": "2026-11-10T12:58:36.068455+00:00",
+      "last_seen": "2026-11-10T13:37:54.528455+00:00"
+     },
+     {
+      "session_id": "ad74410b-2993-40fe-a7d3-c7a78e860ff8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/ad74410b-2993-40fe-a7d3-c7a78e860ff8.jsonl",
+      "first_seen": "2026-11-10T13:40:27.705965+00:00",
+      "last_seen": "2026-11-10T13:42:05.948067+00:00"
+     },
+     {
+      "session_id": "fbad222f-bd20-4fc8-9c91-3955135d3d71",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/fbad222f-bd20-4fc8-9c91-3955135d3d71.jsonl",
+      "first_seen": "2026-11-10T13:42:25.734199+00:00",
+      "last_seen": "2026-11-10T13:42:25.734203+00:00"
+     },
+     {
+      "session_id": "274f4c31-776b-4b9c-adeb-ff02e8835e0c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/274f4c31-776b-4b9c-adeb-ff02e8835e0c.jsonl",
+      "first_seen": "2026-11-10T13:43:01.447453+00:00",
+      "last_seen": "2026-11-10T13:46:00.722384+00:00"
+     },
+     {
+      "session_id": "0ffa52fc-8767-4825-9c83-3acd905172d5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/0ffa52fc-8767-4825-9c83-3acd905172d5.jsonl",
+      "first_seen": "2026-11-10T13:46:25.540734+00:00",
+      "last_seen": "2026-11-10T13:46:25.540739+00:00"
+     },
+     {
+      "session_id": "832a5ec4-592b-4e10-bdf7-36322ca8beb6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-codebases-Arbor-glm52/832a5ec4-592b-4e10-bdf7-36322ca8beb6.jsonl",
+      "first_seen": "2026-11-10T13:47:00.234851+00:00",
+      "last_seen": "2026-11-10T13:52:27.516381+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_ci_ref/r1/agg_glm5.2_sglang_agentx_conc16.json",
+   "sha256": "f6369de1116b93a76906e13ec7291a328b89da108097564ffe1e1569783f3639",
+   "size": 5168,
+   "mtime": 1794223071,
+   "json": {
+    "hw": "mi355x",
+    "conc": 16,
+    "image": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "model": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+    "infmax_model_prefix": "glm5.2",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "dram",
+    "kv_offload_backend": {
+     "name": "hicache"
+    },
+    "allocated_cpu_dram_gb": 1199,
+    "num_requests_total": 835,
+    "num_requests_successful": 658,
+    "request_accounting": {
+     "records_total": 835,
+     "records_profiled": 658,
+     "records_dropped_total": 177,
+     "records_warmup_dropped": 177,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3609,
+      "mean": 0.18204,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 1,
+      "p95": 1,
+      "std": 0.46232
+     },
+     "latency": {
+      "ttft": {
+       "mean": 27.84664,
+       "p50": 17.1894,
+       "p75": 38.10945,
+       "p90": 66.87315,
+       "p95": 105.79269,
+       "std": 37.53808
+      },
+      "e2el": {
+       "mean": 71.28234,
+       "p50": 36.82125,
+       "p75": 73.09211,
+       "p90": 176.55627,
+       "p95": 242.69788,
+       "std": 109.54642
+      },
+      "itl": {
+       "mean": 0.05462,
+       "p50": 0.03016,
+       "p75": 0.05031,
+       "p90": 0.07803,
+       "p95": 0.12472,
+       "std": 0.27633
+      },
+      "tpot": {
+       "mean": 0.05462,
+       "p50": 0.03016,
+       "p75": 0.05031,
+       "p90": 0.07803,
+       "p95": 0.12472,
+       "std": 0.27633
+      },
+      "intvty": {
+       "mean": 18.30851,
+       "p50": 33.15577,
+       "p75": 19.87649,
+       "p90": 12.81526,
+       "p95": 8.01781,
+       "std": 28.63876
+      },
+      "full_response_itl": {
+       "mean": 0.05462,
+       "p50": 0.03016,
+       "p75": 0.05031,
+       "p90": 0.07803,
+       "p95": 0.12472,
+       "std": 0.27633
+      },
+      "full_response_intvty": {
+       "mean": 18.30806,
+       "p50": 33.15572,
+       "p75": 19.87647,
+       "p90": 12.81524,
+       "p95": 8.01781,
+       "std": 28.63384
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 129890.96201,
+       "p50": 109721.5,
+       "p75": 142410,
+       "p90": 174602.8,
+       "p95": 352485.3,
+       "std": 109068.78604
+      },
+      "output_actual": {
+       "mean": 1000.79483,
+       "p50": 382.5,
+       "p75": 870.5,
+       "p90": 2374.1,
+       "p95": 4166.55,
+       "std": 2142.37293
+      },
+      "output_expected": {
+       "mean": 1845.38265,
+       "p50": 801,
+       "p75": 1937.75,
+       "p90": 4466.5,
+       "p95": 6733.5,
+       "std": 3265.82765
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 23655.84562
+      },
+      "output": {
+       "tokens_per_second": 182.26555
+      },
+      "total": {
+       "tokens_per_second": 23838.11117
+      },
+      "duration_seconds": 3612.98659,
+      "per_gpu": {
+       "total_tput_tps": 5959.52779,
+       "output_tput_tps": 45.56639,
+       "input_tput_tps": 5913.96141
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.96723
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 73,
+     "cache": {
+      "gpu_cache_hit_rate": 0.25071,
+      "cpu_cache_hit_rate": 0.3366,
+      "external_cache_hit_rate": 0.3366,
+      "overall_cache_hit_rate": 0.58731,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 31651712,
+       "host": 42495808
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 1,
+      "gpu_total_tokens": 8832768,
+      "cpu_usage_pct": 1,
+      "cpu_used_tokens": 3312320,
+      "cpu_total_tokens": 3312320
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 126250065,
+      "generation_total": 707472,
+      "requests_completed": 658,
+      "prompt_by_source": {
+       "gpu_cache_hit": 31651712,
+       "cpu_or_external_cache_hit": 42495808,
+       "computed": 31970752,
+       "raw": {
+        "device": 31651712,
+        "host": 42495808
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 8832768
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_ci_ref/r1/bench_output.json",
+   "sha256": "198c3b62f8eaded6403faeb9ab2d124344cd8cf4786bc6c3e1f8475c2d2a26be",
+   "size": 677,
+   "mtime": 1794223080,
+   "json": {
+    "total_throughput_per_gpu": 5959.52779,
+    "p50_interactivity": 33.15577,
+    "output_throughput": 45.56639,
+    "input_throughput_per_gpu": 5913.96141,
+    "total_throughput": 0.0,
+    "p90_interactivity": 12.81526,
+    "mean_interactivity": 18.30851,
+    "median_ttft_s": 17.1894,
+    "p90_ttft_s": 66.87315,
+    "median_tpot_s": 0.03016,
+    "p90_tpot_s": 0.07803,
+    "gpu_cache_hit_rate": 0.25071,
+    "cpu_cache_hit_rate": 0.3366,
+    "num_requests_successful": 658,
+    "num_requests_total": 835,
+    "num_gpus": null,
+    "conc": 16,
+    "duration_s": 3600,
+    "replay_exit_code": 0,
+    "agg_json_path": "/workspace/sessions/measure_ci_ref/r1/agg_glm5.2_sglang_agentx_conc16.json",
+    "status": "ok"
+   }
+  }
+ ],
+ "before_gsm8k_results": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_bar/gsm8k/amd__GLM-5.2-MXFP4/results_2026-11-09T12-35-56.735203.json",
+   "sha256": "074b23cb5981f7d379391b8a0599f3cb819e01849630077ae1a9e55b2037a94b",
+   "size": 9258,
+   "mtime": 1794227756,
+   "json": {
+    "results": {
+     "gsm8k": {
+      "name": "gsm8k",
+      "alias": "gsm8k",
+      "sample_len": 1319,
+      "exact_match,strict-match": 0.709628506444276,
+      "exact_match_stderr,strict-match": 0.012503592481818957,
+      "exact_match,flexible-extract": 0.709628506444276,
+      "exact_match_stderr,flexible-extract": 0.012503592481818954
+     }
+    },
+    "group_subtasks": {},
+    "configs": {
+     "gsm8k": {
+      "task": "gsm8k",
+      "dataset_path": "openai/gsm8k",
+      "dataset_name": "main",
+      "training_split": "train",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+       "sampler": "default",
+       "split": "train",
+       "process_docs": null,
+       "fewshot_indices": null,
+       "samples": null,
+       "doc_to_text": "Question: {{question}}\nAnswer:",
+       "doc_to_choice": null,
+       "doc_to_target": "{{answer}}",
+       "gen_prefix": null,
+       "fewshot_delimiter": "\n\n",
+       "target_delimiter": " "
+      },
+      "num_fewshot": 5,
+      "metric_list": [
+       {
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "higher_is_better": true,
+        "ignore_case": true,
+        "ignore_punctuation": false,
+        "regexes_to_ignore": [
+         ",",
+         "\\$",
+         "(?s).*#### ",
+         "\\.$"
+        ]
+       }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+       "until": [
+        "Question:",
+        "</s>",
+        "<|im_end|>"
+       ],
+       "do_sample": false,
+       "temperature": 0
+      },
+      "repeats": 1,
+      "filter_list": [
+       {
+        "name": "strict-match",
+        "filter": [
+         {
+          "function": "regex",
+          "regex_pattern": "#### (\\-?[0-9\\.\\,]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       },
+       {
+        "name": "flexible-extract",
+        "filter": [
+         {
+          "function": "regex",
+          "group_select": -1,
+          "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+       "version": 3.0,
+       "model": "amd/GLM-5.2-MXFP4",
+       "base_url": "http://127.0.0.1:8890/v1/completions",
+       "tokenizer": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+       "num_concurrent": 32,
+       "max_retries": 3,
+       "tokenized_requests": false,
+       "config_source": "inline"
+      }
+     }
+    },
+    "versions": {
+     "gsm8k": 3.0
+    },
+    "n-shot": {
+     "gsm8k": 5
+    },
+    "higher_is_better": {
+     "gsm8k": {
+      "exact_match": true
+     }
+    },
+    "n-samples": {
+     "gsm8k": {
+      "original": 1319,
+      "effective": 1319
+     }
+    },
+    "config": {
+     "model": "local-completions",
+     "model_args": {
+      "model": "amd/GLM-5.2-MXFP4",
+      "base_url": "http://127.0.0.1:8890/v1/completions",
+      "tokenizer": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+      "num_concurrent": 32,
+      "max_retries": 3,
+      "tokenized_requests": false
+     },
+     "batch_size": "1",
+     "batch_sizes": [],
+     "device": "cuda:0",
+     "use_cache": null,
+     "limit": 1319.0,
+     "bootstrap_iters": 100000,
+     "gen_kwargs": {
+      "temperature": 0
+     },
+     "random_seed": 1234,
+     "numpy_seed": 1234,
+     "torch_seed": 1234,
+     "fewshot_seed": 1234
+    },
+    "git_hash": null,
+    "date": 1794227488.418473,
+    "pretty_env_info": "PyTorch version: 2.9.1+rocm7.2.0.git7e1940d4\nIs debug build: False\nCUDA used to build PyTorch: N/A\nROCM used to build PyTorch: 7.2.26015-fc0010cf6a\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nClang version: Could not collect\nCMake version: version 3.31.10\nLibc version: glibc-2.35\n\nPython version: 3.10.12 (main, Jan  8 2026, 06:52:19) [GCC 11.4.0] (64-bit runtime)\nPython platform: Linux-6.8.12-322.crusoe.amd64-g275dd86317a7-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: AMD Instinct MI355X (gfx950:sramecc+:xnack-)\nNvidia driver version: Could not collect\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: 7.2.26015\nMIOpen runtime version: 3.5.1\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  236\nOn-line CPU(s) list:                     0-235\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9575F 64-Core Processor\nCPU family:                              26\nModel:                                   2\nThread(s) per core:                      2\nCore(s) per socket:                      59\nSocket(s):                               2\nStepping:                                1\nBogoMIPS:                                6599.99\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 clzero xsaveerptr wbnoinvd arat npt lbrv nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload vgif vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid movdiri movdir64b fsrm avx512_vp2intersect flush_l1d arch_capabilities srso_user_kernel_no\nVirtualization:                          AMD-V\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               5.5 MiB (118 instances)\nL1i cache:                               3.7 MiB (118 instances)\nL2 cache:                                118 MiB (118 instances)\nL3 cache:                                512 MiB (16 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-117\nNUMA node1 CPU(s):                       118-235\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==2.2.6\n[pip3] torch==2.9.1+rocm7.2.0.lw.git7e1940d4\n[pip3] torchao==0.9.0\n[pip3] torchaudio==2.9.0+rocm7.2.0.gite3c6ee2b\n[pip3] torchvision==0.24.0+rocm7.2.0.gitb919bd0c\n[pip3] triton==3.6.0+git42270451\n[pip3] triton_kernels==1.0.0\n[conda] Could not collect",
+    "transformers_version": "5.12.1",
+    "lm_eval_version": "0.4.13",
+    "upper_git_hash": null,
+    "tokenizer_pad_token": "<dropped>",
+    "tokenizer_eos_token": "<dropped>",
+    "tokenizer_bos_token": "<dropped>",
+    "eot_token_id": 154820,
+    "max_length": 2047,
+    "task_hashes": {},
+    "model_source": "local-completions",
+    "model_name": "amd/GLM-5.2-MXFP4",
+    "model_name_sanitized": "amd__GLM-5.2-MXFP4",
+    "system_instruction": null,
+    "system_instruction_sha": null,
+    "fewshot_as_multiturn": null,
+    "chat_template": null,
+    "chat_template_sha": null,
+    "total_evaluation_time_seconds": "271.6944364659721"
+   }
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_after_campaign/r1/agg_glm5.2_sglang_agentx_conc16.json",
+   "sha256": "f1337ecfd4da0458e9e780d13b423f9e97f7c174afa79b1cc9bd37339a8f402f",
+   "size": 5200,
+   "mtime": 1794326192,
+   "json": {
+    "hw": "mi355x",
+    "conc": 16,
+    "image": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "model": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+    "infmax_model_prefix": "glm5.2",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "dram",
+    "kv_offload_backend": {
+     "name": "hicache"
+    },
+    "allocated_cpu_dram_gb": 1199,
+    "num_requests_total": 864,
+    "num_requests_successful": 687,
+    "request_accounting": {
+     "records_total": 864,
+     "records_profiled": 687,
+     "records_dropped_total": 177,
+     "records_warmup_dropped": 177,
+     "records_error_dropped": 2,
+     "error_categories": {
+      "InvalidInferenceResultError": 2
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3608,
+      "mean": 0.19013,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 1,
+      "p95": 1,
+      "std": 0.45822
+     },
+     "latency": {
+      "ttft": {
+       "mean": 27.50575,
+       "p50": 14.89518,
+       "p75": 42.16961,
+       "p90": 68.85731,
+       "p95": 101.38695,
+       "std": 35.35266
+      },
+      "e2el": {
+       "mean": 71.70849,
+       "p50": 37.24538,
+       "p75": 81.95955,
+       "p90": 176.64935,
+       "p95": 233.4846,
+       "std": 110.32551
+      },
+      "itl": {
+       "mean": 0.06316,
+       "p50": 0.02698,
+       "p75": 0.05208,
+       "p90": 0.08742,
+       "p95": 0.11836,
+       "std": 0.33496
+      },
+      "tpot": {
+       "mean": 0.06316,
+       "p50": 0.02698,
+       "p75": 0.05208,
+       "p90": 0.08742,
+       "p95": 0.11836,
+       "std": 0.33496
+      },
+      "intvty": {
+       "mean": 15.83311,
+       "p50": 37.065,
+       "p75": 19.20027,
+       "p90": 11.43923,
+       "p95": 8.44869,
+       "std": 28.61698
+      },
+      "full_response_itl": {
+       "mean": 0.06316,
+       "p50": 0.02698,
+       "p75": 0.05208,
+       "p90": 0.08742,
+       "p95": 0.11836,
+       "std": 0.33496
+      },
+      "full_response_intvty": {
+       "mean": 15.83274,
+       "p50": 37.06484,
+       "p75": 19.20025,
+       "p90": 11.43921,
+       "p95": 8.44868,
+       "std": 28.61684
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 130663.51528,
+       "p50": 110820,
+       "p75": 143848.5,
+       "p90": 177727.4,
+       "p95": 353191.4,
+       "std": 108481.40617
+      },
+      "output_actual": {
+       "mean": 1083.23435,
+       "p50": 394,
+       "p75": 918.5,
+       "p90": 2586.4,
+       "p95": 4800,
+       "std": 2351.31712
+      },
+      "output_expected": {
+       "mean": 1832.50243,
+       "p50": 786,
+       "p75": 1903,
+       "p90": 4561,
+       "p95": 6729,
+       "std": 3245.76098
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 24852.78904
+      },
+      "output": {
+       "tokens_per_second": 206.03605
+      },
+      "total": {
+       "tokens_per_second": 25058.82509
+      },
+      "duration_seconds": 3611.90186,
+      "per_gpu": {
+       "total_tput_tps": 6264.70627,
+       "output_tput_tps": 51.50901,
+       "input_tput_tps": 6213.19726
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.96628
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 73,
+     "cache": {
+      "gpu_cache_hit_rate": 0.25624,
+      "cpu_cache_hit_rate": 0.35121,
+      "external_cache_hit_rate": 0.35121,
+      "overall_cache_hit_rate": 0.60745,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 33111680,
+       "host": 45383168
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 1,
+      "gpu_total_tokens": 8832768,
+      "cpu_usage_pct": 1,
+      "cpu_used_tokens": 3312320,
+      "cpu_total_tokens": 3312320
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 129220118,
+      "generation_total": 771632,
+      "requests_completed": 687,
+      "prompt_by_source": {
+       "gpu_cache_hit": 33111680,
+       "cpu_or_external_cache_hit": 45383168,
+       "computed": 31236096,
+       "raw": {
+        "device": 33111680,
+        "host": 45383168
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 8832768
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_after_campaign/r1/bench_output.json",
+   "sha256": "be70c8ae6ffdaf5fcb944b0a8cdcc81583fdc6b6dde88b40d6d9871c6467361c",
+   "size": 685,
+   "mtime": 1794326200,
+   "json": {
+    "total_throughput_per_gpu": 6264.70627,
+    "p50_interactivity": 37.065,
+    "output_throughput": 51.50901,
+    "input_throughput_per_gpu": 6213.19726,
+    "total_throughput": 0.0,
+    "p90_interactivity": 11.43923,
+    "mean_interactivity": 15.83311,
+    "median_ttft_s": 14.89518,
+    "p90_ttft_s": 68.85731,
+    "median_tpot_s": 0.02698,
+    "p90_tpot_s": 0.08742,
+    "gpu_cache_hit_rate": 0.25624,
+    "cpu_cache_hit_rate": 0.35121,
+    "num_requests_successful": 687,
+    "num_requests_total": 864,
+    "num_gpus": null,
+    "conc": 16,
+    "duration_s": 3600,
+    "replay_exit_code": 0,
+    "agg_json_path": "/workspace/sessions/measure_after_campaign/r1/agg_glm5.2_sglang_agentx_conc16.json",
+    "status": "ok"
+   }
+  }
+ ],
+ "after_gsm8k_results": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_final_gsm8k/gsm8k/amd__GLM-5.2-MXFP4/results_2026-11-10T17-54-06.827458.json",
+   "sha256": "2c67296017af326e36e6db5af36ce26d7789b9d8fd4bb5f1babcbb9594e30fb9",
+   "size": 9260,
+   "mtime": 1794333246,
+   "json": {
+    "results": {
+     "gsm8k": {
+      "name": "gsm8k",
+      "alias": "gsm8k",
+      "sample_len": 1319,
+      "exact_match,strict-match": 0.6967399545109931,
+      "exact_match_stderr,strict-match": 0.012661502663418697,
+      "exact_match,flexible-extract": 0.7020470053070508,
+      "exact_match_stderr,flexible-extract": 0.01259793223291454
+     }
+    },
+    "group_subtasks": {},
+    "configs": {
+     "gsm8k": {
+      "task": "gsm8k",
+      "dataset_path": "openai/gsm8k",
+      "dataset_name": "main",
+      "training_split": "train",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+       "sampler": "default",
+       "split": "train",
+       "process_docs": null,
+       "fewshot_indices": null,
+       "samples": null,
+       "doc_to_text": "Question: {{question}}\nAnswer:",
+       "doc_to_choice": null,
+       "doc_to_target": "{{answer}}",
+       "gen_prefix": null,
+       "fewshot_delimiter": "\n\n",
+       "target_delimiter": " "
+      },
+      "num_fewshot": 5,
+      "metric_list": [
+       {
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "higher_is_better": true,
+        "ignore_case": true,
+        "ignore_punctuation": false,
+        "regexes_to_ignore": [
+         ",",
+         "\\$",
+         "(?s).*#### ",
+         "\\.$"
+        ]
+       }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+       "until": [
+        "Question:",
+        "</s>",
+        "<|im_end|>"
+       ],
+       "do_sample": false,
+       "temperature": 0
+      },
+      "repeats": 1,
+      "filter_list": [
+       {
+        "name": "strict-match",
+        "filter": [
+         {
+          "function": "regex",
+          "regex_pattern": "#### (\\-?[0-9\\.\\,]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       },
+       {
+        "name": "flexible-extract",
+        "filter": [
+         {
+          "function": "regex",
+          "group_select": -1,
+          "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+       "version": 3.0,
+       "model": "amd/GLM-5.2-MXFP4",
+       "base_url": "http://127.0.0.1:8890/v1/completions",
+       "tokenizer": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+       "num_concurrent": 32,
+       "max_retries": 3,
+       "tokenized_requests": false,
+       "config_source": "inline"
+      }
+     }
+    },
+    "versions": {
+     "gsm8k": 3.0
+    },
+    "n-shot": {
+     "gsm8k": 5
+    },
+    "higher_is_better": {
+     "gsm8k": {
+      "exact_match": true
+     }
+    },
+    "n-samples": {
+     "gsm8k": {
+      "original": 1319,
+      "effective": 1319
+     }
+    },
+    "config": {
+     "model": "local-completions",
+     "model_args": {
+      "model": "amd/GLM-5.2-MXFP4",
+      "base_url": "http://127.0.0.1:8890/v1/completions",
+      "tokenizer": "/hf-hub/models--amd--GLM-5.2-MXFP4/snapshots/386bd0e4ec821f7b07975701cec3c3b953a5576a",
+      "num_concurrent": 32,
+      "max_retries": 3,
+      "tokenized_requests": false
+     },
+     "batch_size": "1",
+     "batch_sizes": [],
+     "device": "cuda:0",
+     "use_cache": null,
+     "limit": 1319.0,
+     "bootstrap_iters": 100000,
+     "gen_kwargs": {
+      "temperature": 0
+     },
+     "random_seed": 1234,
+     "numpy_seed": 1234,
+     "torch_seed": 1234,
+     "fewshot_seed": 1234
+    },
+    "git_hash": null,
+    "date": 1794332980.5374255,
+    "pretty_env_info": "PyTorch version: 2.9.1+rocm7.2.0.git7e1940d4\nIs debug build: False\nCUDA used to build PyTorch: N/A\nROCM used to build PyTorch: 7.2.26015-fc0010cf6a\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nClang version: Could not collect\nCMake version: version 3.31.10\nLibc version: glibc-2.35\n\nPython version: 3.10.12 (main, Jan  8 2026, 06:52:19) [GCC 11.4.0] (64-bit runtime)\nPython platform: Linux-6.8.12-322.crusoe.amd64-g275dd86317a7-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: AMD Instinct MI355X (gfx950:sramecc+:xnack-)\nNvidia driver version: Could not collect\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: 7.2.26015\nMIOpen runtime version: 3.5.1\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  236\nOn-line CPU(s) list:                     0-235\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9575F 64-Core Processor\nCPU family:                              26\nModel:                                   2\nThread(s) per core:                      2\nCore(s) per socket:                      59\nSocket(s):                               2\nStepping:                                1\nBogoMIPS:                                6599.99\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 clzero xsaveerptr wbnoinvd arat npt lbrv nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload vgif vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid movdiri movdir64b fsrm avx512_vp2intersect flush_l1d arch_capabilities srso_user_kernel_no\nVirtualization:                          AMD-V\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               5.5 MiB (118 instances)\nL1i cache:                               3.7 MiB (118 instances)\nL2 cache:                                118 MiB (118 instances)\nL3 cache:                                512 MiB (16 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-117\nNUMA node1 CPU(s):                       118-235\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==2.2.6\n[pip3] torch==2.9.1+rocm7.2.0.lw.git7e1940d4\n[pip3] torchao==0.9.0\n[pip3] torchaudio==2.9.0+rocm7.2.0.gite3c6ee2b\n[pip3] torchvision==0.24.0+rocm7.2.0.gitb919bd0c\n[pip3] triton==3.6.0+git42270451\n[pip3] triton_kernels==1.0.0\n[conda] Could not collect",
+    "transformers_version": "5.12.1",
+    "lm_eval_version": "0.4.13",
+    "upper_git_hash": null,
+    "tokenizer_pad_token": "<dropped>",
+    "tokenizer_eos_token": "<dropped>",
+    "tokenizer_bos_token": "<dropped>",
+    "eot_token_id": 154820,
+    "max_length": 2047,
+    "task_hashes": {},
+    "model_source": "local-completions",
+    "model_name": "amd/GLM-5.2-MXFP4",
+    "model_name_sanitized": "amd__GLM-5.2-MXFP4",
+    "system_instruction": null,
+    "system_instruction_sha": null,
+    "fewshot_as_multiturn": null,
+    "chat_template": null,
+    "chat_template_sha": null,
+    "total_evaluation_time_seconds": "269.5318291669246"
+   }
+  }
+ ]
+}

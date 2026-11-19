@@ -1,0 +1,1265 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/env.sh",
+   "sha256": "7eb8f64a9b8036691dc9de215c151516fd3565e6ce2f26c8caf922c9299f9eb6",
+   "size": 2092,
+   "mtime": 1794526198,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/musespark-c1-p90-sa",
+    "LOGS": "$EXP/logs",
+    "ARBOR": "$EXP/src/arbor",
+    "ARBOR_SHA": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02",
+    "INFX": "$TOP/codebases/InferenceX",
+    "INFX_SHA": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "VENV": "$EXP/.venv",
+    "PY": "$VENV/bin/python",
+    "CONFIG_REL": "configs/mi355x/musespark-c1-p90-sa.json",
+    "CONFIG": "$ARBOR/$CONFIG_REL",
+    "PACK": "agentx-musespark-c1sa",
+    "SESSIONS": "$EXP/sessions",
+    "SESSION": "$SESSIONS/full",
+    "MMAP_CACHE": "$EXP/aiperf_mmap_cache",
+    "AGENT_HOME": "$EXP/agent_home",
+    "GATEWAY_ENV": "$TOP/experiments/glm52-c16-tput/agent_home/.arbor/gateway.env",
+    "IMAGE_TAG": "lmsysorg/sglang-rocm:muse-spark-open",
+    "IMAGE_DIGEST": "sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4",
+    "CONTAINER": "qh_c5sa",
+    "PORT": "30125",
+    "HUB_NL": "/mnt/m2m_nobackup/qiangh_muse5/hf-hub",
+    "MODEL_ID": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "MODEL_REV": "c7bc74fd64371315a091bc15f9723882eead0dc1",
+    "DRAFT_ID": "RadixArk/Muse-Spark-Open-DFlash2",
+    "DRAFT_REV": "46c90f412549c472941a68382d91a99e5e6372a0",
+    "WORKSPACE_ROOT": "/sgl-workspace/sglang"
+   }
+  }
+ ],
+ "guide": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/GUIDE.md",
+   "sha256": "66aa814b918da3175fb737fbb8899debd131d4c74568dea2f1cc5a3743aa8950",
+   "size": 3861,
+   "mtime": 1794526200,
+   "head": [
+    "# Campaign 5: musespark-c1-p90-sa — intent and constraints",
+    "",
+    "Written 2026-11-12 before launch (CLAUDE.md, autonomous mode). Source of truth: README.md \"下面是第5个campaign\" and the user's answers of 2026-11-12.",
+    "",
+    "## Goal",
+    "",
+    "Run a 24 h **Arbor standalone** campaign on Muse Spark Open with SGLang, MI355X, AgentX trace replay at **concurrency 1**, with **P90 interactivity** as the objective. Before and after the campaign, run the full AgentX benchmark at C1 and GSM8K (README item 8).",
+    "",
+    "## Pins",
+    "",
+    "| What | Pin |",
+    "|---|---|",
+    "| Arbor | AMD-AGI/Arbor branch `v0.9.2-baseline-test` = `2c2fd3df` (2026-11-10; backports up to F32), stock code + our pack `agentx-musespark-c1sa` |",
+    "| CI run | InferenceX run 38877885539 (2026-10-16), commit `8a76a78e41` (on refs/pull/4127), key `musespark-fp4-mi355x-sglang-agentic-dflash` |",
+    "| Recipe | `inferencex-e2e/benchmarks/single_node/srt-slurm-recipes/musespark/sglang/mi355x-fp4-mtp/agentic.yaml`, point `override_tp4_c1` (TP4/EP4, CONC 1) |",
+    "| Image | `lmsysorg/sglang-rocm:muse-spark-open` @ `sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4` |",
+    "| Model | `amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4` @ `c7bc74fd64371315a091bc15f9723882eead0dc1` |",
+    "| Draft | `RadixArk/Muse-Spark-Open-DFlash2` @ `46c90f412549c472941a68382d91a99e5e6372a0` (DFlash2, 8 draft tokens, real acceptance) |",
+    "| Bench client | InferenceX `86699be610` (`benchmarks/benchmark_lib.sh`, aiperf), corpus `semianalysis_cc_traces_weka_062126_256k` @ `8fecd2fc`, DURATION 3600 s |",
+    "",
+    "## Decisions (user, 2026-11-12)",
+    "",
+    "- **Node:** a new hold job (285229, v3-189, submitted at 1 day, raised to 3 days once running; to 2026-11-15 23:20 UTC). Job 283952 released for it; job 280523 (v3-113) kept.",
+    "- **CI point:** `override_tp4_c1` (TP4/EP4); GPUs 4-7 free for Arbor's probes and profiling.",
+    "- **Bench client:** InferenceX 86699be610. Arbor v0.9.2's bench needs `benchmarks/benchmark_lib.sh`, which 8a76a78e41 (and 41cc713) no longer have. Absolute numbers therefore differ from CI's `infx` client; before, after and every iteration use the same client.",
+    "- **Before/after:** one full AgentX (C1, 3600 s) and one GSM8K (1319 questions, `sglang.test.few_shot_gsm8k`) each, on a fresh server.",
+    "- **DECISION (mine, from campaign 4's user decision; to report):** objective `e2e_norm_intvty_p90`, KEEP at +2 %, P50 held within 5 %. Arbor v0.9.2's second axis is a Pareto axis (`arbor/measure/gate.py`); configured as a guard: `secondary_threshold_rel` 1000 (never a gain), `secondary_noise_band_pct` 5, `secondary_regression_cap_pct` 5.",
+    "- **Interactivity metrics:** v0.9.2's agentx bench writes only throughput; our pack's bench adds `e2e_norm_intvty_p50/p90` from InferenceX's aggregate (the same lines as Arbor main 7c364d6).",
+    "",
+    "## Known weaknesses of this Arbor (red flags reported to the user)",
+    "",
+    "- No cold prefix cache before a bench (Arbor main has it): Arbor's own numbers carry the warm-server bias seen in campaign 3. Pack rule: book KEEPs on a restarted server. The before/after runs are the numbers of record.",
+    "- The spec's \"Optimization Target\" (total_throughput_per_gpu, C16) differs from item 3 (C1, P90); item 3 is followed.",
+    "",
+    "## Layout",
+    "",
+    "- `experiments/musespark-c1-p90-sa/`: this guide, `env.sh`, `dl.sh`, `prepare.sh`, `ab.sh` (smoke/before/after), `campaign.sh`, `stage/` (Arbor archive, pack, bench, config), `runs/<tag>/`, `sessions/full/`, `logs/`, `ctrl/` (node agent).",
+    "- Node NVMe `/mnt/m2m_nobackup/qiangh_muse5/hf-hub`: model, draft, corpus (refs/main = pins), mounted at `/hf-hub` in container `qh_c5sa`.",
+    "",
+    "## Constraints",
+    "",
+    "- Never touch other users' containers or processes (a foreign idle container `tremez-grpo` runs on v3-189). Smoke test first. Do not loosen gates, tolerances or CI flags without the user; record any CI deviation. No tokens (GitHub, board, HF) inside the container. Log every action in `reports/<date>_worklog.md`."
+   ]
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/spur-285229.out",
+   "sha256": "b4a6c06672677cf0e25ec72bec83beae33305cee4b8087f168962014373b02bb",
+   "size": 11,
+   "mtime": 1794784844,
+   "head": [
+    "Terminated"
+   ]
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/sessions/full/reports/trace/meta.json",
+   "sha256": "7ea8b31e89c14a9ede77d6931cd36875495052fec0b97d7ecf2f9201f5848623",
+   "size": 37031,
+   "mtime": 1794628023,
+   "json": {
+    "arbor_session_dir": "/home/qiangh/arbor_dsv41flash/experiments/musespark-c1-p90-sa/sessions/full",
+    "started": "2026-11-13T02:46:47.899210+00:00",
+    "arbor_git_sha": "31c17a8ad8dae8ed6f53259123d07adf62487528",
+    "config": {
+     "_note": "Campaign 5 (musespark-c1-p90-sa), Arbor standalone, AMD-AGI/Arbor v0.9.2-baseline-test (2c2fd3d). Muse Spark Open MXFP4 + DFlash2 on SGLang, TP4/EP4 on MI355X (Crusoe, QOS amd-hyperloom-qos), InferenceX AgentX replay at C1, objective P90 interactivity. The launch is the CI recipe point override_tp4_c1 (InferenceX 8a76a78e41, inferencex-e2e/benchmarks/single_node/srt-slurm-recipes/musespark/sglang/mi355x-fp4-mtp/agentic.yaml; CI run 38877885539). The bench client is InferenceX 86699be610 (user decision: Arbor v0.9.2's bench needs benchmarks/benchmark_lib.sh, which 8a76a78e41 no longer has). Provisioned by experiments/musespark-c1-p90-sa/prepare.sh.",
+     "pack": "agentx-musespark-c1sa",
+     "identity": "inference:agentx:mi355x:sglang:mxfp4:musespark:c1:tp4ep4:p90",
+     "goal": "Raise Muse Spark Open's P90 interactivity (e2e_norm_intvty_p90) on the InferenceX AgentX replay at concurrency 1 on four MI355X GPUs (TP4/EP4, DFlash2), from the CI launch, without losing P50 interactivity.",
+     "docker_container": "qh_c5sa",
+     "workspace_root": "/sgl-workspace/sglang",
+     "session_root": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/sessions/full",
+     "session_mount": "/workspace/sessions",
+     "framework": "sglang",
+     "model_path": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+     "model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+     "served_model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+     "_model_note": "Named by repo id, as CI does; resolved offline from the HF cache at /hf-hub (node NVMe), whose refs/main is the pin c7bc74fd64 (draft: 46c90f41).",
+     "gpu_type": "MI355X",
+     "gpu_ids": "0,1,2,3",
+     "tp": 4,
+     "port": 30125,
+     "server_flags": "--tensor-parallel-size 4 --expert-parallel-size 4 --attention-backend aiter --page-size 16 --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85 --max-running-requests 128 --speculative-algorithm DFLASH --speculative-draft-model-path RadixArk/Muse-Spark-Open-DFlash2 --speculative-draft-attention-backend triton --speculative-num-draft-tokens 8 --reasoning-parser muse --tool-call-parser muse --watchdog-timeout 1800 --enable-metrics",
+     "_server_flags_note": "Verbatim from the recipe's base args plus override_tp4_c1 (tensor-parallel-size 4, expert-parallel-size 4). Arbor adds --model-path, --served-model-name, --host and --port.",
+     "server_env": {
+      "PYTHONNOUSERSITE": "1",
+      "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+      "SGLANG_USE_AITER": "1",
+      "SGLANG_USE_AITER_UNIFIED_ATTN": "1",
+      "MUSE_MOE_BACKEND": "flydsl",
+      "HF_HUB_OFFLINE": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "sglang:",
+      "MODEL_PREFIX": "musespark",
+      "FRAMEWORK": "sglang",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "dflash",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "lmsysorg/sglang-rocm:muse-spark-open",
+      "TP": "4",
+      "EP_SIZE": "4",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126_256k",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+     },
+     "_server_env_note": "The first six are the recipe's server env (role agg); AIPERF_* are the recipe's benchmark env; HF_HUB_CACHE points at the offline cache. The rest is what bench_agentx.sh reads (InferenceX's conventions; SPEC_DECODING is a label only). DURATION 3600 as CI: at C1 a shorter replay holds too few requests for a P90.",
+     "concurrency": 1,
+     "num_prompts": 320,
+     "bench_timeout": 7200,
+     "bench_script": "/workspace/Arbor/packs/agentx-musespark-c1sa/validator/bench_agentx.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-musespark-c1sa/validator/correctness.sh",
+     "editable_packages": [
+      {
+       "name": "aiter",
+       "path": "/sgl-workspace/aiter/aiter",
+       "rebuild": null
+      },
+      {
+       "name": "flydsl",
+       "path": "/opt/venv/lib/python3.10/site-packages/flydsl",
+       "rebuild": null
+      }
+     ],
+     "_editable_note": "prepare.sh adds aiter and flydsl at the paths the image imports them from.",
+     "baseline": null,
+     "target": null,
+     "review_gate": false,
+     "time_budget_minutes": 1440,
+     "directives": []
+    },
+    "host": "crsuse2-m2m-v3-189",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "25eb4729-8fe3-4442-aeaf-1326a31f58f0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/25eb4729-8fe3-4442-aeaf-1326a31f58f0.jsonl",
+      "first_seen": "2026-11-13T02:46:52.001203+00:00",
+      "last_seen": "2026-11-13T03:02:45.899653+00:00"
+     },
+     {
+      "session_id": "6b997580-1100-4f17-bf81-b02ab57de268",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/6b997580-1100-4f17-bf81-b02ab57de268.jsonl",
+      "first_seen": "2026-11-13T03:03:50.327452+00:00",
+      "last_seen": "2026-11-13T03:06:08.069980+00:00"
+     },
+     {
+      "session_id": "a0de89d5-a09c-4a7a-906a-d1244d567ac0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/a0de89d5-a09c-4a7a-906a-d1244d567ac0.jsonl",
+      "first_seen": "2026-11-13T03:06:58.098382+00:00",
+      "last_seen": "2026-11-13T03:45:10.796866+00:00"
+     },
+     {
+      "session_id": "e20e9e2b-190e-41bb-bf38-9f6f265d9e52",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/e20e9e2b-190e-41bb-bf38-9f6f265d9e52.jsonl",
+      "first_seen": "2026-11-13T03:46:17.572044+00:00",
+      "last_seen": "2026-11-13T03:48:05.109292+00:00"
+     },
+     {
+      "session_id": "234f4b69-45b9-47b8-b36d-8ab9aefa4489",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/234f4b69-45b9-47b8-b36d-8ab9aefa4489.jsonl",
+      "first_seen": "2026-11-13T03:48:31.344082+00:00",
+      "last_seen": "2026-11-13T03:48:34.238153+00:00"
+     },
+     {
+      "session_id": "7902512e-66ac-44de-86ae-a87aadc09a4c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/7902512e-66ac-44de-86ae-a87aadc09a4c.jsonl",
+      "first_seen": "2026-11-13T03:49:08.938861+00:00",
+      "last_seen": "2026-11-13T03:56:39.914079+00:00"
+     },
+     {
+      "session_id": "272df550-79a8-4540-80fd-782b163b908b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/272df550-79a8-4540-80fd-782b163b908b.jsonl",
+      "first_seen": "2026-11-13T03:57:00.820945+00:00",
+      "last_seen": "2026-11-13T03:57:05.101944+00:00"
+     },
+     {
+      "session_id": "9bb86dce-28c6-4ea6-9714-34a2288f0d7e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/9bb86dce-28c6-4ea6-9714-34a2288f0d7e.jsonl",
+      "first_seen": "2026-11-13T03:57:41.346364+00:00",
+      "last_seen": "2026-11-13T04:05:11.610856+00:00"
+     },
+     {
+      "session_id": "b3278f9a-bdd4-4d4c-b6e9-ce4d3fc6851b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/b3278f9a-bdd4-4d4c-b6e9-ce4d3fc6851b.jsonl",
+      "first_seen": "2026-11-13T04:05:50.892560+00:00",
+      "last_seen": "2026-11-13T04:08:09.682401+00:00"
+     },
+     {
+      "session_id": "40b3b0c4-dd4c-4058-8298-31d94ee978d5",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/40b3b0c4-dd4c-4058-8298-31d94ee978d5.jsonl",
+      "first_seen": "2026-11-13T04:08:22.289054+00:00",
+      "last_seen": "2026-11-13T04:08:38.813885+00:00"
+     },
+     {
+      "session_id": "17279696-9e54-412e-997d-58e8538007cc",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/17279696-9e54-412e-997d-58e8538007cc.jsonl",
+      "first_seen": "2026-11-13T04:20:15.628273+00:00",
+      "last_seen": "2026-11-13T04:20:44.920636+00:00"
+     },
+     {
+      "session_id": "11de9aa5-d882-4e80-b7d1-a87e3f23e765",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/11de9aa5-d882-4e80-b7d1-a87e3f23e765.jsonl",
+      "first_seen": "2026-11-13T04:21:12.376796+00:00",
+      "last_seen": "2026-11-13T04:23:10.398709+00:00"
+     },
+     {
+      "session_id": "67f1880a-61c9-41bc-86dd-2543202ab714",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/67f1880a-61c9-41bc-86dd-2543202ab714.jsonl",
+      "first_seen": "2026-11-13T04:23:16.183144+00:00",
+      "last_seen": "2026-11-13T04:23:34.499994+00:00"
+     },
+     {
+      "session_id": "36130414-bea6-4316-bb1b-2215123c711f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/36130414-bea6-4316-bb1b-2215123c711f.jsonl",
+      "first_seen": "2026-11-13T04:35:09.206915+00:00",
+      "last_seen": "2026-11-13T04:36:07.164862+00:00"
+     },
+     {
+      "session_id": "b50e4ec0-fb93-4eb7-a451-96740daeccb7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/b50e4ec0-fb93-4eb7-a451-96740daeccb7.jsonl",
+      "first_seen": "2026-11-13T04:36:41.649475+00:00",
+      "last_seen": "2026-11-13T04:38:43.127303+00:00"
+     },
+     {
+      "session_id": "06cce661-808f-4ee1-a364-20e007baa422",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/06cce661-808f-4ee1-a364-20e007baa422.jsonl",
+      "first_seen": "2026-11-13T04:38:49.515667+00:00",
+      "last_seen": "2026-11-13T04:39:13.040607+00:00"
+     },
+     {
+      "session_id": "7c20fbb6-ff33-4735-b2be-947b7c1cae16",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/7c20fbb6-ff33-4735-b2be-947b7c1cae16.jsonl",
+      "first_seen": "2026-11-13T05:11:45.879880+00:00",
+      "last_seen": "2026-11-13T05:12:10.562451+00:00"
+     },
+     {
+      "session_id": "281b8e5b-5951-452f-814a-3a2f6c6fcf6f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/281b8e5b-5951-452f-814a-3a2f6c6fcf6f.jsonl",
+      "first_seen": "2026-11-13T05:12:36.623405+00:00",
+      "last_seen": "2026-11-13T05:14:33.076641+00:00"
+     },
+     {
+      "session_id": "6a1853a8-79cd-4e57-baea-d05b68926513",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/6a1853a8-79cd-4e57-baea-d05b68926513.jsonl",
+      "first_seen": "2026-11-13T05:14:39.492514+00:00",
+      "last_seen": "2026-11-13T06:17:10.746290+00:00"
+     },
+     {
+      "session_id": "3a0130d0-efa9-428e-a359-15142202d75e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/3a0130d0-efa9-428e-a359-15142202d75e.jsonl",
+      "first_seen": "2026-11-13T06:17:20.456907+00:00",
+      "last_seen": "2026-11-13T06:17:20.456911+00:00"
+     },
+     {
+      "session_id": "4083b5ff-245c-4609-a3cc-a6f108806447",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/4083b5ff-245c-4609-a3cc-a6f108806447.jsonl",
+      "first_seen": "2026-11-13T06:18:14.494447+00:00",
+      "last_seen": "2026-11-13T06:39:36.915396+00:00"
+     },
+     {
+      "session_id": "703caf7c-5277-4265-9144-aa81b348b2f6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/703caf7c-5277-4265-9144-aa81b348b2f6.jsonl",
+      "first_seen": "2026-11-13T06:40:19.776974+00:00",
+      "last_seen": "2026-11-13T06:42:22.416344+00:00"
+     },
+     {
+      "session_id": "6798800c-2a1a-4a20-bac0-c724b04e9e5e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/6798800c-2a1a-4a20-bac0-c724b04e9e5e.jsonl",
+      "first_seen": "2026-11-13T06:42:28.653266+00:00",
+      "last_seen": "2026-11-13T07:44:55.005770+00:00"
+     },
+     {
+      "session_id": "39f7b5f1-0342-43b7-9783-f08987d3bca1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/39f7b5f1-0342-43b7-9783-f08987d3bca1.jsonl",
+      "first_seen": "2026-11-13T07:45:18.787888+00:00",
+      "last_seen": "2026-11-13T07:45:18.787893+00:00"
+     },
+     {
+      "session_id": "e89d8c4d-5ef1-407f-9a06-6ba84ad72bc1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/e89d8c4d-5ef1-407f-9a06-6ba84ad72bc1.jsonl",
+      "first_seen": "2026-11-13T07:46:12.295811+00:00",
+      "last_seen": "2026-11-13T08:57:52.662691+00:00"
+     },
+     {
+      "session_id": "0b66ce14-370a-40e8-85da-6cad73e7a147",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/0b66ce14-370a-40e8-85da-6cad73e7a147.jsonl",
+      "first_seen": "2026-11-13T08:58:47.489467+00:00",
+      "last_seen": "2026-11-13T09:00:43.427011+00:00"
+     },
+     {
+      "session_id": "d5c3854c-41ad-4088-9def-0bbc10aff3e9",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/d5c3854c-41ad-4088-9def-0bbc10aff3e9.jsonl",
+      "first_seen": "2026-11-13T09:00:55.197786+00:00",
+      "last_seen": "2026-11-13T10:02:56.350760+00:00"
+     },
+     {
+      "session_id": "d871628d-8d04-460a-a3f9-6aca160e0108",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/d871628d-8d04-460a-a3f9-6aca160e0108.jsonl",
+      "first_seen": "2026-11-13T10:03:55.628741+00:00",
+      "last_seen": "2026-11-13T10:31:12.778306+00:00"
+     },
+     {
+      "session_id": "316c57ff-68df-4f5c-9336-ae141837da9d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/316c57ff-68df-4f5c-9336-ae141837da9d.jsonl",
+      "first_seen": "2026-11-13T10:31:55.195103+00:00",
+      "last_seen": "2026-11-13T10:33:52.903435+00:00"
+     },
+     {
+      "session_id": "16231547-d623-4816-b442-ee960889644a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/16231547-d623-4816-b442-ee960889644a.jsonl",
+      "first_seen": "2026-11-13T10:33:58.687183+00:00",
+      "last_seen": "2026-11-13T11:36:25.179641+00:00"
+     },
+     {
+      "session_id": "8084afc6-f0ca-4db5-924c-219a3d3170ec",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/8084afc6-f0ca-4db5-924c-219a3d3170ec.jsonl",
+      "first_seen": "2026-11-13T11:37:21.788190+00:00",
+      "last_seen": "2026-11-13T11:54:31.102591+00:00"
+     },
+     {
+      "session_id": "e87c6704-5561-49a9-98d4-678bb989cf68",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/e87c6704-5561-49a9-98d4-678bb989cf68.jsonl",
+      "first_seen": "2026-11-13T11:54:55.749587+00:00",
+      "last_seen": "2026-11-13T11:54:58.924608+00:00"
+     },
+     {
+      "session_id": "5db3043a-0cce-4311-9f50-d6d4ddc476eb",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/5db3043a-0cce-4311-9f50-d6d4ddc476eb.jsonl",
+      "first_seen": "2026-11-13T11:55:34.016074+00:00",
+      "last_seen": "2026-11-13T12:21:37.469064+00:00"
+     },
+     {
+      "session_id": "65795362-11f2-4069-86db-43ce36ce2e69",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/65795362-11f2-4069-86db-43ce36ce2e69.jsonl",
+      "first_seen": "2026-11-13T12:22:37.477099+00:00",
+      "last_seen": "2026-11-13T12:24:43.240568+00:00"
+     },
+     {
+      "session_id": "45597292-f0f9-450e-a935-21eadb0b1ec6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/45597292-f0f9-450e-a935-21eadb0b1ec6.jsonl",
+      "first_seen": "2026-11-13T12:24:50.145241+00:00",
+      "last_seen": "2026-11-13T13:25:11.166060+00:00"
+     },
+     {
+      "session_id": "17712fa5-f422-4de4-bf0c-79c097775ca0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/17712fa5-f422-4de4-bf0c-79c097775ca0.jsonl",
+      "first_seen": "2026-11-13T13:29:21.039706+00:00",
+      "last_seen": "2026-11-13T13:46:48.307597+00:00"
+     },
+     {
+      "session_id": "2fc8a1f6-3de7-45a7-90c5-fff62ea83877",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/2fc8a1f6-3de7-45a7-90c5-fff62ea83877.jsonl",
+      "first_seen": "2026-11-13T13:47:32.680826+00:00",
+      "last_seen": "2026-11-13T13:49:33.215371+00:00"
+     },
+     {
+      "session_id": "a066f5cc-ae7a-4c5a-b64e-b0fd08777c14",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/a066f5cc-ae7a-4c5a-b64e-b0fd08777c14.jsonl",
+      "first_seen": "2026-11-13T13:49:38.353544+00:00",
+      "last_seen": "2026-11-13T14:50:04.240127+00:00"
+     },
+     {
+      "session_id": "016dd345-9654-4861-92e8-61727f2b4347",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/016dd345-9654-4861-92e8-61727f2b4347.jsonl",
+      "first_seen": "2026-11-13T14:53:11.394422+00:00",
+      "last_seen": "2026-11-13T14:53:11.394427+00:00"
+     },
+     {
+      "session_id": "f76a7e57-79c6-4816-b655-e33f620ac789",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/f76a7e57-79c6-4816-b655-e33f620ac789.jsonl",
+      "first_seen": "2026-11-13T14:54:04.433361+00:00",
+      "last_seen": "2026-11-13T15:22:40.436045+00:00"
+     },
+     {
+      "session_id": "7dffd4dd-6a35-4535-9ba0-e3755edaad2c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/7dffd4dd-6a35-4535-9ba0-e3755edaad2c.jsonl",
+      "first_seen": "2026-11-13T15:23:28.950846+00:00",
+      "last_seen": "2026-11-13T15:25:28.567998+00:00"
+     },
+     {
+      "session_id": "fe6f6353-c885-4afe-aedd-e5f3fc1c08a0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/fe6f6353-c885-4afe-aedd-e5f3fc1c08a0.jsonl",
+      "first_seen": "2026-11-13T15:25:35.173520+00:00",
+      "last_seen": "2026-11-13T16:27:26.681485+00:00"
+     },
+     {
+      "session_id": "6f055673-f6b1-4b24-b464-6da7b19cf795",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/6f055673-f6b1-4b24-b464-6da7b19cf795.jsonl",
+      "first_seen": "2026-11-13T16:30:06.586168+00:00",
+      "last_seen": "2026-11-13T16:37:25.675850+00:00"
+     },
+     {
+      "session_id": "9ed5b4b6-2bfc-4dc3-b9b0-d882d24f42a8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/9ed5b4b6-2bfc-4dc3-b9b0-d882d24f42a8.jsonl",
+      "first_seen": "2026-11-13T16:37:58.554670+00:00",
+      "last_seen": "2026-11-13T16:40:03.393502+00:00"
+     },
+     {
+      "session_id": "e398c9b9-4ea8-4254-ad2f-4e43aa56d85f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/e398c9b9-4ea8-4254-ad2f-4e43aa56d85f.jsonl",
+      "first_seen": "2026-11-13T16:40:12.260100+00:00",
+      "last_seen": "2026-11-13T17:42:37.237603+00:00"
+     },
+     {
+      "session_id": "04480c3a-043f-4459-a8af-97f7dce5d939",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/04480c3a-043f-4459-a8af-97f7dce5d939.jsonl",
+      "first_seen": "2026-11-13T17:42:46.872970+00:00",
+      "last_seen": "2026-11-13T17:42:46.872974+00:00"
+     },
+     {
+      "session_id": "86d89945-f288-430f-9e94-46228f7374b8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/86d89945-f288-430f-9e94-46228f7374b8.jsonl",
+      "first_seen": "2026-11-13T17:43:43.641255+00:00",
+      "last_seen": "2026-11-13T18:09:03.092292+00:00"
+     },
+     {
+      "session_id": "3b544f7c-6b28-4d12-bb00-1a98125ded4b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/3b544f7c-6b28-4d12-bb00-1a98125ded4b.jsonl",
+      "first_seen": "2026-11-13T18:09:49.847268+00:00",
+      "last_seen": "2026-11-13T18:12:02.691937+00:00"
+     },
+     {
+      "session_id": "4906b782-54f3-42f9-b31f-ae28acf54431",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/4906b782-54f3-42f9-b31f-ae28acf54431.jsonl",
+      "first_seen": "2026-11-13T18:12:09.605712+00:00",
+      "last_seen": "2026-11-13T19:14:41.056327+00:00"
+     },
+     {
+      "session_id": "3d05c0e0-3355-4e0a-87f4-8b14f568fb0d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/3d05c0e0-3355-4e0a-87f4-8b14f568fb0d.jsonl",
+      "first_seen": "2026-11-13T19:16:02.476480+00:00",
+      "last_seen": "2026-11-13T19:16:02.476484+00:00"
+     },
+     {
+      "session_id": "77eeb1d8-f596-4a8f-ae3a-66a0df5cf0cf",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/77eeb1d8-f596-4a8f-ae3a-66a0df5cf0cf.jsonl",
+      "first_seen": "2026-11-13T19:16:55.095952+00:00",
+      "last_seen": "2026-11-13T19:32:41.453290+00:00"
+     },
+     {
+      "session_id": "446461a4-7c86-4d11-87bc-222d6e5c6ee9",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/446461a4-7c86-4d11-87bc-222d6e5c6ee9.jsonl",
+      "first_seen": "2026-11-13T19:33:12.641534+00:00",
+      "last_seen": "2026-11-13T19:33:17.579593+00:00"
+     },
+     {
+      "session_id": "dd6b002a-e89c-4df2-83f4-49f229434b8b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/dd6b002a-e89c-4df2-83f4-49f229434b8b.jsonl",
+      "first_seen": "2026-11-13T19:33:55.055580+00:00",
+      "last_seen": "2026-11-13T19:51:18.259290+00:00"
+     },
+     {
+      "session_id": "87b840f7-f08c-4a37-920a-1043557de177",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/87b840f7-f08c-4a37-920a-1043557de177.jsonl",
+      "first_seen": "2026-11-13T19:51:55.342416+00:00",
+      "last_seen": "2026-11-13T19:53:58.859472+00:00"
+     },
+     {
+      "session_id": "a4c1d33e-413a-4412-9294-54b8cea9c34f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/a4c1d33e-413a-4412-9294-54b8cea9c34f.jsonl",
+      "first_seen": "2026-11-13T19:54:06.605751+00:00",
+      "last_seen": "2026-11-13T20:56:30.591492+00:00"
+     },
+     {
+      "session_id": "f28121dd-4abe-4239-aece-6be58d08b4e7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/f28121dd-4abe-4239-aece-6be58d08b4e7.jsonl",
+      "first_seen": "2026-11-13T20:57:28.466861+00:00",
+      "last_seen": "2026-11-13T21:14:45.591425+00:00"
+     },
+     {
+      "session_id": "26700839-8f2f-481e-994f-6bd34bda2223",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/26700839-8f2f-481e-994f-6bd34bda2223.jsonl",
+      "first_seen": "2026-11-13T21:15:19.965671+00:00",
+      "last_seen": "2026-11-13T21:17:22.980789+00:00"
+     },
+     {
+      "session_id": "980ce172-a76d-4fc8-a468-6cdae3df919a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/980ce172-a76d-4fc8-a468-6cdae3df919a.jsonl",
+      "first_seen": "2026-11-13T21:17:30.208763+00:00",
+      "last_seen": "2026-11-13T22:19:39.928447+00:00"
+     },
+     {
+      "session_id": "05db9c2d-7e31-41f9-8194-7cf271e78f83",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/05db9c2d-7e31-41f9-8194-7cf271e78f83.jsonl",
+      "first_seen": "2026-11-13T22:20:37.008003+00:00",
+      "last_seen": "2026-11-13T22:36:13.935396+00:00"
+     },
+     {
+      "session_id": "c02b5412-b561-42f4-a8bd-7f866fca2cb1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/c02b5412-b561-42f4-a8bd-7f866fca2cb1.jsonl",
+      "first_seen": "2026-11-13T22:36:38.689368+00:00",
+      "last_seen": "2026-11-13T22:36:42.678925+00:00"
+     },
+     {
+      "session_id": "b7519274-af65-498c-ad48-78c9a52609f4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/b7519274-af65-498c-ad48-78c9a52609f4.jsonl",
+      "first_seen": "2026-11-13T22:37:24.375321+00:00",
+      "last_seen": "2026-11-13T22:46:49.144253+00:00"
+     },
+     {
+      "session_id": "612ec7d4-6f95-413c-b87e-1d93b7a653de",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/612ec7d4-6f95-413c-b87e-1d93b7a653de.jsonl",
+      "first_seen": "2026-11-13T22:47:06.641003+00:00",
+      "last_seen": "2026-11-13T22:47:10.490635+00:00"
+     },
+     {
+      "session_id": "809b4a5a-e598-4e76-b35c-16616958b8d3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/809b4a5a-e598-4e76-b35c-16616958b8d3.jsonl",
+      "first_seen": "2026-11-13T22:47:46.653934+00:00",
+      "last_seen": "2026-11-13T22:56:14.259658+00:00"
+     },
+     {
+      "session_id": "bee3e97d-5308-4c4b-8db2-cd23d991409b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/bee3e97d-5308-4c4b-8db2-cd23d991409b.jsonl",
+      "first_seen": "2026-11-13T22:56:50.011242+00:00",
+      "last_seen": "2026-11-13T22:58:51.617318+00:00"
+     },
+     {
+      "session_id": "ed8fe13e-45e8-4d8c-aa67-4c6e470cece8",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/ed8fe13e-45e8-4d8c-aa67-4c6e470cece8.jsonl",
+      "first_seen": "2026-11-13T22:59:01.845091+00:00",
+      "last_seen": "2026-11-14T00:01:36.861326+00:00"
+     },
+     {
+      "session_id": "7629e2e0-0d25-49db-a3ff-308ba431ff9b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/7629e2e0-0d25-49db-a3ff-308ba431ff9b.jsonl",
+      "first_seen": "2026-11-14T00:01:46.679017+00:00",
+      "last_seen": "2026-11-14T00:01:46.679022+00:00"
+     },
+     {
+      "session_id": "8bc86985-9df1-4eba-837c-991211ddaf17",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/8bc86985-9df1-4eba-837c-991211ddaf17.jsonl",
+      "first_seen": "2026-11-14T00:02:43.462001+00:00",
+      "last_seen": "2026-11-14T01:07:08.650171+00:00"
+     },
+     {
+      "session_id": "d605d96b-e201-4f50-917b-eed38153be68",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/d605d96b-e201-4f50-917b-eed38153be68.jsonl",
+      "first_seen": "2026-11-14T01:07:33.748072+00:00",
+      "last_seen": "2026-11-14T01:07:38.782625+00:00"
+     },
+     {
+      "session_id": "9c03a5d2-dd23-4bff-bcb5-c510c8a19787",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/9c03a5d2-dd23-4bff-bcb5-c510c8a19787.jsonl",
+      "first_seen": "2026-11-14T01:08:13.305862+00:00",
+      "last_seen": "2026-11-14T01:33:33.097392+00:00"
+     },
+     {
+      "session_id": "999838d3-acfc-4cce-bb7c-699b05e3197b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/999838d3-acfc-4cce-bb7c-699b05e3197b.jsonl",
+      "first_seen": "2026-11-14T01:34:13.425883+00:00",
+      "last_seen": "2026-11-14T01:36:21.922293+00:00"
+     },
+     {
+      "session_id": "ddd80c49-5945-4a26-a0c0-f9e6685d0cf3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/ddd80c49-5945-4a26-a0c0-f9e6685d0cf3.jsonl",
+      "first_seen": "2026-11-14T01:36:34.143697+00:00",
+      "last_seen": "2026-11-14T02:38:59.317342+00:00"
+     },
+     {
+      "session_id": "5f7d018f-d19f-4e93-a28a-724fd195eb76",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/5f7d018f-d19f-4e93-a28a-724fd195eb76.jsonl",
+      "first_seen": "2026-11-14T02:39:58.919189+00:00",
+      "last_seen": "2026-11-14T02:41:27.333765+00:00"
+     },
+     {
+      "session_id": "a40121f0-0a57-4d92-8716-e77407a4740c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/a40121f0-0a57-4d92-8716-e77407a4740c.jsonl",
+      "first_seen": "2026-11-14T02:41:52.088790+00:00",
+      "last_seen": "2026-11-14T02:41:54.981107+00:00"
+     },
+     {
+      "session_id": "b464eea5-2d68-47d9-a484-c17e536b2af0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/b464eea5-2d68-47d9-a484-c17e536b2af0.jsonl",
+      "first_seen": "2026-11-14T02:42:29.591927+00:00",
+      "last_seen": "2026-11-14T03:46:25.617954+00:00"
+     },
+     {
+      "session_id": "bb81311d-b73b-452a-9e8a-3d6043b61e93",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/agent_home/.claude/projects/-home-qiangh-arbor-dsv41flash-experiments-musespark-c1-p90-sa-src-arbor/bb81311d-b73b-452a-9e8a-3d6043b61e93.jsonl",
+      "first_seen": "2026-11-14T03:47:03.630626+00:00",
+      "last_seen": "2026-11-14T03:47:03.630631+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/before/agg_musespark_sglang_agentx_conc1.json",
+   "sha256": "f5ed4978171c65d1858524b836dd971dfef2ce7f885db859367441f686e46c4e",
+   "size": 5306,
+   "mtime": 1794537893,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "lmsysorg/sglang-rocm:muse-spark-open",
+    "recipe_fingerprint": "",
+    "model": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "infmax_model_prefix": "musespark",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "dflash",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 419,
+    "num_requests_successful": 408,
+    "request_accounting": {
+     "records_total": 419,
+     "records_profiled": 408,
+     "records_dropped_total": 11,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126_256k",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126-256k",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3607,
+      "mean": 0.11284,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 1,
+      "p95": 1,
+      "std": 0.34329
+     },
+     "latency": {
+      "ttft": {
+       "mean": 0.79891,
+       "p50": 0.50647,
+       "p75": 0.83266,
+       "p90": 1.45126,
+       "p95": 2.49803,
+       "std": 1.14009
+      },
+      "e2el": {
+       "mean": 7.86999,
+       "p50": 2.37309,
+       "p75": 7.26832,
+       "p90": 24.45341,
+       "p95": 34.67867,
+       "std": 12.92847
+      },
+      "itl": {
+       "mean": 0.00827,
+       "p50": 0.00773,
+       "p75": 0.00871,
+       "p90": 0.01041,
+       "p95": 0.0124,
+       "std": 0.00366
+      },
+      "tpot": {
+       "mean": 0.00827,
+       "p50": 0.00773,
+       "p75": 0.00871,
+       "p90": 0.01041,
+       "p95": 0.0124,
+       "std": 0.00366
+      },
+      "intvty": {
+       "mean": 120.88175,
+       "p50": 129.40755,
+       "p75": 114.82727,
+       "p90": 96.07891,
+       "p95": 80.66445,
+       "std": 39.5168
+      },
+      "e2e_norm_intvty": {
+       "mean": 81.98996,
+       "p50": 99.17519,
+       "p75": 81.02117,
+       "p90": 60.57385,
+       "p95": 46.66678,
+       "std": 32.21846
+      },
+      "full_response_itl": {
+       "mean": 0.00825,
+       "p50": 0.00772,
+       "p75": 0.00871,
+       "p90": 0.0104,
+       "p95": 0.0124,
+       "std": 0.00368
+      },
+      "full_response_intvty": {
+       "mean": 121.15285,
+       "p50": 129.49116,
+       "p75": 114.83361,
+       "p90": 96.11634,
+       "p95": 80.65937,
+       "std": 1224.01831
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 90958.63971,
+       "p50": 71408.5,
+       "p75": 133568.25,
+       "p90": 181925.5,
+       "p95": 216507.95,
+       "std": 60411.59515
+      },
+      "output_actual": {
+       "mean": 984.32108,
+       "p50": 186.5,
+       "p75": 702.25,
+       "p90": 3201.1,
+       "p95": 5356.55,
+       "std": 1955.1828
+      },
+      "output_expected": {
+       "mean": 1773.57598,
+       "p50": 639,
+       "p75": 2719,
+       "p90": 4910,
+       "p95": 6339,
+       "std": 2402.97418
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 10283.7574
+      },
+      "output": {
+       "tokens_per_second": 111.28706
+      },
+      "total": {
+       "tokens_per_second": 10395.04445
+      },
+      "duration_seconds": 3608.71261,
+      "per_gpu": {
+       "total_tput_tps": 2598.76111,
+       "output_tput_tps": 27.82176,
+       "input_tput_tps": 2570.93935
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.93914
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 83,
+     "cache": {
+      "gpu_cache_hit_rate": 0.93565,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.93565,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 34824384
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.14,
+      "gpu_total_tokens": 10414848,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 37219333,
+      "generation_total": 401606,
+      "requests_completed": 408,
+      "prompt_by_source": {
+       "gpu_cache_hit": 34824384,
+       "cpu_or_external_cache_hit": null,
+       "computed": 2630940,
+       "raw": {
+        "device": 34824384
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 10414848,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/before/bench_output.json",
+   "sha256": "cc47e08ad8f0c6b29cab61f75099c9424185328f08ecab372060897fc4b8bd6e",
+   "size": 571,
+   "mtime": 1794537895,
+   "json": {
+    "total_throughput": 2598.76111,
+    "output_throughput": 27.82176,
+    "total_throughput_per_gpu": 2598.76111,
+    "conc": 1,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "dflash",
+    "kv_offloading": "none",
+    "num_requests_successful": 408,
+    "num_requests_total": 419,
+    "kv_cache_hit_rate": 0.93565,
+    "agg_json_path": "/workspace/exp/runs/before/agg_musespark_sglang_agentx_conc1.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 99.17519,
+    "e2e_norm_intvty_p90": 60.57385,
+    "num_requests_measured": 408,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "before_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/before/gsm8k.log",
+   "sha256": "6551478b3e32033bfc4b361dd18077008b280efb11f31fde3cd3b0ee83d9a2fb",
+   "size": 17636,
+   "mtime": 1794537955,
+   "tail": [
+    " 88%|████████▊ | 1158/1319 [00:50<00:07, 21.44it/s]",
+    " 88%|████████▊ | 1161/1319 [00:50<00:09, 17.23it/s]",
+    " 88%|████████▊ | 1163/1319 [00:50<00:09, 16.74it/s]",
+    " 88%|████████▊ | 1165/1319 [00:51<00:10, 14.57it/s]",
+    " 89%|████████▊ | 1170/1319 [00:51<00:08, 17.40it/s]",
+    " 89%|████████▉ | 1173/1319 [00:51<00:08, 16.46it/s]",
+    " 90%|████████▉ | 1181/1319 [00:51<00:05, 23.07it/s]",
+    " 90%|████████▉ | 1184/1319 [00:51<00:06, 20.50it/s]",
+    " 90%|█████████ | 1191/1319 [00:52<00:05, 24.28it/s]",
+    " 90%|█████████ | 1192/1319 [00:52<00:04, 28.30it/s]",
+    " 91%|█████████ | 1195/1319 [00:52<00:05, 23.95it/s]",
+    " 91%|█████████▏| 1204/1319 [00:52<00:03, 29.45it/s]",
+    " 92%|█████████▏| 1209/1319 [00:52<00:04, 27.23it/s]",
+    " 92%|█████████▏| 1216/1319 [00:52<00:03, 29.17it/s]",
+    " 92%|█████████▏| 1219/1319 [00:53<00:04, 24.86it/s]",
+    " 93%|█████████▎| 1222/1319 [00:53<00:04, 21.62it/s]",
+    " 93%|█████████▎| 1223/1319 [00:53<00:04, 20.76it/s]",
+    " 93%|█████████▎| 1226/1319 [00:53<00:04, 19.01it/s]",
+    " 93%|█████████▎| 1231/1319 [00:53<00:04, 20.43it/s]",
+    " 94%|█████████▎| 1234/1319 [00:54<00:04, 18.71it/s]",
+    " 94%|█████████▍| 1241/1319 [00:54<00:03, 23.20it/s]",
+    " 94%|█████████▍| 1246/1319 [00:54<00:03, 23.30it/s]",
+    " 95%|█████████▍| 1250/1319 [00:54<00:03, 22.01it/s]",
+    " 95%|█████████▍| 1253/1319 [00:54<00:03, 19.89it/s]",
+    " 95%|█████████▌| 1257/1319 [00:55<00:03, 19.54it/s]",
+    " 96%|█████████▌| 1264/1319 [00:55<00:02, 26.32it/s]",
+    " 96%|█████████▋| 1270/1319 [00:55<00:01, 30.23it/s]",
+    " 97%|█████████▋| 1277/1319 [00:55<00:01, 35.45it/s]",
+    " 97%|█████████▋| 1286/1319 [00:55<00:00, 44.42it/s]",
+    " 98%|█████████▊| 1294/1319 [00:55<00:00, 50.93it/s]",
+    " 98%|█████████▊| 1295/1319 [00:55<00:00, 58.45it/s]",
+    " 99%|█████████▊| 1302/1319 [00:55<00:00, 55.84it/s]",
+    " 99%|█████████▉| 1308/1319 [00:56<00:00, 46.22it/s]",
+    "100%|█████████▉| 1314/1319 [00:56<00:00, 43.59it/s]",
+    "100%|██████████| 1319/1319 [00:56<00:00, 35.01it/s]",
+    "100%|██████████| 1319/1319 [00:56<00:00, 23.36it/s]",
+    "Accuracy: 0.949",
+    "Invalid: 0.000",
+    "Latency: 56.574 s",
+    "Output throughput: 2199.228 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.949",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/after/agg_musespark_sglang_agentx_conc1.json",
+   "sha256": "2e6c9ad7dd4d29b8b7d081595bbafd047c214e43d3a0a2fd6bb6e7c452e82123",
+   "size": 5297,
+   "mtime": 1794631930,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "lmsysorg/sglang-rocm:muse-spark-open",
+    "recipe_fingerprint": "",
+    "model": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "infmax_model_prefix": "musespark",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "dflash",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 518,
+    "num_requests_successful": 507,
+    "request_accounting": {
+     "records_total": 518,
+     "records_profiled": 507,
+     "records_dropped_total": 11,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126_256k",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126-256k",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3595,
+      "mean": 0.14075,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 1,
+      "p95": 1,
+      "std": 0.37397
+     },
+     "latency": {
+      "ttft": {
+       "mean": 0.65647,
+       "p50": 0.33939,
+       "p75": 0.56053,
+       "p90": 1.24399,
+       "p95": 2.17067,
+       "std": 1.19331
+      },
+      "e2el": {
+       "mean": 5.67274,
+       "p50": 1.59677,
+       "p75": 4.97929,
+       "p90": 16.80109,
+       "p95": 29.16252,
+       "std": 9.83381
+      },
+      "itl": {
+       "mean": 0.00637,
+       "p50": 0.00607,
+       "p75": 0.007,
+       "p90": 0.00853,
+       "p95": 0.00936,
+       "std": 0.00185
+      },
+      "tpot": {
+       "mean": 0.00637,
+       "p50": 0.00607,
+       "p75": 0.007,
+       "p90": 0.00853,
+       "p95": 0.00936,
+       "std": 0.00185
+      },
+      "intvty": {
+       "mean": 156.93251,
+       "p50": 164.86994,
+       "p75": 142.81336,
+       "p90": 117.18531,
+       "p95": 106.84444,
+       "std": 46.69101
+      },
+      "e2e_norm_intvty": {
+       "mean": 104.99123,
+       "p50": 128.73163,
+       "p75": 101.55138,
+       "p90": 75.37089,
+       "p95": 55.06487,
+       "std": 42.18534
+      },
+      "full_response_itl": {
+       "mean": 0.00636,
+       "p50": 0.00607,
+       "p75": 0.007,
+       "p90": 0.00853,
+       "p95": 0.00936,
+       "std": 0.00187
+      },
+      "full_response_intvty": {
+       "mean": 157.20078,
+       "p50": 164.85468,
+       "p75": 142.87894,
+       "p90": 117.17677,
+       "p95": 106.83623,
+       "std": 1015.30467
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 90566.26036,
+       "p50": 70967,
+       "p75": 129862,
+       "p90": 198968.4,
+       "p95": 228283.3,
+       "std": 63937.44135
+      },
+      "output_actual": {
+       "mean": 901.29783,
+       "p50": 146,
+       "p75": 607,
+       "p90": 2875,
+       "p95": 5317.2,
+       "std": 1883.208
+      },
+      "output_expected": {
+       "mean": 1782.92702,
+       "p50": 642,
+       "p75": 2719,
+       "p90": 5086.8,
+       "p95": 6339,
+       "std": 2329.95851
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 12767.43211
+      },
+      "output": {
+       "tokens_per_second": 127.059
+      },
+      "total": {
+       "tokens_per_second": 12894.49112
+      },
+      "duration_seconds": 3596.42359,
+      "per_gpu": {
+       "total_tput_tps": 3223.62278,
+       "output_tput_tps": 31.76475,
+       "input_tput_tps": 3191.85803
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.94602
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 83,
+     "cache": {
+      "gpu_cache_hit_rate": 0.94125,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.94125,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 43219536
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.13,
+      "gpu_total_tokens": 10414848,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 45917094,
+      "generation_total": 456958,
+      "requests_completed": 507,
+      "prompt_by_source": {
+       "gpu_cache_hit": 43219536,
+       "cpu_or_external_cache_hit": null,
+       "computed": 2935912,
+       "raw": {
+        "device": 43219536
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 10414848,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/after/bench_output.json",
+   "sha256": "bd70a94d754dc28980b6c3420606dd917985c5861c5685a08de09abc356f7905",
+   "size": 571,
+   "mtime": 1794631931,
+   "json": {
+    "total_throughput": 3223.62278,
+    "output_throughput": 31.76475,
+    "total_throughput_per_gpu": 3223.62278,
+    "conc": 1,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "dflash",
+    "kv_offloading": "none",
+    "num_requests_successful": 507,
+    "num_requests_total": 518,
+    "kv_cache_hit_rate": 0.94125,
+    "agg_json_path": "/workspace/exp/runs/after/agg_musespark_sglang_agentx_conc1.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 128.73163,
+    "e2e_norm_intvty_p90": 75.37089,
+    "num_requests_measured": 507,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "after_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c1-p90-sa/runs/after/gsm8k.log",
+   "sha256": "eeee385f7ab772b4fb5bf7218bde3bfb95dbcbc15973b5a043c2dcdd5eddbfa2",
+   "size": 18550,
+   "mtime": 1794631992,
+   "tail": [
+    " 88%|████████▊ | 1158/1319 [00:51<00:06, 26.45it/s]",
+    " 88%|████████▊ | 1159/1319 [00:51<00:05, 29.88it/s]",
+    " 88%|████████▊ | 1162/1319 [00:51<00:06, 22.51it/s]",
+    " 88%|████████▊ | 1166/1319 [00:51<00:07, 21.71it/s]",
+    " 89%|████████▊ | 1169/1319 [00:52<00:07, 19.65it/s]",
+    " 89%|████████▉ | 1176/1319 [00:52<00:06, 23.60it/s]",
+    " 89%|████████▉ | 1179/1319 [00:52<00:06, 20.70it/s]",
+    " 89%|████████▉ | 1180/1319 [00:52<00:06, 20.03it/s]",
+    " 90%|████████▉ | 1186/1319 [00:52<00:05, 22.55it/s]",
+    " 90%|█████████ | 1191/1319 [00:52<00:05, 22.72it/s]",
+    " 91%|█████████ | 1196/1319 [00:53<00:05, 22.98it/s]",
+    " 91%|█████████▏| 1204/1319 [00:53<00:04, 26.44it/s]",
+    " 92%|█████████▏| 1210/1319 [00:53<00:04, 27.04it/s]",
+    " 92%|█████████▏| 1216/1319 [00:53<00:03, 27.19it/s]",
+    " 92%|█████████▏| 1220/1319 [00:53<00:03, 24.82it/s]",
+    " 93%|█████████▎| 1223/1319 [00:54<00:04, 21.67it/s]",
+    " 93%|█████████▎| 1226/1319 [00:54<00:04, 19.45it/s]",
+    " 94%|█████████▎| 1234/1319 [00:54<00:03, 25.05it/s]",
+    " 94%|█████████▍| 1237/1319 [00:54<00:03, 21.56it/s]",
+    " 94%|█████████▍| 1238/1319 [00:54<00:03, 20.54it/s]",
+    " 94%|█████████▍| 1244/1319 [00:55<00:03, 22.76it/s]",
+    " 95%|█████████▍| 1248/1319 [00:55<00:03, 21.52it/s]",
+    " 95%|█████████▌| 1254/1319 [00:55<00:02, 23.69it/s]",
+    " 95%|█████████▌| 1255/1319 [00:55<00:02, 26.66it/s]",
+    " 95%|█████████▌| 1258/1319 [00:55<00:02, 22.98it/s]",
+    " 96%|█████████▌| 1262/1319 [00:55<00:02, 23.76it/s]",
+    " 96%|█████████▋| 1271/1319 [00:55<00:01, 33.17it/s]",
+    " 97%|█████████▋| 1276/1319 [00:56<00:01, 34.04it/s]",
+    " 97%|█████████▋| 1283/1319 [00:56<00:00, 39.49it/s]",
+    " 97%|█████████▋| 1284/1319 [00:56<00:00, 45.90it/s]",
+    " 98%|█████████▊| 1291/1319 [00:56<00:00, 49.40it/s]",
+    " 98%|█████████▊| 1299/1319 [00:56<00:00, 51.53it/s]",
+    " 99%|█████████▉| 1306/1319 [00:56<00:00, 52.94it/s]",
+    "100%|█████████▉| 1313/1319 [00:56<00:00, 53.07it/s]",
+    "100%|██████████| 1319/1319 [00:56<00:00, 47.89it/s]",
+    "100%|██████████| 1319/1319 [00:56<00:00, 23.17it/s]",
+    "Accuracy: 0.948",
+    "Invalid: 0.000",
+    "Latency: 57.062 s",
+    "Output throughput: 2167.737 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.948",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ]
+}

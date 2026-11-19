@@ -1,0 +1,1199 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/env.sh",
+   "sha256": "00bb6380325f908c326b030bda2089bfc39f49e27a66063907657a79168d2e2d",
+   "size": 3045,
+   "mtime": 1794654380,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/kimik3-c1-p90-sa",
+    "LOGS": "$EXP/logs",
+    "RUNS_TOP": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa",
+    "ARBOR": "$RUNS_TOP/arbor",
+    "ARBOR_SHA": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02",
+    "INFX": "$TOP/codebases/InferenceX",
+    "INFX_SHA": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "VENV": "$EXP/.venv",
+    "PY": "$VENV/bin/python",
+    "CONFIG_REL": "configs/mi355x/kimik3-c1-p90-sa.json",
+    "CONFIG": "$ARBOR/$CONFIG_REL",
+    "PACK": "agentx-kimik3-c1sa",
+    "SESSIONS": "$RUNS_TOP/sessions",
+    "SESSION": "$SESSIONS/full",
+    "MMAP_CACHE": "$EXP/aiperf_mmap_cache",
+    "AGENT_HOME": "$RUNS_TOP/agent_home",
+    "GATEWAY_ENV": "$TOP/experiments/glm52-c16-tput/agent_home/.arbor/gateway.env",
+    "IMAGE_REPO": "vllm/vllm-openai-rocm",
+    "IMAGE_TAG": "$IMAGE_REPO:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+    "IMAGE_DIGEST": "sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c",
+    "CONTAINER": "qh_k3c1sa",
+    "PORT": "30131",
+    "GPUS": "0,1,2,3,4,5,6,7",
+    "NL": "/mnt/m2m_nobackup/qiangh_k3c1",
+    "HUB_NL": "$NL/hf-hub",
+    "SHARED_HUB": "/shared_nfs/huggingface/hub",
+    "MODEL_ID": "moonshotai/Kimi-K3",
+    "MODEL_REV": "f831ab66814297da540d832a5235f8e904f29d06",
+    "DRAFT_ID": "Inferact/Kimi-K3-DSpark",
+    "DRAFT_REV": "cf6b8244620e7ea4b0651d214f28e89eac75bed6",
+    "CORPUS_ID": "semianalysisai/cc-traces-weka-062126",
+    "CORPUS_REV": "23f152f6f0f9399a85901b89a6458def0ef16729",
+    "WORKSPACE_ROOT": ""
+   }
+  }
+ ],
+ "guide": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/GUIDE.md",
+   "sha256": "ab47d4eaa24bfc051c8e6f6ff36fd13b73e333f58c851c1a0941ae970e48a6e9",
+   "size": 10453,
+   "mtime": 1794703299,
+   "head": [
+    "# Campaign: kimik3-c1-p90-sa — intent and constraints",
+    "",
+    "Written 2026-11-14 before launch (CLAUDE.md, autonomous mode). Source of truth: the master agent's prompt of 2026-11-14 (herdr w4:p2), `master/README.md` § Project Scope row \"Kimi K3 (2.8T)\", and the CI archaeology in `reports/2026-11-14_worklog.md` (every pin below was re-read from its primary source on 2026-11-14).",
+    "",
+    "<!-- Adapted from experiments/musespark-c1-p90-sa/GUIDE.md (crusoe2_006) -->",
+    "",
+    "## Goal",
+    "",
+    "Run a 24 h **Arbor standalone** campaign on **Kimi K3 (2.8T, MXFP4)** with **vLLM**, on one MI355X node (TP8 × DCP8, DSpark draft), with AgentX trace replay at **concurrency 1**. The objective is **P90 interactivity** (`e2e_norm_intvty_p90`). P50 interactivity (`e2e_norm_intvty_p50`) must stay within 5 %. Before and after the campaign, run the full AgentX benchmark at C1 (3600 s) and GSM8K, on a f",
+    "",
+    "## Pins",
+    "",
+    "| What | Pin |",
+    "|---|---|",
+    "| Arbor | AMD-AGI/Arbor `v0.9.2-baseline-test` = `2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02` (master's pin). Archive copied from `musespark-c1-p90-sa/stage/arbor_v092bt.tgz` (not re-fetched). Stock code + one local prompt fix (Monitor heartbeat, see below) + our pack `agentx-kimik3-c1sa`. |",
+    "| CI run | InferenceX run 40037005947 attempt 2 (2026-10-24), commit `0df7e892b73c53d66a486c2a085e994b67653042` (2026-10-23, merge into `amd/kimik3-mi355x-vllm-latency-specialized`; not a branch tip, resolvable by SHA), key `kimik3-fp4-mi355x-vllm-agentic-mtp` (`inferencex-e2e/configs/amd-master.yaml:766`). |",
+    "| Recipe | `inferencex-e2e/benchmarks/single_node/srt-slurm-recipes/kimik3/vllm/mi355x-fp4-mtp/agentic.yaml`, point **`override_tp8_c1`** (TP8, DCP8 a2a, max-num-seqs 1, CONC '1', KV_OFFLOADING none). |",
+    "| Image | `vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392` @ `sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c`. **Tag deleted upstream (registry: tag 404, digest 200, 2026-11-14). Pull by digest only.** Includes vllm#60683 (latency_specialized decode), per perf-changelog PR #4393. |",
+    "| Model | `moonshotai/Kimi-K3` @ `f831ab66814297da540d832a5235f8e904f29d06` (96 shards, 1561 GB, public). |",
+    "| Draft | `Inferact/Kimi-K3-DSpark` @ `cf6b8244620e7ea4b0651d214f28e89eac75bed6` (1 shard, 7.1 GB). DSpark, 7 draft tokens, probabilistic draft sampling; served with **CI's synthetic acceptance (AL 3.84)** for AgentX, real (block) acceptance for GSM8K (deviation 1). |",
+    "| Bench client | InferenceX `86699be610d5e6916eb6eb5b0c4a74676e8fb53d` (`benchmarks/benchmark_lib.sh`, aiperf), shared tree `$TOP/codebases/InferenceX` mounted read-only. Corpus `semianalysisai/cc-traces-weka-062126` (uncapped, the kimik3 default both in CI `infx/bench/agentic/traces.py` and in 86699be610) @ `23f152f6f0f9399a85901b89a6458def0ef16729`. DURATION 3600 s. |",
+    "",
+    "### Server launch (verbatim from the recipe: `base` + `override_tp8_c1`)",
+    "",
+    "Arbor builds `vllm serve moonshotai/Kimi-K3 --served-model-name moonshotai/Kimi-K3 --host 0.0.0.0 --port P --tensor-parallel-size 8 <server_flags>` (`arbor/frameworks/vllm.py`), with `ROCR_VISIBLE_DEVICES=0,…,7`.",
+    "",
+    "- flags: `--trust-remote-code --moe-backend auto --gpu-memory-utilization 0.9 --language-model-only --enable-auto-tool-choice --tool-call-parser kimi_k3 --reasoning-parser kimi_k3 --max-model-len 1048576 --enable-prefix-caching --kv-cache-dtype fp8 --attention-config '{\"mla_prefill_backend\":\"ROCM_AITER_FA\"}' --stream-interval 10 --decode-context-parallel-size 8 --dcp-comm-backend a2a --max-num-seq",
+    "- env (role agg): `VLLM_ROCM_AITER_MLA_ASM_PADDING=asm VLLM_ROCM_USE_AITER=1 SAFETENSORS_FAST_GPU=1 VLLM_ROCM_USE_AITER_MOE_SITUV2=1 AITER_BF16_FP8_MOE_BOUND=0 AITER_FLYDSL_STAGE2_FP8=1 VLLM_ROCM_QUICK_REDUCE_QUANTIZATION=INT4 VLLM_ROCM_QUICK_REDUCE_MIN_SIZE_BYTES_MB=16 HSA_NO_SCRATCH_RECLAIM=1 VLLM_ENGINE_READY_TIMEOUT_S=7200 PYTHONNOUSERSITE=1 VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=1200 VLLM_USE_DIR",
+    "- benchmark env: `AIPERF_HTTP_TCP_USER_TIMEOUT=900000 AIPERF_REQUIRED_SERVER_METRIC_PREFIX=vllm:`, CONC 1.",
+    "- Ours (not server behaviour): `HF_HUB_OFFLINE=1 HF_HUB_CACHE=/hf-hub` (repo ids resolve from the NVMe hub, refs/main = pins), and the label env that `bench_agentx.sh` reads (MODEL_PREFIX kimik3, FRAMEWORK vllm, …).",
+    "",
+    "## Deviations from the CI launch (recorded, not hidden)",
+    "",
+    "1. **Synthetic acceptance, as CI launches it (REVISED 2026-11-15 after smoke2; was \"real acceptance\").** At launch, CI's `infx/srt_slurm/synthetic_acceptance.py` rewrites the vLLM speculative config for agentic runs to `rejection_sample_method=synthetic, synthetic_acceptance_length=3.84` (golden AL for k=7, thinking_on, file `kimik3_dspark_probabilistic_sample_method_block_rejection_sample_method.",
+    "2. **Bench client InferenceX 86699be610, not CI's `infx` client at 0df7e892.** Arbor v0.9.2's bench needs `benchmarks/benchmark_lib.sh`, which newer InferenceX no longer has (same decision as Muse Spark C5 and Kimi K3.1 Pro). The corpus is the same one CI uses.",
+    "3. **Not verified:** the extra flags (if any) that CI's `srtctl` (NVIDIA/srt-slurm @ `ae3d6877`, InferenceX submodule) adds when it renders the recipe. The fetch was denied by a permission check. The recipe's own args/env are matched one-for-one.",
+    "",
+    "## Decisions",
+    "",
+    "- **Objective (master's prompt, matches Muse Spark C5 / Kimi K3.1 Pro):** `e2e_norm_intvty_p90`, max, KEEP at +2 % (`threshold_rel` 1.02). `e2e_norm_intvty_p50` as a guard: `secondary_threshold_rel` 1000 (never counts as a gain), `secondary_noise_band_pct` 5, `secondary_regression_cap_pct` 5. `bench_cache: cold` (master's prompt); see weakness 1.",
+    "- **No numeric `target.<metric>`** (it is an early-exit bar in `arbor/driver.py:_resolve_target`; cost Kimi K3.1 Pro an exit after 2 h).",
+    "- **Before/after:** one full AgentX (C1, 3600 s) and one GSM8K (InferenceX `run_lm_eval`, `utils/evals/gsm8k.yaml` → `infx/evals/gsm8k.yaml`, 1319 questions, EVAL_MAX_MODEL_LEN 16384) each, on a fresh server. No HF token in the container (gsm8k is public).",
+    "- **Weights:** fresh node-local download (`dl.sh hf`) of model + draft at the pins, Xet high-performance mode. Fallback `dl.sh nfs`: rsync of the same revisions from `/shared_nfs/huggingface/hub` (verified 2026-11-14: Kimi-K3 96/96 shards resolve, 1560.9 GB; DSpark 1/1). Both check each shard's size against the HF API. Corpus: copied from the shared hub (classic layout; Muse Spark C5's `fixcorpus.",
+    "- **GPUs:** TP8 takes all 8 GPUs. There are no spare GPUs for probes: the agent must stop its probe server before a bench.",
+    "- **Arbor local fixes (Muse Spark C5 lessons, harness only, no change to measurement):** (a) the bench prompt's Monitor command prints a heartbeat (the CLI ends a Monitor that is silent for 10 min); (b) pack directive: run the bench in the foreground, never `nohup … &` (Kimi K3.1 Pro lost 4 iterations that way).",
+    "",
+    "## Known weaknesses of this Arbor (red flags)",
+    "",
+    "1. Arbor v0.9.2-bt does not cold-start the prefix cache before a bench: its numbers carry a warm-server bias (up to +6 points seen in Muse Spark C3). Pack rule: book a KEEP on a fresh server. The before/after runs are the numbers of record.",
+    "2. The campaign's rolling internal baseline can diverge from the full before/after re-measure (Muse Spark C5: +27.0 % vs +24.4 %; Kimi K3.1 Pro: +7.9 % vs −0.2 %). We report both and flag any disagreement.",
+    "3. Server start is long: 1.56 TB of weights per start (from NVMe page cache after the first start; node RAM ≈ 2.9 TB). Each Arbor iteration restarts the server, so the per-iteration overhead is larger than for the other models.",
+    "4. Arbor v0.9.2-bt's agentx bench writes only throughput; our pack's `bench_agentx.sh` adds `e2e_norm_intvty_p50/p90` from InferenceX's aggregate (same lines as Muse Spark C5).",
+    "",
+    "## Layout",
+    "",
+    "- `experiments/kimik3-c1-p90-sa/` (crusoe2_006 `/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/`, mirrored in this repo): this guide, `env.sh`, `hold_node.sbatch`, `dl.sh`, `prepare.sh`, `ab.sh` (smoke/before/after), `campaign.sh`, `stage/` (Arbor archive, pack, bench, config), `runs/<tag>/`, `logs/`, `ctrl/` (node agent).",
+    "- **Outside the operator's repo** (no CLAUDE.md/MEMORY.md above it; crusoe-arbor-run pitfall): `/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/{arbor,agent_home,sessions}`.",
+    "- Node NVMe `/mnt/m2m_nobackup/qiangh_k3c1/hf-hub`: model, draft, corpus (refs/main = pins), mounted at `/hf-hub` in container `qh_k3c1sa`, port 30131.",
+    "",
+    "## Constraints",
+    "",
+    "Never touch other users' containers, processes or jobs (list them, never kill). Smoke test first. Do not loosen gates, tolerances or CI flags without the user; record any CI deviation. No tokens (GitHub, board, HF) inside the container. Log every action in `reports/<date>_worklog.md`."
+   ]
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/spur-288217.out",
+   "sha256": "b4a6c06672677cf0e25ec72bec83beae33305cee4b8087f168962014373b02bb",
+   "size": 11,
+   "mtime": 1794950377,
+   "head": [
+    "Terminated"
+   ]
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/sessions/full/reports/trace/meta.json",
+   "sha256": "5dfb6e2af1e931c218fb3239ac695c7863bcd76322c910cd2e1fb311df0b5d16",
+   "size": 25447,
+   "mtime": 1794789068,
+   "json": {
+    "arbor_session_dir": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/sessions/full",
+    "started": "2026-11-15T02:36:31.151357+00:00",
+    "arbor_git_sha": "bf04d63788eb410c857290bd11ee64df08518d72",
+    "config": {
+     "_note": "kimik3-c1-p90-sa, Arbor standalone, AMD-AGI/Arbor v0.9.2-baseline-test (2c2fd3d) + local Monitor-heartbeat prompt fixes. Kimi K3 (2.8T MXFP4) + DSpark on vLLM, TP8 x DCP8 on MI355X (Crusoe, QOS amd-hyperloom-qos), InferenceX AgentX replay at C1, objective P90 interactivity. The launch is the CI recipe point override_tp8_c1 (InferenceX 0df7e892b73c53d66a486c2a085e994b67653042, inferencex-e2e/benchmarks/single_node/srt-slurm-recipes/kimik3/vllm/mi355x-fp4-mtp/agentic.yaml, key kimik3-fp4-mi355x-vllm-agentic-mtp, CI run 40037005947), with CI's launch-time synthetic acceptance (rejection_sample_method synthetic, synthetic_acceptance_length 3.84 = golden AL for k=7, thinking_on), exactly as infx/srt_slurm/synthetic_acceptance.py renders it; operator GSM8K runs on a real-acceptance (block) server. The bench client is InferenceX 86699be610 (Arbor v0.9.2's bench needs benchmarks/benchmark_lib.sh). Provisioned by experiments/kimik3-c1-p90-sa/prepare.sh.",
+     "pack": "agentx-kimik3-c1sa",
+     "identity": "inference:agentx:mi355x:vllm:mxfp4:kimik3:c1:tp8dcp8:p90",
+     "goal": "Raise Kimi K3's P90 interactivity (e2e_norm_intvty_p90) on the InferenceX AgentX replay at concurrency 1 on eight MI355X GPUs (TP8 x DCP8, DSpark, latency_specialized decode), from the CI launch, without losing P50 interactivity.",
+     "docker_container": "qh_k3c1sa",
+     "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
+     "_workspace_note": "prepare.sh writes the image's vllm package dir (a git repo committed as shipped).",
+     "session_root": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/sessions/full",
+     "session_mount": "/workspace/sessions",
+     "framework": "vllm",
+     "model_path": "moonshotai/Kimi-K3",
+     "model_name": "moonshotai/Kimi-K3",
+     "served_model_name": "moonshotai/Kimi-K3",
+     "_model_note": "Named by repo id, as CI does; resolved offline from the HF cache at /hf-hub (node NVMe), whose refs/main is the pin f831ab66814297da540d832a5235f8e904f29d06 (draft Inferact/Kimi-K3-DSpark: cf6b8244620e7ea4b0651d214f28e89eac75bed6).",
+     "gpu_type": "MI355X",
+     "gpu_ids": "0,1,2,3,4,5,6,7",
+     "tp": 8,
+     "port": 30131,
+     "server_flags": "--trust-remote-code --moe-backend auto --gpu-memory-utilization 0.9 --language-model-only --enable-auto-tool-choice --tool-call-parser kimi_k3 --reasoning-parser kimi_k3 --max-model-len 1048576 --enable-prefix-caching --kv-cache-dtype fp8 --attention-config '{\"mla_prefill_backend\":\"ROCM_AITER_FA\"}' --stream-interval 10 --decode-context-parallel-size 8 --dcp-comm-backend a2a --max-num-seqs 1 --max-num-batched-tokens 16384 --compilation-config '{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"max_cudagraph_capture_size\":16,\"custom_ops\":[\"+fused_rms_norm_gated\"],\"cudagraph_capture_sizes\":[2,4,6,8,10,12,14,16]}' --speculative-config '{\"model\":\"Inferact/Kimi-K3-DSpark\",\"num_speculative_tokens\":7,\"method\":\"dspark\",\"attention_backend\":\"ROCM_AITER_MLA\",\"kv_cache_dtype\":\"fp8\",\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"synthetic\",\"synthetic_acceptance_length\":3.84}' --additional-config '{\"decode_backend\":\"latency_specialized\",\"kda_prefill_backend\":\"fused\"}'",
+     "_server_flags_note": "Verbatim from the recipe's base args plus override_tp8_c1. Arbor adds the model, --served-model-name, --host, --port and --tensor-parallel-size 8.",
+     "server_env": {
+      "VLLM_ROCM_AITER_MLA_ASM_PADDING": "asm",
+      "VLLM_ROCM_USE_AITER": "1",
+      "SAFETENSORS_FAST_GPU": "1",
+      "VLLM_ROCM_USE_AITER_MOE_SITUV2": "1",
+      "AITER_BF16_FP8_MOE_BOUND": "0",
+      "AITER_FLYDSL_STAGE2_FP8": "1",
+      "VLLM_ROCM_QUICK_REDUCE_QUANTIZATION": "INT4",
+      "VLLM_ROCM_QUICK_REDUCE_MIN_SIZE_BYTES_MB": "16",
+      "HSA_NO_SCRATCH_RECLAIM": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "7200",
+      "PYTHONNOUSERSITE": "1",
+      "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1200",
+      "VLLM_USE_DIRECT_DCP_A2A": "0",
+      "VLLM_USE_DIRECT_DCP_Q_GATHER": "0",
+      "VLLM_USE_DIRECT_DCP_KV_GATHER": "0",
+      "VLLM_ROCM_AITER_MLA_DCP_VERIFY": "asm",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "0",
+      "VLLM_USE_V2_MODEL_RUNNER": "1",
+      "HF_HUB_OFFLINE": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "vllm:",
+      "MODEL_PREFIX": "kimik3",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+      "TP": "8",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+     },
+     "_server_env_note": "Recipe env (base + override_tp8_c1), then HF offline cache, then the recipe's benchmark env, then the labels bench_agentx.sh reads (InferenceX conventions; SPEC_DECODING is a label only).",
+     "concurrency": 1,
+     "num_prompts": 320,
+     "bench_timeout": 7200,
+     "bench_script": "/workspace/Arbor/packs/agentx-kimik3-c1sa/validator/bench_agentx.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-kimik3-c1sa/validator/correctness.sh",
+     "editable_packages": [
+      {
+       "name": "aiter",
+       "path": "/usr/local/lib/python3.12/dist-packages/aiter",
+       "rebuild": null
+      },
+      {
+       "name": "flydsl",
+       "path": "/usr/local/lib/python3.12/dist-packages/flydsl",
+       "rebuild": null
+      }
+     ],
+     "_editable_note": "prepare.sh adds aiter and flydsl at the paths the image imports them from.",
+     "phase_minutes": {
+      "server": 120
+     },
+     "_phase_note": "Standalone server-turn cap raised from 60 to 120 min: a 1.56 TB TP8 start (backstop only; set after the smoke measures the real start).",
+     "baseline": null,
+     "target": null,
+     "_target_note": "No number under target: arbor/driver.py:_resolve_target reads it as an early-exit bar (Kimi K3.1 Pro C1 exited after 2 h that way).",
+     "review_gate": false,
+     "time_budget_minutes": 1440,
+     "directives": []
+    },
+    "host": "crsuse2-m2m-v3-256",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "6310bb86-8d19-4ddf-97f8-43641d79f437",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/6310bb86-8d19-4ddf-97f8-43641d79f437.jsonl",
+      "first_seen": "2026-11-15T02:36:35.527706+00:00",
+      "last_seen": "2026-11-15T03:32:27.991952+00:00"
+     },
+     {
+      "session_id": "5ec49950-7a04-4398-bc3a-6e7bbd498302",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/5ec49950-7a04-4398-bc3a-6e7bbd498302.jsonl",
+      "first_seen": "2026-11-15T03:33:27.691761+00:00",
+      "last_seen": "2026-11-15T05:07:23.514196+00:00"
+     },
+     {
+      "session_id": "bfecfc0d-adc8-4979-aa0f-772a85221b85",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/bfecfc0d-adc8-4979-aa0f-772a85221b85.jsonl",
+      "first_seen": "2026-11-15T05:07:45.789129+00:00",
+      "last_seen": "2026-11-15T05:07:49.239284+00:00"
+     },
+     {
+      "session_id": "b3da7b23-352e-4ded-b6e1-0c69ba1dafbf",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/b3da7b23-352e-4ded-b6e1-0c69ba1dafbf.jsonl",
+      "first_seen": "2026-11-15T05:08:24.498593+00:00",
+      "last_seen": "2026-11-15T06:18:20.827864+00:00"
+     },
+     {
+      "session_id": "ab76e0c9-2dda-484e-8b63-8ff1306e06da",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/ab76e0c9-2dda-484e-8b63-8ff1306e06da.jsonl",
+      "first_seen": "2026-11-15T06:19:14.483607+00:00",
+      "last_seen": "2026-11-15T06:23:16.948230+00:00"
+     },
+     {
+      "session_id": "54c040b5-bd0d-4a9b-8b98-105641c8f23a",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/54c040b5-bd0d-4a9b-8b98-105641c8f23a.jsonl",
+      "first_seen": "2026-11-15T06:23:22.061556+00:00",
+      "last_seen": "2026-11-15T07:25:49.894111+00:00"
+     },
+     {
+      "session_id": "8f41cc19-d026-4690-a066-a61bfdb8a4ac",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/8f41cc19-d026-4690-a066-a61bfdb8a4ac.jsonl",
+      "first_seen": "2026-11-15T07:25:54.883275+00:00",
+      "last_seen": "2026-11-15T07:26:04.327686+00:00"
+     },
+     {
+      "session_id": "73dda82e-4ff7-424c-8200-3de1426cc54d",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/73dda82e-4ff7-424c-8200-3de1426cc54d.jsonl",
+      "first_seen": "2026-11-15T07:28:54.771024+00:00",
+      "last_seen": "2026-11-15T07:42:47.583005+00:00"
+     },
+     {
+      "session_id": "e4878ef0-ce6d-4b9e-ab67-2de878a74c48",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/e4878ef0-ce6d-4b9e-ab67-2de878a74c48.jsonl",
+      "first_seen": "2026-11-15T07:36:34.860678+00:00",
+      "last_seen": "2026-11-15T07:58:31.716103+00:00"
+     },
+     {
+      "session_id": "f46b991f-7713-4ae4-81bf-866db1513924",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/f46b991f-7713-4ae4-81bf-866db1513924.jsonl",
+      "first_seen": "2026-11-15T07:59:05.107348+00:00",
+      "last_seen": "2026-11-15T07:59:07.863407+00:00"
+     },
+     {
+      "session_id": "aa60134d-c8d0-4504-a88a-d85a94665316",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/aa60134d-c8d0-4504-a88a-d85a94665316.jsonl",
+      "first_seen": "2026-11-15T07:59:45.064490+00:00",
+      "last_seen": "2026-11-15T08:11:42.929994+00:00"
+     },
+     {
+      "session_id": "66e0b99e-a084-4e74-8441-2dfaa8ce6b81",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/66e0b99e-a084-4e74-8441-2dfaa8ce6b81.jsonl",
+      "first_seen": "2026-11-15T08:12:11.902064+00:00",
+      "last_seen": "2026-11-15T08:12:14.842447+00:00"
+     },
+     {
+      "session_id": "d58305d5-b2ba-4f27-9a9a-199413820fe8",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/d58305d5-b2ba-4f27-9a9a-199413820fe8.jsonl",
+      "first_seen": "2026-11-15T08:12:50.567931+00:00",
+      "last_seen": "2026-11-15T09:17:21.456642+00:00"
+     },
+     {
+      "session_id": "6f48722f-1838-44b1-8075-b4b1d1e98efc",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/6f48722f-1838-44b1-8075-b4b1d1e98efc.jsonl",
+      "first_seen": "2026-11-15T09:18:06.775824+00:00",
+      "last_seen": "2026-11-15T09:21:57.382853+00:00"
+     },
+     {
+      "session_id": "e8b8a686-9f01-4e04-869e-c6edbb68a1e9",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/e8b8a686-9f01-4e04-869e-c6edbb68a1e9.jsonl",
+      "first_seen": "2026-11-15T09:22:08.455870+00:00",
+      "last_seen": "2026-11-15T10:24:42.682725+00:00"
+     },
+     {
+      "session_id": "e087aa83-d3e7-489f-b550-7a31cddb24b0",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/e087aa83-d3e7-489f-b550-7a31cddb24b0.jsonl",
+      "first_seen": "2026-11-15T10:24:48.069451+00:00",
+      "last_seen": "2026-11-15T10:24:52.873882+00:00"
+     },
+     {
+      "session_id": "e329cc75-c6a0-4cfb-bc01-aed9f5d2b4f3",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/e329cc75-c6a0-4cfb-bc01-aed9f5d2b4f3.jsonl",
+      "first_seen": "2026-11-15T10:25:48.153079+00:00",
+      "last_seen": "2026-11-15T10:39:03.638631+00:00"
+     },
+     {
+      "session_id": "4555764d-9763-49ea-b953-94ac40661f6b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/4555764d-9763-49ea-b953-94ac40661f6b.jsonl",
+      "first_seen": "2026-11-15T10:39:45.477939+00:00",
+      "last_seen": "2026-11-15T10:44:02.012652+00:00"
+     },
+     {
+      "session_id": "600b259c-f0a3-4cd4-8c80-cc50786838e2",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/600b259c-f0a3-4cd4-8c80-cc50786838e2.jsonl",
+      "first_seen": "2026-11-15T10:44:07.350561+00:00",
+      "last_seen": "2026-11-15T11:46:30.516302+00:00"
+     },
+     {
+      "session_id": "095cc68a-12be-4f7e-833b-dac986dd261c",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/095cc68a-12be-4f7e-833b-dac986dd261c.jsonl",
+      "first_seen": "2026-11-15T11:46:35.203032+00:00",
+      "last_seen": "2026-11-15T11:46:35.203036+00:00"
+     },
+     {
+      "session_id": "157cd16b-3b28-47f8-b3b1-8828acf7d0e5",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/157cd16b-3b28-47f8-b3b1-8828acf7d0e5.jsonl",
+      "first_seen": "2026-11-15T11:47:37.801064+00:00",
+      "last_seen": "2026-11-15T13:28:40.755845+00:00"
+     },
+     {
+      "session_id": "daf4551b-6a9f-44a3-b882-e484ec0605af",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/daf4551b-6a9f-44a3-b882-e484ec0605af.jsonl",
+      "first_seen": "2026-11-15T13:29:14.534196+00:00",
+      "last_seen": "2026-11-15T13:29:19.921862+00:00"
+     },
+     {
+      "session_id": "080d6f11-bd00-4d69-9f38-b4b4cd7c1552",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/080d6f11-bd00-4d69-9f38-b4b4cd7c1552.jsonl",
+      "first_seen": "2026-11-15T13:29:57.098578+00:00",
+      "last_seen": "2026-11-15T13:47:35.877693+00:00"
+     },
+     {
+      "session_id": "30ce871c-4d58-494c-9230-1ae59783f01e",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/30ce871c-4d58-494c-9230-1ae59783f01e.jsonl",
+      "first_seen": "2026-11-15T13:48:14.715527+00:00",
+      "last_seen": "2026-11-15T13:52:33.173201+00:00"
+     },
+     {
+      "session_id": "ecb16978-612f-4cd5-9bd1-ec7f1dc72abf",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/ecb16978-612f-4cd5-9bd1-ec7f1dc72abf.jsonl",
+      "first_seen": "2026-11-15T13:52:39.856840+00:00",
+      "last_seen": "2026-11-15T14:55:03.550372+00:00"
+     },
+     {
+      "session_id": "9c5ac3ab-16c1-42c5-97f8-680735af5d9e",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/9c5ac3ab-16c1-42c5-97f8-680735af5d9e.jsonl",
+      "first_seen": "2026-11-15T14:56:00.957170+00:00",
+      "last_seen": "2026-11-15T16:04:24.696478+00:00"
+     },
+     {
+      "session_id": "eab6140f-2e4e-403a-8c9c-69807b8dafd1",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/eab6140f-2e4e-403a-8c9c-69807b8dafd1.jsonl",
+      "first_seen": "2026-11-15T16:04:58.000607+00:00",
+      "last_seen": "2026-11-15T16:09:13.718867+00:00"
+     },
+     {
+      "session_id": "f35ef4b9-8f1d-475f-9897-17f0cc0f2ca1",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/f35ef4b9-8f1d-475f-9897-17f0cc0f2ca1.jsonl",
+      "first_seen": "2026-11-15T16:09:22.388076+00:00",
+      "last_seen": "2026-11-15T17:11:46.482433+00:00"
+     },
+     {
+      "session_id": "6cbf244e-3186-4c82-95da-ffa3ff93f65a",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/6cbf244e-3186-4c82-95da-ffa3ff93f65a.jsonl",
+      "first_seen": "2026-11-15T17:11:52.425384+00:00",
+      "last_seen": "2026-11-15T17:11:52.425388+00:00"
+     },
+     {
+      "session_id": "59b60884-4e99-441f-9682-3c5d4d4fdea0",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/59b60884-4e99-441f-9682-3c5d4d4fdea0.jsonl",
+      "first_seen": "2026-11-15T17:12:54.994919+00:00",
+      "last_seen": "2026-11-15T17:36:32.754673+00:00"
+     },
+     {
+      "session_id": "3d2fb349-bf08-45f2-ab6a-870bdaf7077e",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/3d2fb349-bf08-45f2-ab6a-870bdaf7077e.jsonl",
+      "first_seen": "2026-11-15T17:37:06.069132+00:00",
+      "last_seen": "2026-11-15T17:37:09.006581+00:00"
+     },
+     {
+      "session_id": "3d768c25-99ca-4c93-9bf7-be94ac1fc351",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/3d768c25-99ca-4c93-9bf7-be94ac1fc351.jsonl",
+      "first_seen": "2026-11-15T17:37:43.475881+00:00",
+      "last_seen": "2026-11-15T18:01:53.156756+00:00"
+     },
+     {
+      "session_id": "08e07ebe-aef3-4208-8840-7167998328f8",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/08e07ebe-aef3-4208-8840-7167998328f8.jsonl",
+      "first_seen": "2026-11-15T18:02:33.475861+00:00",
+      "last_seen": "2026-11-15T18:06:58.274533+00:00"
+     },
+     {
+      "session_id": "0403eaf4-1a81-410a-a742-fccf5886f8ed",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/0403eaf4-1a81-410a-a742-fccf5886f8ed.jsonl",
+      "first_seen": "2026-11-15T18:07:04.046070+00:00",
+      "last_seen": "2026-11-15T19:09:30.187704+00:00"
+     },
+     {
+      "session_id": "a8d1e879-7555-4c19-9716-7feeb2d05828",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/a8d1e879-7555-4c19-9716-7feeb2d05828.jsonl",
+      "first_seen": "2026-11-15T19:10:28.161940+00:00",
+      "last_seen": "2026-11-15T19:41:59.652413+00:00"
+     },
+     {
+      "session_id": "8d8fe51d-5650-4dcd-b59a-2918128e5784",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/8d8fe51d-5650-4dcd-b59a-2918128e5784.jsonl",
+      "first_seen": "2026-11-15T19:42:25.560134+00:00",
+      "last_seen": "2026-11-15T19:42:29.014976+00:00"
+     },
+     {
+      "session_id": "ff0befb0-717e-42fb-b3d4-ae3a70b338cc",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/ff0befb0-717e-42fb-b3d4-ae3a70b338cc.jsonl",
+      "first_seen": "2026-11-15T19:43:04.140379+00:00",
+      "last_seen": "2026-11-15T20:18:22.014437+00:00"
+     },
+     {
+      "session_id": "66d7eb38-7d29-4f03-b2ce-bd9defe72a65",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/66d7eb38-7d29-4f03-b2ce-bd9defe72a65.jsonl",
+      "first_seen": "2026-11-15T20:19:08.216003+00:00",
+      "last_seen": "2026-11-15T20:23:28.232315+00:00"
+     },
+     {
+      "session_id": "d548a2c7-3a5f-4bc4-8238-cea867bd5b7b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/d548a2c7-3a5f-4bc4-8238-cea867bd5b7b.jsonl",
+      "first_seen": "2026-11-15T20:23:36.994764+00:00",
+      "last_seen": "2026-11-15T21:26:04.612979+00:00"
+     },
+     {
+      "session_id": "0fa6554c-4f6a-4fca-b363-4b25eb69b7cb",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/0fa6554c-4f6a-4fca-b363-4b25eb69b7cb.jsonl",
+      "first_seen": "2026-11-15T21:27:02.353375+00:00",
+      "last_seen": "2026-11-15T21:33:50.092844+00:00"
+     },
+     {
+      "session_id": "f1094488-0853-4372-9c1d-b9dc9b97234f",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/f1094488-0853-4372-9c1d-b9dc9b97234f.jsonl",
+      "first_seen": "2026-11-15T21:34:21.528051+00:00",
+      "last_seen": "2026-11-15T21:38:40.714990+00:00"
+     },
+     {
+      "session_id": "d0b6ee97-65a3-4e44-8071-4b59e40e8751",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/d0b6ee97-65a3-4e44-8071-4b59e40e8751.jsonl",
+      "first_seen": "2026-11-15T21:38:45.338936+00:00",
+      "last_seen": "2026-11-15T22:39:08.019551+00:00"
+     },
+     {
+      "session_id": "b4c17f7d-8bcc-42b2-b384-1be465526d39",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/b4c17f7d-8bcc-42b2-b384-1be465526d39.jsonl",
+      "first_seen": "2026-11-15T22:42:25.301101+00:00",
+      "last_seen": "2026-11-15T22:42:25.301106+00:00"
+     },
+     {
+      "session_id": "0289b723-f69c-4e2d-b4f2-d680c9d127b2",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/0289b723-f69c-4e2d-b4f2-d680c9d127b2.jsonl",
+      "first_seen": "2026-11-15T22:43:24.861036+00:00",
+      "last_seen": "2026-11-15T22:57:57.596762+00:00"
+     },
+     {
+      "session_id": "a10297a4-8f78-4f3a-aefb-76579a571553",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/a10297a4-8f78-4f3a-aefb-76579a571553.jsonl",
+      "first_seen": "2026-11-15T22:58:29.677752+00:00",
+      "last_seen": "2026-11-15T22:58:32.681983+00:00"
+     },
+     {
+      "session_id": "28147c55-e781-460a-ad5b-cbe6dde1334b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/28147c55-e781-460a-ad5b-cbe6dde1334b.jsonl",
+      "first_seen": "2026-11-15T22:59:07.594339+00:00",
+      "last_seen": "2026-11-15T23:23:12.117119+00:00"
+     },
+     {
+      "session_id": "e14cb228-4f83-486f-8167-8c64794aaaf8",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/e14cb228-4f83-486f-8167-8c64794aaaf8.jsonl",
+      "first_seen": "2026-11-15T23:23:57.449285+00:00",
+      "last_seen": "2026-11-15T23:28:25.438746+00:00"
+     },
+     {
+      "session_id": "1c6c0ba2-fa8a-46f3-92d6-35c5160058b6",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/1c6c0ba2-fa8a-46f3-92d6-35c5160058b6.jsonl",
+      "first_seen": "2026-11-15T23:28:31.121644+00:00",
+      "last_seen": "2026-11-16T00:31:02.637522+00:00"
+     },
+     {
+      "session_id": "6afec79b-18df-4a8c-9932-83cdc2fc5d6d",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-kimik3-c1-p90-sa-arbor/6afec79b-18df-4a8c-9932-83cdc2fc5d6d.jsonl",
+      "first_seen": "2026-11-16T00:31:08.445918+00:00",
+      "last_seen": "2026-11-16T00:31:08.445922+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/agg_kimik3_vllm_agentx_conc1.json",
+   "sha256": "50e1fc9795706e5e5583abd66ee15a14f27b74ae654c08e9114ddae7b468e17d",
+   "size": 6078,
+   "mtime": 1794708888,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+    "recipe_fingerprint": "",
+    "model": "moonshotai/Kimi-K3",
+    "infmax_model_prefix": "kimik3",
+    "framework": "vllm",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 8,
+    "tp": 8,
+    "ep": 1,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 244,
+    "num_requests_successful": 232,
+    "request_accounting": {
+     "records_total": 244,
+     "records_profiled": 232,
+     "records_dropped_total": 12,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 12,
+     "error_categories": {
+      "InvalidInferenceResultError": 12
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3589,
+      "mean": 0.06436,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 1,
+      "std": 0.24878
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.85592,
+       "p50": 0.79177,
+       "p75": 1.0046,
+       "p90": 3.79558,
+       "p95": 6.94135,
+       "std": 4.54562
+      },
+      "e2el": {
+       "mean": 6.74227,
+       "p50": 2.74186,
+       "p75": 8.19584,
+       "p90": 18.91506,
+       "p95": 27.67785,
+       "std": 9.30255
+      },
+      "itl": {
+       "mean": 0.00317,
+       "p50": 0.00432,
+       "p75": 0.00461,
+       "p90": 0.00474,
+       "p95": 0.00477,
+       "std": 0.00183
+      },
+      "tpot": {
+       "mean": 0.00317,
+       "p50": 0.00432,
+       "p75": 0.00461,
+       "p90": 0.00474,
+       "p95": 0.00477,
+       "std": 0.00183
+      },
+      "intvty": {
+       "mean": 315.28897,
+       "p50": 231.52837,
+       "p75": 217.08794,
+       "p90": 211.10504,
+       "p95": 209.63879,
+       "std": 8972.88768
+      },
+      "e2e_norm_intvty": {
+       "mean": 115.81201,
+       "p50": 193.52596,
+       "p75": 120.02267,
+       "p90": 67.39396,
+       "p95": 29.20465,
+       "std": 1172.54865
+      },
+      "full_response_itl": {
+       "mean": 0.00444,
+       "p50": 0.00449,
+       "p75": 0.00468,
+       "p90": 0.00476,
+       "p95": 0.00479,
+       "std": 0.00061
+      },
+      "full_response_intvty": {
+       "mean": 225.44956,
+       "p50": 222.73708,
+       "p75": 213.64839,
+       "p90": 209.96309,
+       "p95": 208.90272,
+       "std": 957.70093
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 234679.77155,
+       "p50": 222654,
+       "p75": 369783,
+       "p90": 401093.7,
+       "p95": 432651.2,
+       "std": 138108.41207
+      },
+      "output_actual": {
+       "mean": 1809.38362,
+       "p50": 746.5,
+       "p75": 2449.25,
+       "p90": 4822.5,
+       "p95": 6612.05,
+       "std": 2515.38584
+      },
+      "output_expected": {
+       "mean": 2023.79741,
+       "p50": 777.5,
+       "p75": 2792.5,
+       "p90": 5436,
+       "p95": 6914.7,
+       "std": 2852.46919
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 15139.12141
+      },
+      "output": {
+       "tokens_per_second": 116.72279
+      },
+      "total": {
+       "tokens_per_second": 15255.8442
+      },
+      "duration_seconds": 3596.35844,
+      "per_gpu": {
+       "total_tput_tps": 1906.98053,
+       "output_tput_tps": 14.59035,
+       "input_tput_tps": 1892.39018
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.97608
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "vllm",
+     "metric_count": 57,
+     "cache": {
+      "gpu_cache_hit_rate": 0.96118,
+      "cpu_cache_hit_rate": 0.0,
+      "external_cache_hit_rate": 0.0,
+      "overall_cache_hit_rate": 0.96118,
+      "prefix_cache_hits": 56159232,
+      "prefix_cache_queries": 58427225,
+      "external_prefix_cache_hits": 0.0,
+      "external_prefix_cache_queries": 0.0,
+      "cached_tokens_by_source": {},
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.03072,
+      "gpu_total_tokens": null,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 58427225,
+      "generation_total": 419789,
+      "requests_completed": 232,
+      "prompt_by_source": {
+       "gpu_cache_hit": 56159232,
+       "cpu_or_external_cache_hit": 0.0,
+       "computed": 2267993,
+       "raw": {
+        "external_kv_transfer": 0.0,
+        "local_cache_hit": 56159232,
+        "local_compute": 2267993
+       }
+      }
+     },
+     "sources": [
+      {
+       "id": "combined|http://localhost:30131/metrics|engine=0",
+       "role": "combined",
+       "prompt_tokens": 58427225,
+       "generation_tokens": 419789,
+       "prefix_cache_hit_rate": 0.96118,
+       "gpu_kv_cache_usage_pct": 0.03072
+      }
+     ]
+    },
+    "kv_cache_pool_tokens": null,
+    "power_metric_schema_version": 2,
+    "power_valid": 1,
+    "avg_power_w": 601.493,
+    "p75_power_w": 806.096,
+    "p75_total_gpu_power_w": 6448.771,
+    "p90_power_w": 817.885,
+    "p90_total_gpu_power_w": 6543.078,
+    "avg_total_gpu_power_w": 4811.943,
+    "total_gpu_energy_j": 17322995.95,
+    "joules_per_successful_query": 74668.08599,
+    "joules_per_input_token": "<dropped>",
+    "joules_per_output_token": "<dropped>",
+    "joules_per_total_token": "<dropped>"
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/bench_output.json",
+   "sha256": "80f0ea47d92b9d771aec8d7975a0a7da3e4c35bb5971955fab9c105f2e6a9b2f",
+   "size": 564,
+   "mtime": 1794708889,
+   "json": {
+    "total_throughput": 1906.98053,
+    "output_throughput": 14.59035,
+    "total_throughput_per_gpu": 1906.98053,
+    "conc": 1,
+    "tp": 8,
+    "ep": 1,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "mtp",
+    "kv_offloading": "none",
+    "num_requests_successful": 232,
+    "num_requests_total": 244,
+    "kv_cache_hit_rate": 0.96118,
+    "agg_json_path": "/workspace/exp/runs/before/agg_kimik3_vllm_agentx_conc1.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 193.52596,
+    "e2e_norm_intvty_p90": 67.39396,
+    "num_requests_measured": 244,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "before_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/gsm8k.log",
+   "sha256": "8c4e94f2960f0b06fac67246245e3c13dc9e94890194cdd821456a13a1618ab8",
+   "size": 109163,
+   "mtime": 1794710050,
+   "tail": [
+    "Requesting API:  98%|█████████▊| 1292/1319 [13:14<00:15,  1.71it/s]",
+    "Requesting API:  98%|█████████▊| 1293/1319 [13:14<00:14,  1.80it/s]",
+    "Requesting API:  98%|█████████▊| 1294/1319 [13:15<00:14,  1.74it/s]",
+    "Requesting API:  98%|█████████▊| 1295/1319 [13:16<00:14,  1.65it/s]",
+    "Requesting API:  98%|█████████▊| 1296/1319 [13:16<00:14,  1.58it/s]",
+    "Requesting API:  98%|█████████▊| 1297/1319 [13:17<00:13,  1.62it/s]",
+    "Requesting API:  98%|█████████▊| 1298/1319 [13:18<00:13,  1.58it/s]",
+    "Requesting API:  98%|█████████▊| 1299/1319 [13:18<00:12,  1.57it/s]",
+    "Requesting API:  99%|█████████▊| 1300/1319 [13:19<00:11,  1.62it/s]",
+    "Requesting API:  99%|█████████▊| 1301/1319 [13:20<00:10,  1.67it/s]",
+    "Requesting API:  99%|█████████▊| 1302/1319 [13:20<00:11,  1.53it/s]",
+    "Requesting API:  99%|█████████▉| 1303/1319 [13:21<00:10,  1.51it/s]",
+    "Requesting API:  99%|█████████▉| 1304/1319 [13:22<00:09,  1.51it/s]",
+    "Requesting API:  99%|█████████▉| 1305/1319 [13:22<00:08,  1.60it/s]",
+    "Requesting API:  99%|█████████▉| 1306/1319 [13:23<00:07,  1.74it/s]",
+    "Requesting API:  99%|█████████▉| 1307/1319 [13:23<00:07,  1.61it/s]",
+    "Requesting API:  99%|█████████▉| 1308/1319 [13:24<00:06,  1.73it/s]",
+    "Requesting API:  99%|█████████▉| 1309/1319 [13:24<00:05,  1.83it/s]",
+    "Requesting API:  99%|█████████▉| 1310/1319 [13:25<00:04,  1.89it/s]",
+    "Requesting API:  99%|█████████▉| 1311/1319 [13:25<00:04,  1.75it/s]",
+    "Requesting API:  99%|█████████▉| 1312/1319 [13:26<00:03,  1.93it/s]",
+    "Requesting API: 100%|█████████▉| 1313/1319 [13:26<00:03,  1.86it/s]",
+    "Requesting API: 100%|█████████▉| 1314/1319 [13:27<00:02,  1.79it/s]",
+    "Requesting API: 100%|█████████▉| 1315/1319 [13:28<00:02,  1.67it/s]",
+    "Requesting API: 100%|█████████▉| 1316/1319 [13:28<00:01,  1.74it/s]",
+    "Requesting API: 100%|█████████▉| 1317/1319 [13:29<00:01,  1.78it/s]",
+    "Requesting API: 100%|█████████▉| 1318/1319 [13:29<00:00,  1.78it/s]",
+    "Requesting API: 100%|██████████| 1319/1319 [13:30<00:00,  1.83it/s]",
+    "Requesting API: 100%|██████████| 1319/1319 [13:30<00:00,  1.63it/s]",
+    "fatal: not a git repository (or any of the parent directories): .git",
+    "2026-11-15:02:34:04 INFO     [loggers.evaluation_tracker:209] Saving results aggregated",
+    "2026-11-15:02:34:04 INFO     [loggers.evaluation_tracker:298] Saving per-sample results for: gsm8k",
+    "local-chat-completions ({'model': 'moonshotai/Kimi-K3', 'base_url': 'http://0.0.0.0:30131/v1/chat/completions', 'api_key': 'EMPTY', 'eos_string': '</s>', 'max_retries': 5, 'num_concurrent': 16, 'timeout': 1800, 'tokenized_requests': False, 'max_length': 16384}), gen_kwargs: ({'max_tokens': 12288, 'temperature': 0, 'top_p': 1}), limit: None, num_fewshot: None, batch_size: 1",
+    "|Tasks|Version|     Filter     |n-shot|  Metric   |   |Value |   |Stderr|",
+    "|-----|------:|----------------|-----:|-----------|---|-----:|---|-----:|",
+    "|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.9659|±  |0.0050|",
+    "|     |       |strict-match    |     5|exact_match|↑  |0.9666|±  |0.0049|",
+    "",
+    "+ local eval_exit=0",
+    "+ set +x"
+   ],
+   "gsm8k_lines": [
+    "|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.9659|±  |0.0050|",
+    "|     |       |strict-match    |     5|exact_match|↑  |0.9666|±  |0.0049|"
+   ],
+   "progress_total": 1319
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/after/agg_kimik3_vllm_agentx_conc1.json",
+   "sha256": "eea4bb1eb9b83a30eef88c9e953a35d05b41b55b8d990e2f4c4db9cb21d8f8d2",
+   "size": 6069,
+   "mtime": 1794795614,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+    "recipe_fingerprint": "",
+    "model": "moonshotai/Kimi-K3",
+    "infmax_model_prefix": "kimik3",
+    "framework": "vllm",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 8,
+    "tp": 8,
+    "ep": 1,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 251,
+    "num_requests_successful": 239,
+    "request_accounting": {
+     "records_total": 251,
+     "records_profiled": 239,
+     "records_dropped_total": 12,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 12,
+     "error_categories": {
+      "InvalidInferenceResultError": 12
+     }
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3621,
+      "mean": 0.06573,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 1,
+      "std": 0.25222
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.62721,
+       "p50": 0.64014,
+       "p75": 0.82541,
+       "p90": 3.96576,
+       "p95": 5.85274,
+       "std": 4.15572
+      },
+      "e2el": {
+       "mean": 6.32071,
+       "p50": 3.02982,
+       "p75": 8.16273,
+       "p90": 16.91994,
+       "p95": 23.70092,
+       "std": 8.63655
+      },
+      "itl": {
+       "mean": 0.00303,
+       "p50": 0.00409,
+       "p75": 0.00435,
+       "p90": 0.00445,
+       "p95": 0.00448,
+       "std": 0.00168
+      },
+      "tpot": {
+       "mean": 0.00303,
+       "p50": 0.00409,
+       "p75": 0.00435,
+       "p90": 0.00445,
+       "p95": 0.00448,
+       "std": 0.00168
+      },
+      "intvty": {
+       "mean": 329.65357,
+       "p50": 244.55984,
+       "p75": 230.06078,
+       "p90": 224.49207,
+       "p95": 223.10832,
+       "std": 13071.32434
+      },
+      "e2e_norm_intvty": {
+       "mean": 136.94102,
+       "p50": 204.41311,
+       "p75": 146.96953,
+       "p90": 86.0913,
+       "p95": 37.29168,
+       "std": 1630.87932
+      },
+      "full_response_itl": {
+       "mean": 0.00416,
+       "p50": 0.00423,
+       "p75": 0.0044,
+       "p90": 0.00448,
+       "p95": 0.00451,
+       "std": 0.00055
+      },
+      "full_response_intvty": {
+       "mean": 240.20227,
+       "p50": 236.49393,
+       "p75": 227.46011,
+       "p90": 223.18957,
+       "p95": 221.82607,
+       "std": 918.56794
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 241698.02092,
+       "p50": 231924,
+       "p75": 375086.5,
+       "p90": 417560.2,
+       "p95": 446229.8,
+       "std": 141944.06226
+      },
+      "output_actual": {
+       "mean": 1850.77406,
+       "p50": 759,
+       "p75": 2570.5,
+       "p90": 4840.4,
+       "p95": 6905.6,
+       "std": 2527.19614
+      },
+      "output_expected": {
+       "mean": 2033.66946,
+       "p50": 801,
+       "p75": 2810,
+       "p90": 5170,
+       "p95": 6905.6,
+       "std": 2821.74657
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 15919.31523
+      },
+      "output": {
+       "tokens_per_second": 121.90028
+      },
+      "total": {
+       "tokens_per_second": 16041.21551
+      },
+      "duration_seconds": 3628.6628,
+      "per_gpu": {
+       "total_tput_tps": 2005.15194,
+       "output_tput_tps": 15.23753,
+       "input_tput_tps": 1989.9144
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.9771
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "vllm",
+     "metric_count": 57,
+     "cache": {
+      "gpu_cache_hit_rate": 0.9638,
+      "cpu_cache_hit_rate": 0.0,
+      "external_cache_hit_rate": 0.0,
+      "overall_cache_hit_rate": 0.9638,
+      "prefix_cache_hits": 59511808,
+      "prefix_cache_queries": 61747345,
+      "external_prefix_cache_hits": 0.0,
+      "external_prefix_cache_queries": 0.0,
+      "cached_tokens_by_source": {},
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.03981,
+      "gpu_total_tokens": null,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 61747345,
+      "generation_total": 442347,
+      "requests_completed": 239,
+      "prompt_by_source": {
+       "gpu_cache_hit": 59511808,
+       "cpu_or_external_cache_hit": 0.0,
+       "computed": 2235537,
+       "raw": {
+        "external_kv_transfer": 0.0,
+        "local_cache_hit": 59511808,
+        "local_compute": 2235537
+       }
+      }
+     },
+     "sources": [
+      {
+       "id": "combined|http://localhost:30131/metrics|engine=0",
+       "role": "combined",
+       "prompt_tokens": 61747345,
+       "generation_tokens": 442347,
+       "prefix_cache_hit_rate": 0.9638,
+       "gpu_kv_cache_usage_pct": 0.03981
+      }
+     ]
+    },
+    "kv_cache_pool_tokens": null,
+    "power_metric_schema_version": 2,
+    "power_valid": 1,
+    "avg_power_w": 600.593,
+    "p75_power_w": 825.225,
+    "p75_total_gpu_power_w": 6601.803,
+    "p90_power_w": 837.883,
+    "p90_total_gpu_power_w": 6703.068,
+    "avg_total_gpu_power_w": 4804.748,
+    "total_gpu_energy_j": 17434837.969,
+    "joules_per_successful_query": 72949.11284,
+    "joules_per_input_token": "<dropped>",
+    "joules_per_output_token": "<dropped>",
+    "joules_per_total_token": "<dropped>"
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/after/bench_output.json",
+   "sha256": "70524e1f84ce71c88da195691c4e2576e39fe506d64edf3b76cf7a71448dcfae",
+   "size": 561,
+   "mtime": 1794795615,
+   "json": {
+    "total_throughput": 2005.15194,
+    "output_throughput": 15.23753,
+    "total_throughput_per_gpu": 2005.15194,
+    "conc": 1,
+    "tp": 8,
+    "ep": 1,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "mtp",
+    "kv_offloading": "none",
+    "num_requests_successful": 239,
+    "num_requests_total": 251,
+    "kv_cache_hit_rate": 0.9638,
+    "agg_json_path": "/workspace/exp/runs/after/agg_kimik3_vllm_agentx_conc1.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 204.41311,
+    "e2e_norm_intvty_p90": 86.0913,
+    "num_requests_measured": 251,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "after_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/after/gsm8k.log",
+   "sha256": "b800c76b18749d1a55881c7a0481ac1604fdf0c0c69ee443abf10ed6e00a7f68",
+   "size": 109234,
+   "mtime": 1794796682,
+   "tail": [
+    "Requesting API:  98%|█████████▊| 1292/1319 [10:59<00:12,  2.14it/s]",
+    "Requesting API:  98%|█████████▊| 1293/1319 [10:59<00:11,  2.21it/s]",
+    "Requesting API:  98%|█████████▊| 1294/1319 [11:00<00:11,  2.16it/s]",
+    "Requesting API:  98%|█████████▊| 1295/1319 [11:00<00:12,  1.98it/s]",
+    "Requesting API:  98%|█████████▊| 1296/1319 [11:01<00:12,  1.78it/s]",
+    "Requesting API:  98%|█████████▊| 1297/1319 [11:02<00:11,  1.88it/s]",
+    "Requesting API:  98%|█████████▊| 1298/1319 [11:02<00:11,  1.87it/s]",
+    "Requesting API:  98%|█████████▊| 1299/1319 [11:03<00:10,  1.85it/s]",
+    "Requesting API:  99%|█████████▊| 1300/1319 [11:03<00:10,  1.75it/s]",
+    "Requesting API:  99%|█████████▊| 1301/1319 [11:04<00:09,  1.87it/s]",
+    "Requesting API:  99%|█████████▊| 1302/1319 [11:04<00:10,  1.64it/s]",
+    "Requesting API:  99%|█████████▉| 1303/1319 [11:05<00:09,  1.65it/s]",
+    "Requesting API:  99%|█████████▉| 1304/1319 [11:06<00:09,  1.63it/s]",
+    "Requesting API:  99%|█████████▉| 1305/1319 [11:06<00:07,  1.77it/s]",
+    "Requesting API:  99%|█████████▉| 1306/1319 [11:07<00:06,  1.98it/s]",
+    "Requesting API:  99%|█████████▉| 1307/1319 [11:07<00:06,  1.90it/s]",
+    "Requesting API:  99%|█████████▉| 1308/1319 [11:07<00:05,  2.05it/s]",
+    "Requesting API:  99%|█████████▉| 1309/1319 [11:08<00:04,  2.21it/s]",
+    "Requesting API:  99%|█████████▉| 1310/1319 [11:08<00:03,  2.26it/s]",
+    "Requesting API:  99%|█████████▉| 1311/1319 [11:09<00:03,  2.08it/s]",
+    "Requesting API:  99%|█████████▉| 1312/1319 [11:09<00:03,  2.28it/s]",
+    "Requesting API: 100%|█████████▉| 1313/1319 [11:10<00:02,  2.24it/s]",
+    "Requesting API: 100%|█████████▉| 1314/1319 [11:10<00:02,  2.23it/s]",
+    "Requesting API: 100%|█████████▉| 1315/1319 [11:11<00:02,  1.97it/s]",
+    "Requesting API: 100%|█████████▉| 1316/1319 [11:11<00:01,  2.04it/s]",
+    "Requesting API: 100%|█████████▉| 1317/1319 [11:12<00:00,  2.08it/s]",
+    "Requesting API: 100%|█████████▉| 1318/1319 [11:12<00:00,  2.10it/s]",
+    "Requesting API: 100%|██████████| 1319/1319 [11:13<00:00,  2.23it/s]",
+    "Requesting API: 100%|██████████| 1319/1319 [11:13<00:00,  1.96it/s]",
+    "fatal: not a git repository (or any of the parent directories): .git",
+    "2026-11-16:02:37:56 INFO     [loggers.evaluation_tracker:209] Saving results aggregated",
+    "2026-11-16:02:37:56 INFO     [loggers.evaluation_tracker:298] Saving per-sample results for: gsm8k",
+    "local-chat-completions ({'model': 'moonshotai/Kimi-K3', 'base_url': 'http://0.0.0.0:30131/v1/chat/completions', 'api_key': 'EMPTY', 'eos_string': '</s>', 'max_retries': 5, 'num_concurrent': 16, 'timeout': 1800, 'tokenized_requests': False, 'max_length': 16384}), gen_kwargs: ({'max_tokens': 12288, 'temperature': 0, 'top_p': 1}), limit: None, num_fewshot: None, batch_size: 1",
+    "|Tasks|Version|     Filter     |n-shot|  Metric   |   |Value |   |Stderr|",
+    "|-----|------:|----------------|-----:|-----------|---|-----:|---|-----:|",
+    "|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.9689|±  |0.0048|",
+    "|     |       |strict-match    |     5|exact_match|↑  |0.9697|±  |0.0047|",
+    "",
+    "+ local eval_exit=0",
+    "+ set +x"
+   ],
+   "gsm8k_lines": [
+    "|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.9689|±  |0.0048|",
+    "|     |       |strict-match    |     5|exact_match|↑  |0.9697|±  |0.0047|"
+   ],
+   "progress_total": 1319
+  }
+ ]
+}

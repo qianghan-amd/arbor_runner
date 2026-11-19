@@ -1,0 +1,1215 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/env.sh",
+   "sha256": "23154db2f43ba316a530a8412d7f8782250ae56d8aeddb7d9375c448847a1f52",
+   "size": 2923,
+   "mtime": 1794653905,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/glm52-c1-p90-sa",
+    "LOGS": "$EXP/logs",
+    "RUN": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa",
+    "ARBOR": "$RUN/src/arbor",
+    "ARBOR_SHA": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02",
+    "ARBOR_TGZ_SHA256": "e4838167a811f2d3c27bc9e9f5a741f3089ff3ba2e050a4ccfd190cdc1af8573",
+    "INFX": "$TOP/codebases/InferenceX",
+    "INFX_SHA": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "CI_SHA": "d204ac0de29d506d5de9ad534495b6fe0ae21370",
+    "VENV": "$EXP/.venv",
+    "PY": "$VENV/bin/python",
+    "CONFIG_REL": "configs/mi355x/glm52-c1-p90-sa.json",
+    "CONFIG": "$ARBOR/$CONFIG_REL",
+    "PACK": "agentx-glm52-c1sa",
+    "SESSIONS": "$RUN/sessions",
+    "SESSION": "$SESSIONS/full",
+    "AGENT_HOME": "$RUN/agent_home",
+    "GATEWAY_ENV": "$TOP/experiments/glm52-c16-tput/agent_home/.arbor/gateway.env",
+    "IMAGE_TAG": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "IMAGE_DIGEST": "sha256:a95431225d5079bb398a3f49e7049630f62a2489197fbfd3c5ff84b02f026145",
+    "CONTAINER": "qh_glm52c1",
+    "PORT": "30152",
+    "GPUS": "0,1,2,3",
+    "NL": "/mnt/m2m_nobackup/qiangh_glm52c1",
+    "HUB_NL": "$NL/hf-hub",
+    "MMAP_CACHE": "$NL/aiperf_mmap_cache",
+    "HF_SHARED": "/mnt/hf_cache",
+    "MODEL_ID": "amd/GLM-5.2-MXFP4",
+    "MODEL_REV": "386bd0e4ec821f7b07975701cec3c3b953a5576a",
+    "MODEL_DIR": "models--amd--GLM-5.2-MXFP4",
+    "N_SHARDS": "282",
+    "CORPUS_ID": "semianalysisai/cc-traces-weka-062126",
+    "CORPUS_DIR": "datasets--semianalysisai--cc-traces-weka-062126",
+    "WORKSPACE_ROOT": "/sgl-workspace/sglang"
+   }
+  }
+ ],
+ "guide": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/GUIDE.md",
+   "sha256": "d4b73223a665a0a70a1ef2f357f0dffeff3d1c1fc4ecf4eb4afc6757190718a5",
+   "size": 12775,
+   "mtime": 1794654507,
+   "head": [
+    "# Campaign: glm52-c1-p90-sa — intent and constraints",
+    "",
+    "Written 2026-11-14 before launch (CLAUDE.md, autonomous mode). Source of truth: the master agent's brief of 2026-11-14 (pane w4:p2), the master README's Project Scope row \"GLM-5.2\", and the CI archaeology below (InferenceX `d204ac0de2`, read with `git show`). Trace of every step: `reports/2026-11-14_worklog.md`.",
+    "",
+    "<!-- Adapted from experiments/musespark-c1-p90-sa/GUIDE.md -->",
+    "",
+    "## Goal",
+    "",
+    "Run a 24 h **Arbor standalone** campaign on GLM-5.2-MXFP4 with SGLang, MI355X, AgentX trace replay at **concurrency 1**, with **P90 interactivity** (`e2e_norm_intvty_p90`, tok/s/user, higher is better) as the objective, without losing P50 interactivity (`e2e_norm_intvty_p50`) beyond 5 %. Before and after the campaign, run the full AgentX benchmark at C1 (3600 s) and GSM8K on a fresh server. Same p",
+    "",
+    "## Pins",
+    "",
+    "| What | Pin |",
+    "|---|---|",
+    "| Arbor | AMD-AGI/Arbor `v0.9.2-baseline-test` = `2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02` (master brief, non-negotiable). Archive copied from `musespark-c1-p90-sa/stage/arbor_v092bt.tgz`, sha256 `e4838167a811f2d3c27bc9e9f5a741f3089ff3ba2e050a4ccfd190cdc1af8573`; not re-fetched. Stock code + our pack `agentx-glm52-c1sa` |",
+    "| CI run | InferenceX run 31501371582 (2026-08-11), commit `d204ac0de29d506d5de9ad534495b6fe0ae21370` (\"[AMD] [AGENTX] GLM 5.2 Update Search Space\"), key `glm5.2-fp4-mi355x-sglang-agentic-mtp` |",
+    "| Recipe | `benchmarks/single_node/agentic/glm5.2_fp4_mi355x_sglang_mtp.sh` (parameterized `.sh` era: TP, EP_SIZE, CONC, KV_OFFLOADING come from the CI matrix). Point: **TP=4 EP_SIZE=4 KV_OFFLOADING=dram KV_OFFLOAD_BACKEND=hicache CONC=1** (see \"Archaeology trail\") |",
+    "| Image | `lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728` @ `sha256:a95431225d5079bb398a3f49e7049630f62a2489197fbfd3c5ff84b02f026145` (master README; also the image line of changelog PR #2488) |",
+    "| Model | `amd/GLM-5.2-MXFP4` @ `386bd0e4ec821f7b07975701cec3c3b953a5576a` (282 shards, 438.0 GB). Source: shared read-only cache `/mnt/hf_cache` (snapshot of this exact revision present), copied to node NVMe by `dl.sh` — no HF download |",
+    "| Draft | none: MTP is native (`--speculative-algorithm EAGLE` on the model's own MTP layer, no `--speculative-draft-model-path`), 3 steps, topk 1, 4 draft tokens, **synthetic acceptance** `SGLANG_SIMULATE_ACC_LEN=2.99` (`match-expected`, `real-draft-token`), as CI |",
+    "| Bench client | InferenceX **`86699be610`** (shared checkout `$TOP/codebases/InferenceX`, clean), `benchmarks/benchmark_lib.sh` + aiperf, patched `bench_agentx.sh` from musespark-c1-p90-sa + a cache flush. **Differs from the CI pin** (see Decisions). Corpus `semianalysis_cc_traces_weka_062126` (dataset `semianalysisai/cc-traces-weka-062126`, the default for `glm5.2*` at both commits) @ revision r",
+    "",
+    "## Archaeology trail (how the conc-1 launch was resolved)",
+    "",
+    "1. `perf-changelog.yaml` **at `d204ac0de2` lives at the repo root** (not `inferencex-e2e/`, which is a later layout). Its only entry for this key is PR #2488 (\"Add GLM-5.2 FP4 SGLANG Single Node Agentic Support\"; image v0.5.16-…-20260728). It has no concurrency prose.",
+    "2. The CI matrix at this commit is **static**, `configs/amd-master.yaml:1622`:",
+    "   `{ tp: 4, ep: 4, kv-offloading: dram, hicache, conc-list: [1, 2, 4, 8, 10, 12, 16], mtp }` and `{ tp: 8, ep: 8, kv-offloading: dram, hicache, conc-list: [1, 2, 4], mtp }`. The commit itself only adds `16` to the TP4 list. 7 + 3 = 10 points/run, x 2 runs = the README's \"20 pts / 2 runs\": both arms ran, and both have a conc-1 point.",
+    "3. **The \"TP8/EP1 arm at conc [1, 2, 4]\" prose is from later entries, not this pin:** PR #2570 (TP8 arm -> no offload, MTP 3->5 steps, ACC_LEN 2.99->3.61), PR #2777 (TP8 EP8->EP1), PR #3081 (c1/c2 only on TP8/EP1; image v0.5.19-…-20260913), PR #3329 (image v0.5.20). All need later images and recipes, so none apply here.",
+    "4. The recipe at TP=4 EP=4 CONC=1 (CONC <= 16 band: chunk 131072, mem-fraction 0.80; `MAX_RUNNING_REQUESTS = 1*CONC`; `CUDA_GRAPH_MAX_BS = MAX_RUNNING_REQUESTS`; HiCache ratio 1.5 because DP_ATTENTION=false) resolves to:",
+    "",
+    "```",
+    "env:  PYTHONNOUSERSITE=1 AIPERF_HTTP_TCP_USER_TIMEOUT=900000 SGLANG_TIMEOUT_KEEP_ALIVE=900 SGLANG_OPT_USE_TOPK_V2=false",
+    "      SGLANG_SIMULATE_ACC_LEN=2.99 SGLANG_SIMULATE_ACC_METHOD=match-expected SGLANG_SIMULATE_ACC_TOKEN_MODE=real-draft-token",
+    "python3 -m sglang.launch_server --model-path amd/GLM-5.2-MXFP4 --served-model-name amd/GLM-5.2-MXFP4 --host 0.0.0.0 --port <P>",
+    "  --trust-remote-code --tp 4 --ep-size 4 --kv-cache-dtype fp8_e4m3 --dsa-prefill-backend tilelang --dsa-decode-backend tilelang",
+    "  --tool-call-parser glm47 --reasoning-parser glm45 --chunked-prefill-size 131072 --mem-fraction-static 0.80",
+    "  --max-running-requests 1 --cuda-graph-max-bs 1",
+    "  --speculative-algorithm EAGLE --speculative-num-steps 3 --speculative-eagle-topk 1 --speculative-num-draft-tokens 4",
+    "  --enable-hierarchical-cache --hicache-ratio 1.5 --hicache-write-policy write_through --hicache-io-backend direct",
+    "  --hicache-mem-layout page_first_direct --watchdog-timeout 1800 --enable-metrics",
+    "```",
+    "5. CI runner `runners/launch_mi355x-amds.sh` (single node) runs the recipe under pyxis with `--export=ALL,AIPERF_DATASET_MMAP_CACHE_DIR=/aiperf_mmap_cache` and adds no server env. CI sets `MODEL_PATH=MODEL` (repo id), so the server is named and loaded by repo id. We do the same, offline, from the NVMe hub (`refs/main` = the pin).",
+    "",
+    "## Decisions",
+    "",
+    "- **CI arm — DECISION (mine, recommended default, reported to the master for objection): TP4/EP4 + HiCache on GPUs 0-3.** Why not TP8/EP8 + HiCache: (a) the recipe's own sizing comment puts the TP arm's host tier at \"~2.9 TB pinned incl. sidecars\", but Crusoe nodes have 2751 GB RAM, so host OOM is a real risk; (b) TP8 leaves no GPUs for the agents' probe servers and profiling; (c) the TP4/EP4 flag",
+    "- **Bench client = InferenceX `86699be610`, not `d204ac0de2`.** The objective `e2e_norm_intvty_p90` does not exist at `d204ac0de2` (`git grep` has no hits; its aggregator writes only `intvty` = 1/ITL and `full_response_intvty`). It first appears in `86699be610` (`infx/results/agentic/request_metrics.py`), which still ships `benchmark_lib.sh` with the same replay functions. This is the client that ",
+    "- **Objective (master brief):** `e2e_norm_intvty_p90`, KEEP at +2 %, `e2e_norm_intvty_p50` held within 5 %. Arbor v0.9.2-bt has no `opt_objective`; set as musespark: `pack.yaml` `measurement.threshold_rel 1.02`, `secondary_metric e2e_norm_intvty_p50`, `secondary_threshold_rel 1000` (never a gain), `secondary_noise_band_pct 5`, `secondary_regression_cap_pct 5`. No number under `target.<metric>` (th",
+    "- **bench_cache cold (master brief):** Arbor v0.9.2-bt has **no** `bench_cache` key (`grep` over the archive). Built instead as: (1) the pack's protected `bench_agentx.sh` calls SGLang's `POST /flush_cache` before the replay (GPU radix + HiCache host tier; result recorded as `cache_flushed` in `bench_output.json`); (2) the musespark pack rule \"book a KEEP on a fresh server\". CI also starts cold (a",
+    "- **GSM8K before/after:** 1319 questions (`sglang.test.few_shot_gsm8k`) on a **second fresh server without the `SGLANG_SIMULATE_*` env** (real acceptance = CI's `EVAL_ONLY=true` path), because with synthetic acceptance the served tokens are not the model's own (glm52-c16-tput measured 0.7096 with simulation on, vs CI eval 0.9689). One extra server start per before/after.",
+    "- **Weights:** copied from the shared read-only `/mnt/hf_cache` to node NVMe. Loading from NVMe on every server restart (there are many per iteration) does not depend on NFS throughput while HiCache pins about 1.1 TB of host RAM (glm52-c16-tput did the same; healthy in about 290 s).",
+    "- **Profiling:** on this image, ruppell kernel tracing **worked** without HiCache, but **aborts with the HiCache write-back** (glm52-c16-tput, decode_census_r1, 2026-11-10). Pack rule: one ruppell try on a probe server (GPUs 4-7) **without** `--enable-hierarchical-cache`, capped at 15 min; if it hangs or aborts, tracer-free profiling only (the dsv41f-c1-p90-sa2 method, adapted to SGLang).",
+    "- **Probe servers on GPUs 4-7 must not enable HiCache:** two HiCache servers would pin about 2.2 TB of the node's 2.75 TB.",
+    "- **Pack knowledge:** the stock `packs/agentx/knowledge/` of this Arbor version is copied into the pack (musespark did not): generic AgentX/SGLang-ROCm notes and a stock GLM-5.2 decode profile at a different point (TP4/DP4, CONC 64, 2026-09-02). It is shipped Arbor content, not a result of our campaigns.",
+    "- **Arbor local fix:** `stage/0001-monitor-heartbeat.patch` = musespark-c1-p90-sa's commit 3a404ad (the bench prompt's Monitor watch prints a heartbeat; the CLI ends a Monitor silent for 10 min). Applied and committed by `prepare.sh`.",
+    "- **Node:** a new hold job (`hold_node.sbatch`), `--time=1-00:00:00`, raised to 3 days once RUNNING. At 10:31 UTC the QOS was at its cap (28/28 nodes RUNNING, 7 PENDING), so it will queue.",
+    "",
+    "- **Pipeline (`chain1.sh`, pre-dropped in `ctrl/`, starts when the hold job runs):** freeze the scripts -> raise TimeLimit to 3 days -> `dl.sh` -> `prepare.sh` -> Arbor's own `run_gate` on test numbers (5/5 KEEP/REVERT as intended, checked on the login node 2026-11-14) -> smoke (`ab.sh smoke 600 200`, GPUs 0-3) in parallel with `proftry.sh` (capped ruppell try, GPUs 4-7) -> smoke gate -> its resul",
+    "- **Smoke/before gate:** P90 and P50 present and > 0, requests served, `cache_flushed` true, GSM8K >= 0.5. The 0.5 is a sanity floor (\"the model is not garbage\"), not a correctness tolerance; the number of record is the before/after pair.",
+    "",
+    "## Known weaknesses / red flags",
+    "",
+    "- **Synthetic acceptance + Arbor version:** the skill records an Arbor version bug with synthetic-acceptance launches (v0.9.8 refused good KEEPs). It is not confirmed either way for v0.9.2-bt. Watch for refused KEEPs on measurement-only changes.",
+    "- **Iterative vs before/after:** Arbor's rolling internal baseline has diverged from the full re-measure before (Muse Spark +27.0 % vs +24.4 %; Kimi K3.1 Pro +7.9 % vs −0.2 %). Report both.",
+    "- **C1 statistics:** a 3600 s replay at C1 holds few requests, so the P90 is noisy. The KEEP bar (+2 %) may sit near the noise floor. The smoke and the before run give the first estimate.",
+    "- **The CI dashboard is not comparable:** the bench client and metric definitions differ (see Decisions).",
+    "- **Known dead end on this model/image:** `SGLANG_DSA_DECODE_TOPK_AITER=1` hangs the server at long contexts (glm52-c16-tput).",
+    "",
+    "## Layout",
+    "",
+    "- `/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/` (`$EXP`): this guide, `env.sh`, `hold_node.sbatch`, `dl.sh`, `prepare.sh`, `ab.sh` (smoke/before/after), `campaign.sh`, `proftry.sh`, `chain1.sh`, `ctrlput.sh`, `stage/` (Arbor archive, heartbeat patch, `pack.yaml`, `bench_agentx.sh`, `config.json`), `runs/<tag>/`, `logs/`, `ctrl/` (node agent). Local copy: `experiments/gl",
+    "- `/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/` (`$RUN`): the Arbor tree (`src/arbor`), the agents' HOME (`agent_home`), the sessions (`sessions/full`). **Outside** `arbor_dsv41flash`, which has a `CLAUDE.md` + `AGENTS.md` that the agents would otherwise load (crusoe-arbor-run pitfall, campaign 5 leak).",
+    "- Node NVMe `/mnt/m2m_nobackup/qiangh_glm52c1/`: `hf-hub` (model copy + corpus, `refs/main` = pins; `/hf-hub` in container `qh_glm52c1`), `aiperf_mmap_cache`. Port 30152.",
+    "- The gateway credentials are read from `glm52-c16-tput/agent_home/.arbor/gateway.env` (read only; that campaign's directory is not otherwise used).",
+    "",
+    "## Constraints",
+    "",
+    "Never touch other users' containers, processes or jobs (list them, never kill). Do not touch `glm52-c16-tput`, `glm52-c32-tput` or any other campaign's directory. Smoke test first. Do not loosen gates, tolerances or CI flags without the user; record any CI deviation. No tokens (GitHub, board, HF) inside the container. Log every action in `reports/2026-11-14_worklog.md`."
+   ]
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/spur-288192.out",
+   "sha256": "b4a6c06672677cf0e25ec72bec83beae33305cee4b8087f168962014373b02bb",
+   "size": 11,
+   "mtime": 1794950377,
+   "head": [
+    "Terminated"
+   ]
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/sessions/full/reports/trace/meta.json",
+   "sha256": "c32d6e1189d78940dba7b16d8b5a91fba4e8ff8a73a21fdd0b1f27d23013863f",
+   "size": 28494,
+   "mtime": 1794793976,
+   "json": {
+    "arbor_session_dir": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/sessions/full",
+    "started": "2026-11-15T01:25:15.712535+00:00",
+    "arbor_git_sha": "d53de11b8a5f3eddbcc6495b177e2fd7967bd3fc",
+    "config": {
+     "_note": "glm52-c1-p90-sa, Arbor standalone, AMD-AGI/Arbor v0.9.2-baseline-test (2c2fd3d). GLM-5.2-MXFP4 + native MTP (EAGLE 3/1/4, synthetic acceptance 2.99) on SGLang, TP4/EP4 + HiCache on MI355X (Crusoe, QOS amd-hyperloom-qos), InferenceX AgentX replay at C1, objective P90 interactivity. The launch is the InferenceX recipe benchmarks/single_node/agentic/glm5.2_fp4_mi355x_sglang_mtp.sh at d204ac0de2 (CI run 31501371582, key glm5.2-fp4-mi355x-sglang-agentic-mtp) for TP=4 EP_SIZE=4 DP_ATTENTION=false KV_OFFLOADING=dram KV_OFFLOAD_BACKEND=hicache CONC=1 (the TP4/EP4 arm of configs/amd-master.yaml@d204ac0de2, conc-list [1,2,4,8,10,12,16]). The bench client is InferenceX 86699be610 (the first commit whose aggregator writes e2e_norm_intvty; d204ac0de2 has none). Provisioned by experiments/glm52-c1-p90-sa/prepare.sh. See its GUIDE.md.",
+     "pack": "agentx-glm52-c1sa",
+     "identity": "inference:agentx:mi355x:sglang:mxfp4:glm52:c1:tp4ep4:p90",
+     "goal": "Raise GLM-5.2-MXFP4's P90 interactivity (e2e_norm_intvty_p90) on the InferenceX AgentX replay at concurrency 1 on four MI355X GPUs (TP4/EP4, native MTP, HiCache), from the CI launch, without losing P50 interactivity.",
+     "docker_container": "qh_glm52c1",
+     "workspace_root": "/sgl-workspace/sglang",
+     "session_root": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/sessions/full",
+     "session_mount": "/workspace/sessions",
+     "framework": "sglang",
+     "model_path": "amd/GLM-5.2-MXFP4",
+     "model_name": "amd/GLM-5.2-MXFP4",
+     "_model_note": "Named by repo id, as CI does (MODEL_PATH=MODEL); resolved offline from the HF hub at /hf-hub (node NVMe, a copy of the shared /mnt/hf_cache snapshot), whose refs/main is the pin 386bd0e4ec.",
+     "gpu_type": "MI355X",
+     "gpu_ids": "0,1,2,3",
+     "tp": 4,
+     "port": 30152,
+     "server_flags": "--trust-remote-code --tp 4 --ep-size 4 --kv-cache-dtype fp8_e4m3 --dsa-prefill-backend tilelang --dsa-decode-backend tilelang --tool-call-parser glm47 --reasoning-parser glm45 --chunked-prefill-size 131072 --mem-fraction-static 0.80 --max-running-requests 1 --cuda-graph-max-bs 1 --speculative-algorithm EAGLE --speculative-num-steps 3 --speculative-eagle-topk 1 --speculative-num-draft-tokens 4 --enable-hierarchical-cache --hicache-ratio 1.5 --hicache-write-policy write_through --hicache-io-backend direct --hicache-mem-layout page_first_direct --watchdog-timeout 1800 --enable-metrics",
+     "_server_flags_note": "Verbatim from the recipe at d204ac0de2 for TP=4 EP_SIZE=4 DP_ATTENTION=false KV_OFFLOADING=dram KV_OFFLOAD_BACKEND=hicache CONC=1: CONC<=16 band (chunked-prefill 131072, mem-fraction-static 0.80), MAX_RUNNING_REQUESTS=1*CONC=1, CUDA_GRAPH_MAX_BS=1, HiCache ratio 1.5 (TP arm), write_through/direct/page_first_direct. Arbor adds --model-path, --served-model-name, --host and --port.",
+     "server_env": {
+      "PYTHONNOUSERSITE": "1",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+      "SGLANG_OPT_USE_TOPK_V2": "false",
+      "SGLANG_SIMULATE_ACC_LEN": "2.99",
+      "SGLANG_SIMULATE_ACC_METHOD": "match-expected",
+      "SGLANG_SIMULATE_ACC_TOKEN_MODE": "real-draft-token",
+      "HF_HUB_OFFLINE": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "MODEL_PREFIX": "glm5.2",
+      "FRAMEWORK": "sglang",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+      "TP": "4",
+      "EP_SIZE": "4",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "dram",
+      "KV_OFFLOAD_BACKEND": "hicache",
+      "KV_OFFLOAD_BACKEND_METADATA": "{\"name\":\"hicache\"}",
+      "TOTAL_CPU_DRAM_GB": "1199",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+     },
+     "_server_env_note": "The first seven are the recipe's exported env (the SGLANG_SIMULATE_* three because EVAL_ONLY is not true); the CI runner adds no server env. HF_HUB_* point at the offline hub. The rest is what bench_agentx.sh reads (InferenceX conventions; labels only, except DURATION and WEKA_LOADER_OVERRIDE). TOTAL_CPU_DRAM_GB 1199 as glm52-c16-tput (a label: the hicache path does not read it). WEKA_LOADER_OVERRIDE is the default corpus for glm5.2* at d204ac0de2 and 86699be610. DURATION 3600 as CI: at C1 a shorter replay holds too few requests for a P90. KV_OFFLOAD_BACKEND_METADATA {\"name\":\"hicache\"} is what CI's workflow passes from the matrix's kv-offload-backend {name: hicache} (benchmark-tmpl.yml); InferenceX 86699be610's result processor (infx/results/agentic/__init__.py:_validate_kv_offload_env) requires it when KV_OFFLOADING is not none (smoke2 failed there, 2026-11-14). A result label only; SGLang does not read it.",
+     "concurrency": 1,
+     "num_prompts": 320,
+     "bench_timeout": 7200,
+     "bench_script": "/workspace/Arbor/packs/agentx-glm52-c1sa/validator/bench_agentx.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-glm52-c1sa/validator/correctness.sh",
+     "editable_packages": [
+      {
+       "name": "aiter",
+       "path": "/sgl-workspace/aiter/aiter",
+       "rebuild": null
+      },
+      {
+       "name": "flydsl",
+       "path": "/opt/venv/lib/python3.10/site-packages/flydsl",
+       "rebuild": null
+      }
+     ],
+     "_editable_note": "prepare.sh adds aiter and flydsl at the paths the image imports them from.",
+     "baseline": null,
+     "target": null,
+     "_target_note": "No number under target.<metric>: Arbor's _resolve_target reads any number there as an early-exit bar (Kimi K3.1 Pro C1 P90 exited after ~2 h). The KEEP rule is in pack.yaml.",
+     "review_gate": false,
+     "time_budget_minutes": 1440,
+     "directives": []
+    },
+    "host": "crsuse2-m2m-v3-191",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "566e54e5-144d-47ea-bc17-ca9cbdf0f7c3",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/566e54e5-144d-47ea-bc17-ca9cbdf0f7c3.jsonl",
+      "first_seen": "2026-11-15T01:25:20.054856+00:00",
+      "last_seen": "2026-11-15T01:53:07.532926+00:00"
+     },
+     {
+      "session_id": "e8273d25-8cc8-452d-90c1-6d193bf0a178",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/e8273d25-8cc8-452d-90c1-6d193bf0a178.jsonl",
+      "first_seen": "2026-11-15T01:54:10.893862+00:00",
+      "last_seen": "2026-11-15T02:07:59.092513+00:00"
+     },
+     {
+      "session_id": "9e83713d-c463-498c-adff-f15d2aaf310b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/9e83713d-c463-498c-adff-f15d2aaf310b.jsonl",
+      "first_seen": "2026-11-15T02:08:51.813626+00:00",
+      "last_seen": "2026-11-15T02:33:07.549032+00:00"
+     },
+     {
+      "session_id": "d498bb03-967b-4b55-b13a-395cd254a725",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/d498bb03-967b-4b55-b13a-395cd254a725.jsonl",
+      "first_seen": "2026-11-15T02:33:48.074960+00:00",
+      "last_seen": "2026-11-15T02:39:04.579062+00:00"
+     },
+     {
+      "session_id": "8dd55387-9c33-44e5-b94e-6b949ea201d0",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/8dd55387-9c33-44e5-b94e-6b949ea201d0.jsonl",
+      "first_seen": "2026-11-15T02:39:10.882272+00:00",
+      "last_seen": "2026-11-15T03:42:34.173352+00:00"
+     },
+     {
+      "session_id": "6b6e4373-89dc-45b4-b4e1-a0146a6459dc",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/6b6e4373-89dc-45b4-b4e1-a0146a6459dc.jsonl",
+      "first_seen": "2026-11-15T03:42:41.680118+00:00",
+      "last_seen": "2026-11-15T03:42:41.680122+00:00"
+     },
+     {
+      "session_id": "e05a5b85-4157-4d37-907e-774912b19434",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/e05a5b85-4157-4d37-907e-774912b19434.jsonl",
+      "first_seen": "2026-11-15T03:49:02.134760+00:00",
+      "last_seen": "2026-11-15T03:49:30.059144+00:00"
+     },
+     {
+      "session_id": "c4a59e87-058c-4332-99d7-f4735ef61dec",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/c4a59e87-058c-4332-99d7-f4735ef61dec.jsonl",
+      "first_seen": "2026-11-15T03:49:59.429932+00:00",
+      "last_seen": "2026-11-15T03:55:29.796154+00:00"
+     },
+     {
+      "session_id": "2bfa5e9b-217e-405d-94fa-fb4cb3db399f",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/2bfa5e9b-217e-405d-94fa-fb4cb3db399f.jsonl",
+      "first_seen": "2026-11-15T03:55:35.068360+00:00",
+      "last_seen": "2026-11-15T04:58:02.900740+00:00"
+     },
+     {
+      "session_id": "fd908791-363f-4e81-808a-b5aea88ddc90",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/fd908791-363f-4e81-808a-b5aea88ddc90.jsonl",
+      "first_seen": "2026-11-15T04:58:10.093810+00:00",
+      "last_seen": "2026-11-15T04:58:10.093814+00:00"
+     },
+     {
+      "session_id": "b07d766c-3493-467f-afce-20f01fe27acb",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/b07d766c-3493-467f-afce-20f01fe27acb.jsonl",
+      "first_seen": "2026-11-15T04:59:13.635647+00:00",
+      "last_seen": "2026-11-15T05:35:28.773857+00:00"
+     },
+     {
+      "session_id": "71e89ce9-6b94-400d-94a0-53bf522993c7",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/71e89ce9-6b94-400d-94a0-53bf522993c7.jsonl",
+      "first_seen": "2026-11-15T05:36:06.624307+00:00",
+      "last_seen": "2026-11-15T05:41:14.878633+00:00"
+     },
+     {
+      "session_id": "11cf9214-692e-431f-9529-488e061c9805",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/11cf9214-692e-431f-9529-488e061c9805.jsonl",
+      "first_seen": "2026-11-15T05:41:23.946200+00:00",
+      "last_seen": "2026-11-15T06:41:43.686291+00:00"
+     },
+     {
+      "session_id": "bb171bca-7e2b-4967-afd7-404bf79ada67",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/bb171bca-7e2b-4967-afd7-404bf79ada67.jsonl",
+      "first_seen": "2026-11-15T06:45:25.306349+00:00",
+      "last_seen": "2026-11-15T06:45:25.306353+00:00"
+     },
+     {
+      "session_id": "04855055-070f-47f1-bc80-caa5252c5df4",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/04855055-070f-47f1-bc80-caa5252c5df4.jsonl",
+      "first_seen": "2026-11-15T06:46:32.835233+00:00",
+      "last_seen": "2026-11-15T07:03:10.146428+00:00"
+     },
+     {
+      "session_id": "8cf93207-c8d4-4816-ae33-8c90c1a3b3cf",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/8cf93207-c8d4-4816-ae33-8c90c1a3b3cf.jsonl",
+      "first_seen": "2026-11-15T07:03:49.592107+00:00",
+      "last_seen": "2026-11-15T07:09:00.062671+00:00"
+     },
+     {
+      "session_id": "4612eaf0-9ce8-452a-ac2d-da922a98c80b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/4612eaf0-9ce8-452a-ac2d-da922a98c80b.jsonl",
+      "first_seen": "2026-11-15T07:09:04.971207+00:00",
+      "last_seen": "2026-11-15T08:09:24.338525+00:00"
+     },
+     {
+      "session_id": "13db3c9e-c8f1-4c5f-b6bf-7d72aab3697a",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/13db3c9e-c8f1-4c5f-b6bf-7d72aab3697a.jsonl",
+      "first_seen": "2026-11-15T08:12:46.370063+00:00",
+      "last_seen": "2026-11-15T08:12:46.370067+00:00"
+     },
+     {
+      "session_id": "0e84b466-c88d-4b89-93c2-a5207fd88fff",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/0e84b466-c88d-4b89-93c2-a5207fd88fff.jsonl",
+      "first_seen": "2026-11-15T08:13:44.449942+00:00",
+      "last_seen": "2026-11-15T08:21:41.091658+00:00"
+     },
+     {
+      "session_id": "b20b5c8e-9579-41ba-9ed3-67197e32fa82",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/b20b5c8e-9579-41ba-9ed3-67197e32fa82.jsonl",
+      "first_seen": "2026-11-15T08:22:14.961596+00:00",
+      "last_seen": "2026-11-15T08:27:34.765948+00:00"
+     },
+     {
+      "session_id": "ac0de23a-0882-4051-b509-bf45de31a591",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/ac0de23a-0882-4051-b509-bf45de31a591.jsonl",
+      "first_seen": "2026-11-15T08:27:41.249452+00:00",
+      "last_seen": "2026-11-15T09:30:03.843089+00:00"
+     },
+     {
+      "session_id": "37314f39-8bbd-4760-8499-cc1c5e31493c",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/37314f39-8bbd-4760-8499-cc1c5e31493c.jsonl",
+      "first_seen": "2026-11-15T09:30:09.366846+00:00",
+      "last_seen": "2026-11-15T09:30:23.657761+00:00"
+     },
+     {
+      "session_id": "a00a69be-6cc1-4b55-aecf-a273399584eb",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a00a69be-6cc1-4b55-aecf-a273399584eb.jsonl",
+      "first_seen": "2026-11-15T09:31:23.759977+00:00",
+      "last_seen": "2026-11-15T10:21:33.334962+00:00"
+     },
+     {
+      "session_id": "3184f7be-02af-487a-ae62-1768d952ed67",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/3184f7be-02af-487a-ae62-1768d952ed67.jsonl",
+      "first_seen": "2026-11-15T10:22:17.459049+00:00",
+      "last_seen": "2026-11-15T10:27:33.231005+00:00"
+     },
+     {
+      "session_id": "35eb52cf-be71-407b-aee5-18a6854c01dc",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/35eb52cf-be71-407b-aee5-18a6854c01dc.jsonl",
+      "first_seen": "2026-11-15T10:27:43.774104+00:00",
+      "last_seen": "2026-11-15T11:28:06.339876+00:00"
+     },
+     {
+      "session_id": "354e1db2-5bad-4096-9ee3-40d890d08e90",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/354e1db2-5bad-4096-9ee3-40d890d08e90.jsonl",
+      "first_seen": "2026-11-15T11:31:54.659048+00:00",
+      "last_seen": "2026-11-15T11:31:54.659053+00:00"
+     },
+     {
+      "session_id": "a044956c-489e-43c0-8beb-e8c7fe4b65a9",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a044956c-489e-43c0-8beb-e8c7fe4b65a9.jsonl",
+      "first_seen": "2026-11-15T11:32:53.670403+00:00",
+      "last_seen": "2026-11-15T12:05:35.587056+00:00"
+     },
+     {
+      "session_id": "4e6970ab-1fc0-4245-9cbb-281067ef5fc1",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/4e6970ab-1fc0-4245-9cbb-281067ef5fc1.jsonl",
+      "first_seen": "2026-11-15T12:06:17.775477+00:00",
+      "last_seen": "2026-11-15T12:11:34.820512+00:00"
+     },
+     {
+      "session_id": "96e7638e-8450-43ce-9430-64f93f158cce",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/96e7638e-8450-43ce-9430-64f93f158cce.jsonl",
+      "first_seen": "2026-11-15T12:11:44.277478+00:00",
+      "last_seen": "2026-11-15T13:23:55.038223+00:00"
+     },
+     {
+      "session_id": "72edf13e-1de3-4a30-8cad-fd427a9d1acb",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/72edf13e-1de3-4a30-8cad-fd427a9d1acb.jsonl",
+      "first_seen": "2026-11-15T13:24:10.447612+00:00",
+      "last_seen": "2026-11-15T13:24:10.447616+00:00"
+     },
+     {
+      "session_id": "e209a419-4601-4a24-bcf9-0836791c2a7c",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/e209a419-4601-4a24-bcf9-0836791c2a7c.jsonl",
+      "first_seen": "2026-11-15T13:25:14.741416+00:00",
+      "last_seen": "2026-11-15T13:50:49.640108+00:00"
+     },
+     {
+      "session_id": "32d6713e-8abc-4353-a473-f3cca6d1708a",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/32d6713e-8abc-4353-a473-f3cca6d1708a.jsonl",
+      "first_seen": "2026-11-15T13:51:34.884486+00:00",
+      "last_seen": "2026-11-15T13:56:48.105759+00:00"
+     },
+     {
+      "session_id": "e1ee396f-cfc8-4ad2-8b7d-e89f16bde8fd",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/e1ee396f-cfc8-4ad2-8b7d-e89f16bde8fd.jsonl",
+      "first_seen": "2026-11-15T13:56:58.164772+00:00",
+      "last_seen": "2026-11-15T14:59:20.250025+00:00"
+     },
+     {
+      "session_id": "a3b381d6-72ec-4ef0-95a1-6856c7dc2aba",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a3b381d6-72ec-4ef0-95a1-6856c7dc2aba.jsonl",
+      "first_seen": "2026-11-15T14:59:28.017649+00:00",
+      "last_seen": "2026-11-15T14:59:49.023808+00:00"
+     },
+     {
+      "session_id": "971dbeed-d47f-4881-93ac-0fa305fb273a",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/971dbeed-d47f-4881-93ac-0fa305fb273a.jsonl",
+      "first_seen": "2026-11-15T15:00:49.655084+00:00",
+      "last_seen": "2026-11-15T15:33:44.750793+00:00"
+     },
+     {
+      "session_id": "0dd4261b-acea-43ae-ba9a-e9a70812eb6b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/0dd4261b-acea-43ae-ba9a-e9a70812eb6b.jsonl",
+      "first_seen": "2026-11-15T15:34:31.928581+00:00",
+      "last_seen": "2026-11-15T15:39:51.334899+00:00"
+     },
+     {
+      "session_id": "1149dfff-524a-4b0b-8f0d-420738da3bb5",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/1149dfff-524a-4b0b-8f0d-420738da3bb5.jsonl",
+      "first_seen": "2026-11-15T15:39:57.041298+00:00",
+      "last_seen": "2026-11-15T16:42:22.363623+00:00"
+     },
+     {
+      "session_id": "776eac16-0e6b-49fc-a0a7-8993555b82c1",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/776eac16-0e6b-49fc-a0a7-8993555b82c1.jsonl",
+      "first_seen": "2026-11-15T16:42:28.825246+00:00",
+      "last_seen": "2026-11-15T16:42:28.825250+00:00"
+     },
+     {
+      "session_id": "9c9019e0-2830-4372-9f34-f149d0978d38",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/9c9019e0-2830-4372-9f34-f149d0978d38.jsonl",
+      "first_seen": "2026-11-15T16:43:28.439700+00:00",
+      "last_seen": "2026-11-15T17:40:25.486257+00:00"
+     },
+     {
+      "session_id": "2f0f4edb-5faf-45dd-a8ea-7b663019075d",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/2f0f4edb-5faf-45dd-a8ea-7b663019075d.jsonl",
+      "first_seen": "2026-11-15T17:41:09.225501+00:00",
+      "last_seen": "2026-11-15T17:46:26.801780+00:00"
+     },
+     {
+      "session_id": "74e7365b-9176-42a8-8596-2f6c8b4e06b6",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/74e7365b-9176-42a8-8596-2f6c8b4e06b6.jsonl",
+      "first_seen": "2026-11-15T17:46:32.306334+00:00",
+      "last_seen": "2026-11-15T18:48:59.952476+00:00"
+     },
+     {
+      "session_id": "a691a1b0-3268-494e-adfd-3e6d238594e1",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a691a1b0-3268-494e-adfd-3e6d238594e1.jsonl",
+      "first_seen": "2026-11-15T18:49:06.147783+00:00",
+      "last_seen": "2026-11-15T18:49:06.147788+00:00"
+     },
+     {
+      "session_id": "a0cf1781-eb82-4659-872d-3df6f8c45a02",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a0cf1781-eb82-4659-872d-3df6f8c45a02.jsonl",
+      "first_seen": "2026-11-15T18:50:10.428210+00:00",
+      "last_seen": "2026-11-15T19:15:16.968321+00:00"
+     },
+     {
+      "session_id": "ce526a2c-1262-4617-b5e7-e9f11b6e2346",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/ce526a2c-1262-4617-b5e7-e9f11b6e2346.jsonl",
+      "first_seen": "2026-11-15T19:15:56.523175+00:00",
+      "last_seen": "2026-11-15T19:21:07.548131+00:00"
+     },
+     {
+      "session_id": "54eebe13-efd2-4cc5-8df7-1f8927fbe576",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/54eebe13-efd2-4cc5-8df7-1f8927fbe576.jsonl",
+      "first_seen": "2026-11-15T19:21:12.870420+00:00",
+      "last_seen": "2026-11-15T20:23:37.103139+00:00"
+     },
+     {
+      "session_id": "4907e161-2dee-4e5a-b186-ce8d97d02fc4",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/4907e161-2dee-4e5a-b186-ce8d97d02fc4.jsonl",
+      "first_seen": "2026-11-15T20:24:36.555926+00:00",
+      "last_seen": "2026-11-15T20:51:39.506242+00:00"
+     },
+     {
+      "session_id": "576438d1-f413-4df1-8ba2-cdcda5600a91",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/576438d1-f413-4df1-8ba2-cdcda5600a91.jsonl",
+      "first_seen": "2026-11-15T20:52:21.875778+00:00",
+      "last_seen": "2026-11-15T20:57:35.739227+00:00"
+     },
+     {
+      "session_id": "c549ee9e-c10e-438b-8917-7b7ee8b422e2",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/c549ee9e-c10e-438b-8917-7b7ee8b422e2.jsonl",
+      "first_seen": "2026-11-15T20:57:41.558500+00:00",
+      "last_seen": "2026-11-15T21:58:02.880438+00:00"
+     },
+     {
+      "session_id": "1f49b365-edcf-4b49-807e-3ba4fe03f28b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/1f49b365-edcf-4b49-807e-3ba4fe03f28b.jsonl",
+      "first_seen": "2026-11-15T22:01:32.652125+00:00",
+      "last_seen": "2026-11-15T22:01:32.652130+00:00"
+     },
+     {
+      "session_id": "f307c990-63b7-4107-af6e-63f3ff89a3fe",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/f307c990-63b7-4107-af6e-63f3ff89a3fe.jsonl",
+      "first_seen": "2026-11-15T22:02:32.218438+00:00",
+      "last_seen": "2026-11-15T22:23:12.375383+00:00"
+     },
+     {
+      "session_id": "7a172153-e253-46c5-aa4a-10024b4e1f8e",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/7a172153-e253-46c5-aa4a-10024b4e1f8e.jsonl",
+      "first_seen": "2026-11-15T22:24:11.621937+00:00",
+      "last_seen": "2026-11-15T22:43:43.401840+00:00"
+     },
+     {
+      "session_id": "50e68f68-e6e4-4825-92e0-c4913051af0c",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/50e68f68-e6e4-4825-92e0-c4913051af0c.jsonl",
+      "first_seen": "2026-11-15T22:44:17.432354+00:00",
+      "last_seen": "2026-11-15T22:49:42.073058+00:00"
+     },
+     {
+      "session_id": "7f466851-be87-4e79-9411-a1a08e814b3e",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/7f466851-be87-4e79-9411-a1a08e814b3e.jsonl",
+      "first_seen": "2026-11-15T22:49:48.108436+00:00",
+      "last_seen": "2026-11-15T23:52:13.846262+00:00"
+     },
+     {
+      "session_id": "6ce6a73d-8abc-449d-aec8-005fbc0e0955",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/6ce6a73d-8abc-449d-aec8-005fbc0e0955.jsonl",
+      "first_seen": "2026-11-15T23:52:20.069497+00:00",
+      "last_seen": "2026-11-15T23:52:20.069501+00:00"
+     },
+     {
+      "session_id": "981a715b-5e35-4c8e-b63b-4c3105451914",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/981a715b-5e35-4c8e-b63b-4c3105451914.jsonl",
+      "first_seen": "2026-11-15T23:53:26.605136+00:00",
+      "last_seen": "2026-11-16T00:44:27.742352+00:00"
+     },
+     {
+      "session_id": "89da6bd8-6b15-45d4-bb16-71f25b34255b",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/89da6bd8-6b15-45d4-bb16-71f25b34255b.jsonl",
+      "first_seen": "2026-11-16T00:45:03.055629+00:00",
+      "last_seen": "2026-11-16T00:50:17.793225+00:00"
+     },
+     {
+      "session_id": "a3323ebd-966f-43d7-b557-003834c7c1e4",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/a3323ebd-966f-43d7-b557-003834c7c1e4.jsonl",
+      "first_seen": "2026-11-16T00:50:23.759484+00:00",
+      "last_seen": "2026-11-16T01:52:47.885279+00:00"
+     },
+     {
+      "session_id": "decc2162-b2bf-47a6-b1e3-90401477f156",
+      "transcript_path": "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/agent_home/.claude/projects/-shared-nfs-qiangh-arbor-runs-glm52-c1-p90-sa-src-arbor/decc2162-b2bf-47a6-b1e3-90401477f156.jsonl",
+      "first_seen": "2026-11-16T01:52:56.102205+00:00",
+      "last_seen": "2026-11-16T01:52:56.102210+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/agg_glm5.2_sglang_agentx_conc1.json",
+   "sha256": "a153996fe5ff70c37d17763752cac97aaf67cd30a6450aa79c974c55c19f1be9",
+   "size": 5326,
+   "mtime": 1794704220,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "recipe_fingerprint": "",
+    "model": "amd/GLM-5.2-MXFP4",
+    "infmax_model_prefix": "glm5.2",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "dram",
+    "kv_offload_backend": {
+     "name": "hicache"
+    },
+    "allocated_cpu_dram_gb": 1199,
+    "num_requests_total": 197,
+    "num_requests_successful": 186,
+    "request_accounting": {
+     "records_total": 197,
+     "records_profiled": 186,
+     "records_dropped_total": 11,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3613,
+      "mean": 0.0512,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 1,
+      "std": 0.22415
+     },
+     "latency": {
+      "ttft": {
+       "mean": 3.71762,
+       "p50": 0.85304,
+       "p75": 1.53285,
+       "p90": 8.27515,
+       "p95": 14.585,
+       "std": 10.02004
+      },
+      "e2el": {
+       "mean": 16.93939,
+       "p50": 7.14899,
+       "p75": 23.24307,
+       "p90": 48.37761,
+       "p95": 56.79174,
+       "std": 22.8574
+      },
+      "itl": {
+       "mean": 0.00807,
+       "p50": 0.00778,
+       "p75": 0.00887,
+       "p90": 0.00912,
+       "p95": 0.00921,
+       "std": 0.00085
+      },
+      "tpot": {
+       "mean": 0.00807,
+       "p50": 0.00778,
+       "p75": 0.00887,
+       "p90": 0.00912,
+       "p95": 0.00921,
+       "std": 0.00085
+      },
+      "intvty": {
+       "mean": 123.87871,
+       "p50": 128.45215,
+       "p75": 112.71924,
+       "p90": 109.69379,
+       "p95": 108.53033,
+       "std": 12.43853
+      },
+      "e2e_norm_intvty": {
+       "mean": 46.87194,
+       "p50": 105.2778,
+       "p75": 64.42141,
+       "p90": 29.23717,
+       "p95": 13.49004,
+       "std": 35.58039
+      },
+      "full_response_itl": {
+       "mean": 0.00807,
+       "p50": 0.00779,
+       "p75": 0.00887,
+       "p90": 0.00912,
+       "p95": 0.00921,
+       "std": 0.00085
+      },
+      "full_response_intvty": {
+       "mean": 123.87692,
+       "p50": 128.4519,
+       "p75": 112.71671,
+       "p90": 109.69191,
+       "p95": 108.52988,
+       "std": 12.43887
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 191087.69892,
+       "p50": 153383,
+       "p75": 318494.75,
+       "p90": 363153.5,
+       "p95": 380774,
+       "std": 119160.77802
+      },
+      "output_actual": {
+       "mean": 1603.94086,
+       "p50": 599.5,
+       "p75": 1894.25,
+       "p90": 4470.5,
+       "p95": 6364.25,
+       "std": 2532.34602
+      },
+      "output_expected": {
+       "mean": 1804.13441,
+       "p50": 599.5,
+       "p75": 2607.25,
+       "p90": 4910,
+       "p95": 6903,
+       "std": 2828.86145
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 9800.34105
+      },
+      "output": {
+       "tokens_per_second": 82.26154
+      },
+      "total": {
+       "tokens_per_second": 9882.60258
+      },
+      "duration_seconds": 3626.64032,
+      "per_gpu": {
+       "total_tput_tps": 2470.65065,
+       "output_tput_tps": 20.56538,
+       "input_tput_tps": 2450.08526
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.96644
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 68,
+     "cache": {
+      "gpu_cache_hit_rate": 0.88472,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.88472,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 34603584
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.18,
+      "gpu_total_tokens": 8832768,
+      "cpu_usage_pct": 0.57079,
+      "cpu_used_tokens": 1890624,
+      "cpu_total_tokens": 3312320
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 39112608,
+      "generation_total": 298344,
+      "requests_completed": 186,
+      "prompt_by_source": {
+       "gpu_cache_hit": 34603584,
+       "cpu_or_external_cache_hit": null,
+       "computed": 1611008,
+       "raw": {
+        "device": 34603584
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 8832768,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/bench_output.json",
+   "sha256": "912d0d01b61f718639573155354076ab9f5d4e7a33971798e9d2de8e72614cde",
+   "size": 590,
+   "mtime": 1794704222,
+   "json": {
+    "total_throughput": 2470.65065,
+    "output_throughput": 20.56538,
+    "total_throughput_per_gpu": 2470.65065,
+    "conc": 1,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "mtp",
+    "kv_offloading": "dram",
+    "num_requests_successful": 186,
+    "num_requests_total": 197,
+    "kv_cache_hit_rate": 0.88472,
+    "agg_json_path": "/workspace/exp/runs/before/agg_glm5.2_sglang_agentx_conc1.json",
+    "status": "ok",
+    "cache_flushed": true,
+    "e2e_norm_intvty_p50": 105.2778,
+    "e2e_norm_intvty_p90": 29.23717,
+    "num_requests_measured": 186,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "before_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/gsm8k.log",
+   "sha256": "db1146a9a16c62d92fbfdaa967bfcd029cfc6cbf127990c814642decec98ecd9",
+   "size": 82071,
+   "mtime": 1794705721,
+   "tail": [
+    " 97%|█████████▋| 1285/1319 [16:23<00:26,  1.31it/s]",
+    " 97%|█████████▋| 1286/1319 [16:24<00:23,  1.39it/s]",
+    " 98%|█████████▊| 1287/1319 [16:24<00:21,  1.47it/s]",
+    " 98%|█████████▊| 1288/1319 [16:25<00:20,  1.51it/s]",
+    " 98%|█████████▊| 1289/1319 [16:26<00:26,  1.15it/s]",
+    " 98%|█████████▊| 1290/1319 [16:27<00:23,  1.23it/s]",
+    " 98%|█████████▊| 1291/1319 [16:27<00:20,  1.38it/s]",
+    " 98%|█████████▊| 1292/1319 [16:28<00:16,  1.60it/s]",
+    " 98%|█████████▊| 1293/1319 [16:28<00:16,  1.61it/s]",
+    " 98%|█████████▊| 1294/1319 [16:29<00:16,  1.51it/s]",
+    " 98%|█████████▊| 1295/1319 [16:30<00:18,  1.33it/s]",
+    " 98%|█████████▊| 1296/1319 [16:31<00:17,  1.28it/s]",
+    " 98%|█████████▊| 1297/1319 [16:31<00:16,  1.37it/s]",
+    " 98%|█████████▊| 1298/1319 [16:33<00:18,  1.13it/s]",
+    " 98%|█████████▊| 1299/1319 [16:34<00:21,  1.07s/it]",
+    " 99%|█████████▊| 1300/1319 [16:35<00:17,  1.06it/s]",
+    " 99%|█████████▊| 1301/1319 [16:36<00:15,  1.17it/s]",
+    " 99%|█████████▊| 1302/1319 [16:37<00:16,  1.06it/s]",
+    " 99%|█████████▉| 1303/1319 [16:37<00:13,  1.15it/s]",
+    " 99%|█████████▉| 1304/1319 [16:38<00:13,  1.12it/s]",
+    " 99%|█████████▉| 1305/1319 [16:39<00:10,  1.28it/s]",
+    " 99%|█████████▉| 1306/1319 [16:39<00:09,  1.40it/s]",
+    " 99%|█████████▉| 1307/1319 [16:40<00:09,  1.22it/s]",
+    " 99%|█████████▉| 1308/1319 [16:41<00:08,  1.37it/s]",
+    " 99%|█████████▉| 1309/1319 [16:42<00:07,  1.40it/s]",
+    " 99%|█████████▉| 1310/1319 [16:42<00:06,  1.45it/s]",
+    " 99%|█████████▉| 1311/1319 [16:43<00:06,  1.33it/s]",
+    " 99%|█████████▉| 1312/1319 [16:44<00:04,  1.43it/s]",
+    "100%|█████████▉| 1313/1319 [16:44<00:04,  1.46it/s]",
+    "100%|█████████▉| 1314/1319 [16:45<00:03,  1.32it/s]",
+    "100%|█████████▉| 1315/1319 [16:46<00:03,  1.33it/s]",
+    "100%|█████████▉| 1316/1319 [16:47<00:02,  1.43it/s]",
+    "100%|█████████▉| 1317/1319 [16:47<00:01,  1.48it/s]",
+    "100%|█████████▉| 1318/1319 [16:48<00:00,  1.23it/s]",
+    "100%|██████████| 1319/1319 [16:49<00:00,  1.37it/s]",
+    "100%|██████████| 1319/1319 [16:49<00:00,  1.31it/s]",
+    "Accuracy: 0.926",
+    "Invalid: 0.000",
+    "Latency: 1010.647 s",
+    "Output throughput: 130.985 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.926",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/after/agg_glm5.2_sglang_agentx_conc1.json",
+   "sha256": "7b6f44b05b128f41bde08d46bba11931e8b241d55634464f290c9b8d6c00377e",
+   "size": 5335,
+   "mtime": 1794798151,
+   "json": {
+    "hw": "mi355x",
+    "conc": 1,
+    "image": "lmsysorg/sglang-rocm:v0.5.16-rocm720-mi35x-20260728",
+    "recipe_fingerprint": "",
+    "model": "amd/GLM-5.2-MXFP4",
+    "infmax_model_prefix": "glm5.2",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "mtp",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "dram",
+    "kv_offload_backend": {
+     "name": "hicache"
+    },
+    "allocated_cpu_dram_gb": 1199,
+    "num_requests_total": 249,
+    "num_requests_successful": 238,
+    "request_accounting": {
+     "records_total": 249,
+     "records_profiled": 238,
+     "records_dropped_total": 11,
+     "records_warmup_dropped": 11,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3590,
+      "mean": 0.06602,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 1,
+      "std": 0.25276
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.76841,
+       "p50": 0.51435,
+       "p75": 0.82368,
+       "p90": 4.72347,
+       "p95": 8.28064,
+       "std": 4.49522
+      },
+      "e2el": {
+       "mean": 9.76012,
+       "p50": 5.16315,
+       "p75": 12.88749,
+       "p90": 24.25154,
+       "p95": 30.84467,
+       "std": 11.71752
+      },
+      "itl": {
+       "mean": 0.00432,
+       "p50": 0.00435,
+       "p75": 0.00448,
+       "p90": 0.00456,
+       "p95": 0.00458,
+       "std": 0.00033
+      },
+      "tpot": {
+       "mean": 0.00432,
+       "p50": 0.00435,
+       "p75": 0.00448,
+       "p90": 0.00456,
+       "p95": 0.00458,
+       "std": 0.00033
+      },
+      "intvty": {
+       "mean": 231.30479,
+       "p50": 229.75361,
+       "p75": 223.07655,
+       "p90": 219.35186,
+       "p95": 218.4958,
+       "std": 2142.84573
+      },
+      "e2e_norm_intvty": {
+       "mean": 103.11466,
+       "p50": 194.86553,
+       "p75": 141.59987,
+       "p90": 67.15586,
+       "p95": 32.90927,
+       "std": 60.49555
+      },
+      "full_response_itl": {
+       "mean": 0.00432,
+       "p50": 0.00435,
+       "p75": 0.00448,
+       "p90": 0.00456,
+       "p95": 0.00458,
+       "std": 0.00033
+      },
+      "full_response_intvty": {
+       "mean": 231.28935,
+       "p50": 229.75343,
+       "p75": 223.07587,
+       "p90": 219.35073,
+       "p95": 218.49508,
+       "std": 2110.84899
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 239078.4916,
+       "p50": 230164.5,
+       "p75": 372218.75,
+       "p90": 409386,
+       "p95": 439551.05,
+       "std": 139930.19785
+      },
+      "output_actual": {
+       "mean": 1810.91597,
+       "p50": 746.5,
+       "p75": 2489.75,
+       "p90": 4819.5,
+       "p95": 6453.35,
+       "std": 2499.33495
+      },
+      "output_expected": {
+       "mean": 2023.36134,
+       "p50": 791,
+       "p75": 2771,
+       "p90": 5208,
+       "p95": 6906.9,
+       "std": 2825.26753
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 15816.78611
+      },
+      "output": {
+       "tokens_per_second": 119.8053
+      },
+      "total": {
+       "tokens_per_second": 15936.59141
+      },
+      "duration_seconds": 3597.48691,
+      "per_gpu": {
+       "total_tput_tps": 3984.14785,
+       "output_tput_tps": 29.95133,
+       "input_tput_tps": 3954.19653
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.97698
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 68,
+     "cache": {
+      "gpu_cache_hit_rate": 0.92347,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.92347,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 55842880
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.22,
+      "gpu_total_tokens": 8832768,
+      "cpu_usage_pct": 0.64749,
+      "cpu_used_tokens": 2144704,
+      "cpu_total_tokens": 3312320
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 60470977,
+      "generation_total": 431009,
+      "requests_completed": 238,
+      "prompt_by_source": {
+       "gpu_cache_hit": 55842880,
+       "cpu_or_external_cache_hit": null,
+       "computed": 1731968,
+       "raw": {
+        "device": 55842880
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 8832768,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/after/bench_output.json",
+   "sha256": "c3130f5fa37850e228e8b14fc2b2a181d513d1ece5640b58775a2d59f1615b14",
+   "size": 590,
+   "mtime": 1794798153,
+   "json": {
+    "total_throughput": 3984.14785,
+    "output_throughput": 29.95133,
+    "total_throughput_per_gpu": 3984.14785,
+    "conc": 1,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "mtp",
+    "kv_offloading": "dram",
+    "num_requests_successful": 238,
+    "num_requests_total": 249,
+    "kv_cache_hit_rate": 0.92347,
+    "agg_json_path": "/workspace/exp/runs/after/agg_glm5.2_sglang_agentx_conc1.json",
+    "status": "ok",
+    "cache_flushed": true,
+    "e2e_norm_intvty_p50": 194.86553,
+    "e2e_norm_intvty_p90": 67.15586,
+    "num_requests_measured": 238,
+    "num_requests_warmup": 11
+   }
+  }
+ ],
+ "after_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/after/gsm8k.log",
+   "sha256": "300b6360497fd9b11579301a016c2a6ed1dfc9cb85992a650df764ad39c51537",
+   "size": 82070,
+   "mtime": 1794799309,
+   "tail": [
+    " 97%|█████████▋| 1285/1319 [10:45<00:17,  1.99it/s]",
+    " 97%|█████████▋| 1286/1319 [10:46<00:14,  2.24it/s]",
+    " 98%|█████████▊| 1287/1319 [10:46<00:13,  2.35it/s]",
+    " 98%|█████████▊| 1288/1319 [10:47<00:13,  2.28it/s]",
+    " 98%|█████████▊| 1289/1319 [10:47<00:15,  1.90it/s]",
+    " 98%|█████████▊| 1290/1319 [10:48<00:15,  1.91it/s]",
+    " 98%|█████████▊| 1291/1319 [10:48<00:13,  2.11it/s]",
+    " 98%|█████████▊| 1292/1319 [10:48<00:11,  2.40it/s]",
+    " 98%|█████████▊| 1293/1319 [10:49<00:10,  2.39it/s]",
+    " 98%|█████████▊| 1294/1319 [10:49<00:10,  2.36it/s]",
+    " 98%|█████████▊| 1295/1319 [10:50<00:11,  2.15it/s]",
+    " 98%|█████████▊| 1296/1319 [10:50<00:10,  2.14it/s]",
+    " 98%|█████████▊| 1297/1319 [10:51<00:09,  2.22it/s]",
+    " 98%|█████████▊| 1298/1319 [10:51<00:10,  1.98it/s]",
+    " 98%|█████████▊| 1299/1319 [10:52<00:10,  1.90it/s]",
+    " 99%|█████████▊| 1300/1319 [10:53<00:10,  1.88it/s]",
+    " 99%|█████████▊| 1301/1319 [10:53<00:09,  1.99it/s]",
+    " 99%|█████████▊| 1302/1319 [10:54<00:08,  1.92it/s]",
+    " 99%|█████████▉| 1303/1319 [10:54<00:08,  1.94it/s]",
+    " 99%|█████████▉| 1304/1319 [10:55<00:08,  1.84it/s]",
+    " 99%|█████████▉| 1305/1319 [10:55<00:06,  2.05it/s]",
+    " 99%|█████████▉| 1306/1319 [10:55<00:05,  2.34it/s]",
+    " 99%|█████████▉| 1307/1319 [10:56<00:05,  2.15it/s]",
+    " 99%|█████████▉| 1308/1319 [10:56<00:04,  2.34it/s]",
+    " 99%|█████████▉| 1309/1319 [10:57<00:04,  2.35it/s]",
+    " 99%|█████████▉| 1310/1319 [10:57<00:03,  2.39it/s]",
+    " 99%|█████████▉| 1311/1319 [10:57<00:03,  2.31it/s]",
+    " 99%|█████████▉| 1312/1319 [10:58<00:02,  2.40it/s]",
+    "100%|█████████▉| 1313/1319 [10:58<00:02,  2.32it/s]",
+    "100%|█████████▉| 1314/1319 [10:59<00:02,  2.17it/s]",
+    "100%|█████████▉| 1315/1319 [10:59<00:02,  1.96it/s]",
+    "100%|█████████▉| 1316/1319 [11:00<00:01,  2.12it/s]",
+    "100%|█████████▉| 1317/1319 [11:00<00:00,  2.14it/s]",
+    "100%|█████████▉| 1318/1319 [11:01<00:00,  1.98it/s]",
+    "100%|██████████| 1319/1319 [11:01<00:00,  2.17it/s]",
+    "100%|██████████| 1319/1319 [11:01<00:00,  1.99it/s]",
+    "Accuracy: 0.932",
+    "Invalid: 0.000",
+    "Latency: 662.752 s",
+    "Output throughput: 201.724 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.932",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ]
+}

@@ -149,7 +149,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/gsm8k.log#summary lines"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/dsv41flash__c1_p90.json sha256=0697ca7b60abf652eabaaff77b6764e8f44ce4b4f6d4f01e2fd5b1c25b1ebf0f",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/dsv41flash__c1_p90.json sha256=37760d3f3c0eaabc45da45bd9a0cab89ada0360e4a89ca6370e2b6012336a3f2",
     "_source": "DSv4.1 Flash - C1 P90 (standalone, final)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",

@@ -1,0 +1,834 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/env.sh",
+   "sha256": "d4a1b966d640ff7050c0dd58d9ee8f0afbbcdf4f91b5d86df1bcdf053435aea3",
+   "size": 1947,
+   "mtime": 1794956250,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_dsv41flash",
+    "EXP": "$TOP/experiments/musespark-c16-ab",
+    "LOGS": "$EXP/logs",
+    "INFX": "$TOP/codebases/InferenceX",
+    "INFX_SHA": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "MMAP_CACHE": "$EXP/aiperf_mmap_cache",
+    "IMAGE_TAG": "lmsysorg/sglang-rocm:muse-spark-open",
+    "IMAGE_DIGEST": "sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4",
+    "CONTAINER": "qh_c16ab",
+    "PORT": "30160",
+    "GPUS": "0,1,2,3",
+    "CONC": "16",
+    "NL": "/mnt/m2m_nobackup/qiangh_c16ab",
+    "HUB_NL": "$NL/hf-hub",
+    "MODEL_ID": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "MODEL_REV": "c7bc74fd64371315a091bc15f9723882eead0dc1",
+    "DRAFT_ID": "RadixArk/Muse-Spark-Open-DFlash2",
+    "DRAFT_REV": "46c90f412549c472941a68382d91a99e5e6372a0",
+    "CORPUS_ID": "semianalysisai/cc-traces-weka-062126-256k",
+    "CORPUS_DIR": "datasets--semianalysisai--cc-traces-weka-062126-256k",
+    "CORPUS_REV": "8fecd2fc56694469f758f0afbbb6335ad3043740",
+    "SHARED_HUB": "/shared_nfs/huggingface/hub",
+    "WORKSPACE_ROOT": "/sgl-workspace/sglang"
+   }
+  }
+ ],
+ "guide": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/GUIDE.md",
+   "sha256": "793eee2b2427603f30188d1bdefad0b8d65f4d68fca7c965c05912c2068faa95",
+   "size": 4802,
+   "mtime": 1794956254,
+   "head": [
+    "# musespark-c16-ab: independent before/after re-measure of campaign 3 (intent and constraints)",
+    "",
+    "Written 2026-11-17 before launch (CLAUDE.md: write intent before launch). Task source: the master agent's request of",
+    "2026-11-17 (user requirement): campaign 3 (`musespark-c16-tput`, Hyperloom MB) has only Arbor's in-run tracking",
+    "(b01: 45784.03 -> 63016.66 SGLang total_token_throughput, 50 iterations, 7 KEEP / 9 REVERT / 34 PROBE) and MB's FINAL",
+    "reproduction; it never had a full independent before/after. This run supplies it.",
+    "",
+    "## Goal",
+    "",
+    "Same node, same image, same bench client, same corpus, same C16 load; only the served tree + launch differ:",
+    "",
+    "- **before** = the CI recipe point, pristine: InferenceX `8a76a78e41`, `musespark/sglang/mi355x-fp4-mtp/agentic.yaml`,",
+    "  `override_tp4_c16`, on the image's SGLang tree as shipped. (`configs/before.json`)",
+    "- **after** = campaign 3 branch b01's final kept state: the same tree + `after/landed.patch` (the 5 source KEEPs, iters",
+    "  4, 6, 17, 24, 35) and b01's kept launch `after/workspace_config.json` (the 2 config KEEPs, iters 3 and 9:",
+    "  `--swa-full-tokens-ratio 0.2`, `--speculative-use-block-verification`). (`configs/after.json`)",
+    "- Each: fresh server, AgentX replay 3600 s at C16 + GSM8K 1319 (`sglang.test.few_shot_gsm8k`), outputs",
+    "  `runs/<tag>/bench_output.json` and `runs/<tag>/gsm8k.log`. Metric of record: total tok/s/GPU (also x4 = total).",
+    "",
+    "## Pins",
+    "",
+    "| What | Pin | Evidence |",
+    "|---|---|---|",
+    "| CI run | InferenceX 38877885539 (2026-10-16), commit `8a76a78e41` | commit date 2026-10-16, merge into `feat/musespark-mi355x-sglang-dflash-dayzero`; run->commit API check blocked here (see caveats) |",
+    "| Recipe point | `inferencex-e2e/.../musespark/sglang/mi355x-fp4-mtp/agentic.yaml` `override_tp4_c16` | read at `8a76a78e41`: args/env identical to campaign 3's `base_launch_c16.json` (+ runner-owned `--enable-metrics`) -> **verified** |",
+    "| Image | `lmsysorg/sglang-rocm:muse-spark-open` @ `sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4` | perf-changelog entry for the config key at `8a76a78e41` |",
+    "| Model | `amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4` @ `c7bc74fd64371315a091bc15f9723882eead0dc1` | campaign 3/5 pins |",
+    "| Draft | `RadixArk/Muse-Spark-Open-DFlash2` @ `46c90f412549c472941a68382d91a99e5e6372a0` | campaign 3/5 pins |",
+    "| Corpus | `semianalysisai/cc-traces-weka-062126-256k` @ `8fecd2fc56` (recipe default for musespark) | classic copy of the shared hub's |",
+    "| Bench client | InferenceX `86699be610` `benchmark_lib.sh` + campaign 5's `bench_agentx.sh` | as campaign 5: `8a76a78e41` no longer ships `benchmark_lib.sh` |",
+    "| After inputs | `after/landed.patch` sha256 `a5e33090...`, `after/workspace_config.json` `38aab362...` | copied from b01's session; `INPUTS.sha256` |",
+    "",
+    "## Decisions",
+    "",
+    "- **DECISION (QOS):** `amd-agentx-qos` / account `amd-agentx`, 12 h. `amd-hyperloom-qos` is at its 28-node group cap and",
+    "  qiangh's 1-job slot there is held by job 295175 (another project, not touched); `amd-primus-qos` has a 0-node group",
+    "  limit and no qiangh association. The run needs ~3.5-4 h.",
+    "- **Real acceptance**, as campaign 3 served it: the recipe has no synthetic-acceptance flags, although the perf-changelog",
+    "  says CI's AL followed the golden curve (4.05). Before and after use the same rule.",
+    "- **`GSM8K_MIN` dropped** from the after env: it is the harness's gate variable, not a server setting.",
+    "- **One smoke on the before config only** (600 s, GSM8K 200). The after tree is checked by a `git apply --check` dry run",
+    "  before any measurement, and by the after run's own gates.",
+    "",
+    "## Caveats",
+    "",
+    "- Absolute numbers will not match CI's dashboard or MB's tests: different bench client (InferenceX 86699be610 vs MB's",
+    "  `inferencex` 41cc713af8). Before and after share one client, so the ratio is valid.",
+    "- b01's Arbor baseline (45784.03, iter 3) already carried the swa-ratio KEEP; the pristine CI point was never measured in",
+    "  b01. MB's root measured 46785.1. This run's before is the first independent pristine number on our client.",
+    "- Run -> commit mapping of 38877885539 was not cross-checked against the CI API (blocked); commit date and the",
+    "  changelog entry agree.",
+    "",
+    "## Layout",
+    "",
+    "`experiments/musespark-c16-ab/`: `env.sh`, `hold_node.sbatch`, `dl.sh`, `prepare.sh`, `ab.sh`, `apply_after.sh`,",
+    "`run.sh` (pipeline), `compare.py`, `configs/` (before/after + the CI base launch), `after/` (patch + kept config +",
+    "lifecycle), `bench/`, `runs/<tag>/`, `logs/`. Node NVMe `/mnt/m2m_nobackup/qiangh_c16ab/hf-hub`. Container `qh_c16ab`,",
+    "port 30160, GPUs 0-3.",
+    "",
+    "## Constraints",
+    "",
+    "- Never touch other users' containers, processes or jobs. Nothing else runs on GPUs 0-3 during a measurement.",
+    "- Do not loosen gates or change CI flags. Any deviation is recorded here and in the worklog.",
+    "- Worklog: `reports/2026-11-17_worklog.md` (one entry per step)."
+   ]
+  }
+ ],
+ "summary_md": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/SUMMARY.md",
+   "sha256": "540ccb479de5ab3d996fa0d9cc0a74c15feb1721a2b1c36934c769dfe12bdf10",
+   "size": 2810,
+   "mtime": 1795005472,
+   "head": [
+    "# 2026-11-18 summary: campaign 3 (musespark-c16-tput) independent before/after re-measure",
+    "",
+    "## Blockers and decisions",
+    "",
+    "- **DECISION (QOS):** job 295364 on `amd-agentx-qos` / account `amd-agentx` (12 h cap). `amd-hyperloom-qos` was at its",
+    "  28-node group cap and qiangh's single job slot there was held by another project's job (295175, later 295630,",
+    "  grove-solo-compare; not touched). `amd-primus-qos` has a 0-node group limit and no qiangh association. Queue wait",
+    "  10 h (2026-11-17 22:52 -> 11-18 08:52).",
+    "- **Not verified:** run 38877885539 -> commit `8a76a78e41` (CI API call blocked here); commit date and changelog agree.",
+    "  The \"Campaign1 beforeafter4\" reference numbers (11455.49 -> 12179.27) were not found in this project.",
+    "- **Caveat:** CI's changelog says AL followed a synthetic golden curve (4.05); the recipe has no synthetic flag. This",
+    "  re-measure, like campaign 3, serves real acceptance.",
+    "",
+    "## Result (code name musespark-c16-ab, node crsuse2-m2m-v3-079, 2026-11-18)",
+    "",
+    "Model `amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4` @ c7bc74fd64 + DFlash2 @ 46c90f41, SGLang image",
+    "`lmsysorg/sglang-rocm:muse-spark-open` @ `72065dfc`, MI355X TP4/EP4, AgentX replay (062126_256k @ 8fecd2fc, InferenceX",
+    "86699be610 client) at C16 for 3600 s on a fresh server, then GSM8K 1319 (`sglang.test.few_shot_gsm8k`). Same node, image,",
+    "client, corpus and load; only the tree and launch differ.",
+    "",
+    "| | before (CI point `override_tp4_c16`, pristine) | after (b01 kept tree + kept launch) | change |",
+    "|---|---|---|---|",
+    "| **Total throughput** | **11733.68 tok/s/GPU** (46934.7 total) | **15302.46 tok/s/GPU** (61209.8 total) | **+30.41 %** |",
+    "| Output throughput | 106.31 tok/s/GPU | 136.37 tok/s/GPU | +28.28 % |",
+    "| P50 interactivity | 38.96 tok/s/user | 54.89 tok/s/user | +40.89 % |",
+    "| P90 interactivity | 17.07 tok/s/user | 27.47 tok/s/user | +60.92 % |",
+    "| Requests (measured window) | 1723 | 2274 | +31.98 % |",
+    "| KV cache hit rate | 0.920 | 0.950 | +3.0 pts |",
+    "| **GSM8K (1319)** | **0.945** | **0.950** | +0.5 pts (within noise) |",
+    "",
+    "After = image tree + `landed.patch` (5 source KEEPs: iters 4, 6, 17, 24, 35) + launch `--swa-full-tokens-ratio 0.2",
+    "--speculative-use-block-verification` (2 config KEEPs: iters 3, 9), verified in the live command line.",
+    "",
+    "**Iterative vs re-measure (report both):** b01 Arbor 45784.03 -> 63016.66 (+37.6 %; its baseline already carried the",
+    "swa-ratio KEEP); MB FINAL 46785.1 -> 63612.8 (+35.97 %); this re-measure +30.41 %. The before matches MB's root within",
+    "0.3 %; the after is 3-4 % under the in-run bests (different bench client, single runs). The gain holds; its size is",
+    "about 6 points smaller than the in-run figures.",
+    "",
+    "Files: `experiments/musespark-c16-ab/` (GUIDE.md, runs/{before,after}/bench_output.json, gsm8k.log, server_cmdline.txt,",
+    "runs/summary.json). Worklog: reports/2026-11-17_worklog.md."
+   ]
+  }
+ ],
+ "spur_out": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/spur-295364.out",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "size": 0,
+   "mtime": 1794991977,
+   "head": []
+  }
+ ],
+ "launch_before": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/configs/before.json",
+   "sha256": "9a12cec0866da5ce2148fa26ddf17dbdb31d4a8c2a20e817a14b07748345196d",
+   "size": 937,
+   "mtime": 1794955992,
+   "json": {
+    "model_path": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "_note": "CI recipe point override_tp4_c16 at InferenceX 8a76a78e41 (base_launch_c16.json args/env + runner-owned --enable-metrics)",
+    "server_flags": "--tensor-parallel-size 4 --expert-parallel-size 4 --attention-backend aiter --page-size 16 --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85 --max-running-requests 128 --speculative-algorithm DFLASH --speculative-draft-model-path RadixArk/Muse-Spark-Open-DFlash2 --speculative-draft-attention-backend triton --speculative-num-draft-tokens 8 --reasoning-parser muse --tool-call-parser muse --watchdog-timeout 1800 --enable-metrics",
+    "server_env": {
+     "HF_HUB_OFFLINE": "1",
+     "MUSE_MOE_BACKEND": "flydsl",
+     "PYTHONNOUSERSITE": "1",
+     "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+     "SGLANG_USE_AITER": "1",
+     "SGLANG_USE_AITER_UNIFIED_ATTN": "1"
+    }
+   }
+  }
+ ],
+ "launch_after": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/configs/after.json",
+   "sha256": "573ee5bc4a5768818d1677d1d693d9d3482a4d306b467d563d46875c9ae00a4a",
+   "size": 1051,
+   "mtime": 1794955992,
+   "json": {
+    "model_path": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "_note": "b01 kept launch (after/workspace_config.json server_flags/server_env, minus harness var GSM8K_MIN) + runner-owned --enable-metrics; tree = image tree + after/landed.patch",
+    "server_flags": "--tensor-parallel-size 4 --expert-parallel-size 4 --attention-backend aiter --page-size 16 --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85 --max-running-requests 128 --speculative-algorithm DFLASH --speculative-draft-model-path RadixArk/Muse-Spark-Open-DFlash2 --speculative-draft-attention-backend triton --speculative-num-draft-tokens 8 --reasoning-parser muse --tool-call-parser muse --watchdog-timeout 1800 --swa-full-tokens-ratio 0.2 --speculative-use-block-verification --enable-metrics",
+    "server_env": {
+     "HF_HUB_OFFLINE": "1",
+     "MUSE_MOE_BACKEND": "flydsl",
+     "PYTHONNOUSERSITE": "1",
+     "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+     "SGLANG_USE_AITER": "1",
+     "SGLANG_USE_AITER_UNIFIED_ATTN": "1"
+    }
+   }
+  }
+ ],
+ "before_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/agg_musespark_sglang_agentx_conc16.json",
+   "sha256": "0df52c66f35a72140fa0e658e6737623c95ad78c58f28eb68377f27f7b429a67",
+   "size": 5306,
+   "mtime": 1795001062,
+   "json": {
+    "hw": "mi355x",
+    "conc": 16,
+    "image": "lmsysorg/sglang-rocm:muse-spark-open",
+    "recipe_fingerprint": "",
+    "model": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "infmax_model_prefix": "musespark",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "dflash",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 1899,
+    "num_requests_successful": 1723,
+    "request_accounting": {
+     "records_total": 1899,
+     "records_profiled": 1723,
+     "records_dropped_total": 176,
+     "records_warmup_dropped": 176,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126_256k",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126-256k",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3611,
+      "mean": 0.47688,
+      "p50": 0.0,
+      "p75": 1,
+      "p90": 2,
+      "p95": 2,
+      "std": 0.77642
+     },
+     "latency": {
+      "ttft": {
+       "mean": 2.18563,
+       "p50": 0.66026,
+       "p75": 1.28737,
+       "p90": 4.62851,
+       "p95": 11.1586,
+       "std": 4.80673
+      },
+      "e2el": {
+       "mean": 21.92246,
+       "p50": 9.25309,
+       "p75": 23.02735,
+       "p90": 53.4902,
+       "p95": 91.8285,
+       "std": 36.55639
+      },
+      "itl": {
+       "mean": 0.02658,
+       "p50": 0.02146,
+       "p75": 0.02944,
+       "p90": 0.04168,
+       "p95": 0.05306,
+       "std": 0.02565
+      },
+      "tpot": {
+       "mean": 0.02658,
+       "p50": 0.02146,
+       "p75": 0.02944,
+       "p90": 0.04168,
+       "p95": 0.05306,
+       "std": 0.02565
+      },
+      "intvty": {
+       "mean": 37.62346,
+       "p50": 46.60777,
+       "p75": 33.96986,
+       "p90": 23.98956,
+       "p95": 18.8469,
+       "std": 25.52766
+      },
+      "e2e_norm_intvty": {
+       "mean": 19.54664,
+       "p50": 38.95704,
+       "p75": 26.55874,
+       "p90": 17.06815,
+       "p95": 10.94623,
+       "std": 19.3759
+      },
+      "full_response_itl": {
+       "mean": 0.02646,
+       "p50": 0.02143,
+       "p75": 0.02944,
+       "p90": 0.04165,
+       "p95": 0.053,
+       "std": 0.02565
+      },
+      "full_response_intvty": {
+       "mean": 37.79639,
+       "p50": 46.66311,
+       "p75": 33.97097,
+       "p90": 24.01033,
+       "p95": 18.86722,
+       "std": 1776.79329
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 97679.62797,
+       "p50": 89429,
+       "p75": 127499,
+       "p90": 176846.4,
+       "p95": 204331.6,
+       "std": 54396.3858
+      },
+      "output_actual": {
+       "mean": 893.0592,
+       "p50": 287,
+       "p75": 744,
+       "p90": 2125.2,
+       "p95": 4043.9,
+       "std": 1947.19029
+      },
+      "output_expected": {
+       "mean": 1610.94652,
+       "p50": 594,
+       "p75": 1908.5,
+       "p90": 4154,
+       "p95": 5885.45,
+       "std": 2726.51285
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 46509.50114
+      },
+      "output": {
+       "tokens_per_second": 425.22416
+      },
+      "total": {
+       "tokens_per_second": 46934.7253
+      },
+      "duration_seconds": 3618.65844,
+      "per_gpu": {
+       "total_tput_tps": 11733.68132,
+       "output_tput_tps": 106.30604,
+       "input_tput_tps": 11627.37528
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.95925
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 84,
+     "cache": {
+      "gpu_cache_hit_rate": 0.9201,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.9201,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 155500080
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.83,
+      "gpu_total_tokens": 10414848,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 169003474,
+      "generation_total": 1552042,
+      "requests_completed": 1723,
+      "prompt_by_source": {
+       "gpu_cache_hit": 155500080,
+       "cpu_or_external_cache_hit": null,
+       "computed": 16577328,
+       "raw": {
+        "device": 155500080
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 10414848,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "before_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/bench_output.json",
+   "sha256": "93cb2f509813a709a843609fc8eb8354bce80a29108cdf5af9a45ec3fa71a4e0",
+   "size": 579,
+   "mtime": 1795001064,
+   "json": {
+    "total_throughput": 11733.68132,
+    "output_throughput": 106.30604,
+    "total_throughput_per_gpu": 11733.68132,
+    "conc": 16,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "dflash",
+    "kv_offloading": "none",
+    "num_requests_successful": 1723,
+    "num_requests_total": 1899,
+    "kv_cache_hit_rate": 0.9201,
+    "agg_json_path": "/workspace/exp/runs/before/agg_musespark_sglang_agentx_conc16.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 38.95704,
+    "e2e_norm_intvty_p90": 17.06815,
+    "num_requests_measured": 1723,
+    "num_requests_warmup": 176
+   }
+  }
+ ],
+ "before_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/gsm8k.log",
+   "sha256": "4b4e243c05bb987ff60491d1dec6fc73dd3819a92c939dc7aec4cf0c2b8702ac",
+   "size": 18382,
+   "mtime": 1795001123,
+   "tail": [
+    " 88%|████████▊ | 1158/1319 [00:50<00:07, 20.37it/s]",
+    " 88%|████████▊ | 1159/1319 [00:50<00:08, 19.98it/s]",
+    " 88%|████████▊ | 1162/1319 [00:50<00:08, 18.22it/s]",
+    " 88%|████████▊ | 1166/1319 [00:50<00:08, 18.55it/s]",
+    " 89%|████████▉ | 1175/1319 [00:50<00:05, 26.03it/s]",
+    " 89%|████████▉ | 1178/1319 [00:51<00:06, 22.51it/s]",
+    " 90%|████████▉ | 1182/1319 [00:51<00:06, 21.53it/s]",
+    " 90%|████████▉ | 1185/1319 [00:51<00:06, 19.38it/s]",
+    " 90%|████████▉ | 1186/1319 [00:51<00:06, 19.31it/s]",
+    " 90%|█████████ | 1192/1319 [00:51<00:05, 21.80it/s]",
+    " 91%|█████████ | 1199/1319 [00:51<00:04, 24.77it/s]",
+    " 91%|█████████▏| 1205/1319 [00:52<00:04, 25.79it/s]",
+    " 92%|█████████▏| 1210/1319 [00:52<00:04, 25.00it/s]",
+    " 92%|█████████▏| 1211/1319 [00:52<00:04, 25.83it/s]",
+    " 92%|█████████▏| 1215/1319 [00:52<00:04, 23.80it/s]",
+    " 92%|█████████▏| 1218/1319 [00:52<00:05, 18.91it/s]",
+    " 93%|█████████▎| 1223/1319 [00:52<00:04, 22.58it/s]",
+    " 93%|█████████▎| 1226/1319 [00:53<00:04, 19.84it/s]",
+    " 93%|█████████▎| 1229/1319 [00:53<00:04, 18.13it/s]",
+    " 93%|█████████▎| 1232/1319 [00:53<00:05, 17.04it/s]",
+    " 93%|█████████▎| 1233/1319 [00:53<00:04, 17.71it/s]",
+    " 94%|█████████▍| 1241/1319 [00:53<00:03, 23.80it/s]",
+    " 94%|█████████▍| 1245/1319 [00:54<00:03, 22.36it/s]",
+    " 95%|█████████▌| 1255/1319 [00:54<00:02, 24.88it/s]",
+    " 95%|█████████▌| 1256/1319 [00:54<00:02, 27.24it/s]",
+    " 96%|█████████▌| 1260/1319 [00:54<00:02, 24.07it/s]",
+    " 96%|█████████▋| 1270/1319 [00:54<00:01, 32.53it/s]",
+    " 96%|█████████▋| 1271/1319 [00:54<00:01, 41.57it/s]",
+    " 97%|█████████▋| 1276/1319 [00:54<00:01, 40.57it/s]",
+    " 97%|█████████▋| 1282/1319 [00:54<00:00, 41.81it/s]",
+    " 98%|█████████▊| 1294/1319 [00:55<00:00, 55.72it/s]",
+    " 99%|█████████▊| 1301/1319 [00:55<00:00, 49.33it/s]",
+    " 99%|█████████▉| 1307/1319 [00:55<00:00, 49.32it/s]",
+    "100%|█████████▉| 1313/1319 [00:55<00:00, 47.34it/s]",
+    "100%|█████████▉| 1318/1319 [00:55<00:00, 44.39it/s]",
+    "100%|██████████| 1319/1319 [00:55<00:00, 23.66it/s]",
+    "Accuracy: 0.945",
+    "Invalid: 0.000",
+    "Latency: 55.894 s",
+    "Output throughput: 2212.476 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.945",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ],
+ "after_agg": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/after/agg_musespark_sglang_agentx_conc16.json",
+   "sha256": "12abb5efc3df3d52b7bd262d5fb0719e11522440ff7abfabf80c583277c6d242",
+   "size": 5317,
+   "mtime": 1795005211,
+   "json": {
+    "hw": "mi355x",
+    "conc": 16,
+    "image": "lmsysorg/sglang-rocm:muse-spark-open",
+    "recipe_fingerprint": "",
+    "model": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "infmax_model_prefix": "musespark",
+    "framework": "sglang",
+    "precision": "fp4",
+    "spec_decoding": "dflash",
+    "disagg": false,
+    "scenario_type": "agentic-coding",
+    "is_multinode": false,
+    "num_gpus": 4,
+    "tp": 4,
+    "ep": 4,
+    "dp_attention": "false",
+    "kv_offloading": "none",
+    "kv_offload_backend": null,
+    "allocated_cpu_dram_gb": 0,
+    "num_requests_total": 2450,
+    "num_requests_successful": 2274,
+    "request_accounting": {
+     "records_total": 2450,
+     "records_profiled": 2274,
+     "records_dropped_total": 176,
+     "records_warmup_dropped": 176,
+     "records_error_dropped": 0,
+     "error_categories": {}
+    },
+    "pp": 1,
+    "dcp_size": 1,
+    "pcp_size": 1,
+    "dataset": {
+     "source_type": "public_dataset",
+     "loader": "semianalysis_cc_traces_weka_062126_256k",
+     "hf_dataset_name": "semianalysisai/cc-traces-weka-062126-256k",
+     "hf_split": "train",
+     "num_dataset_entries": 393
+    },
+    "request_metrics": {
+     "qps": {
+      "window_seconds": 1,
+      "samples": 3622,
+      "mean": 0.62755,
+      "p50": 0.0,
+      "p75": 1,
+      "p90": 2,
+      "p95": 2,
+      "std": 0.92253
+     },
+     "latency": {
+      "ttft": {
+       "mean": 1.22165,
+       "p50": 0.60795,
+       "p75": 1.04548,
+       "p90": 2.30428,
+       "p95": 3.81334,
+       "std": 2.15941
+      },
+      "e2el": {
+       "mean": 13.72467,
+       "p50": 6.18745,
+       "p75": 14.25667,
+       "p90": 31.62038,
+       "p95": 56.81965,
+       "std": 22.66714
+      },
+      "itl": {
+       "mean": 0.01737,
+       "p50": 0.01477,
+       "p75": 0.01949,
+       "p90": 0.02709,
+       "p95": 0.03331,
+       "std": 0.01097
+      },
+      "tpot": {
+       "mean": 0.01737,
+       "p50": 0.01477,
+       "p75": 0.01949,
+       "p90": 0.02709,
+       "p95": 0.03331,
+       "std": 0.01097
+      },
+      "intvty": {
+       "mean": 57.57298,
+       "p50": 67.68994,
+       "p75": 51.30655,
+       "p90": 36.90894,
+       "p95": 30.02266,
+       "std": 31.9005
+      },
+      "e2e_norm_intvty": {
+       "mean": 40.66551,
+       "p50": 54.88632,
+       "p75": 39.81296,
+       "p90": 27.46597,
+       "p95": 21.41628,
+       "std": 23.72582
+      },
+      "full_response_itl": {
+       "mean": 0.01732,
+       "p50": 0.01476,
+       "p75": 0.01948,
+       "p90": 0.02706,
+       "p95": 0.03325,
+       "std": 0.01099
+      },
+      "full_response_intvty": {
+       "mean": 57.74541,
+       "p50": 67.76449,
+       "p75": 51.32672,
+       "p90": 36.9574,
+       "p95": 30.07267,
+       "std": 1527.99455
+      }
+     },
+     "tokens": {
+      "input": {
+       "mean": 96784.41381,
+       "p50": 86808.5,
+       "p75": 126613.75,
+       "p90": 177139.3,
+       "p95": 201133.15,
+       "std": 53589.01634
+      },
+      "output_actual": {
+       "mean": 870.28936,
+       "p50": 289,
+       "p75": 723,
+       "p90": 2017.4,
+       "p95": 3921.4,
+       "std": 1899.32644
+      },
+      "output_expected": {
+       "mean": 1572.63182,
+       "p50": 619,
+       "p75": 1880.5,
+       "p90": 4089,
+       "p95": 5542,
+       "std": 2572.67269
+      }
+     },
+     "throughput": {
+      "input": {
+       "tokens_per_second": 60664.32579
+      },
+      "output": {
+       "tokens_per_second": 545.49607
+      },
+      "total": {
+       "tokens_per_second": 61209.82186
+      },
+      "duration_seconds": 3627.96016,
+      "per_gpu": {
+       "total_tput_tps": 15302.45547,
+       "output_tput_tps": 136.37402,
+       "input_tput_tps": 15166.08145
+      }
+     },
+     "cache": {
+      "theoretical_cache_hit_rate": 0.9583
+     }
+    },
+    "server_metrics": {
+     "present": true,
+     "adapter": "sglang",
+     "metric_count": 84,
+     "cache": {
+      "gpu_cache_hit_rate": 0.95006,
+      "cpu_cache_hit_rate": null,
+      "external_cache_hit_rate": null,
+      "overall_cache_hit_rate": 0.95006,
+      "prefix_cache_hits": null,
+      "prefix_cache_queries": null,
+      "external_prefix_cache_hits": null,
+      "external_prefix_cache_queries": null,
+      "cached_tokens_by_source": {
+       "device": 209787504
+      },
+      "frontend_cache_hit_rate": null,
+      "router_kv_hit_rate": null,
+      "router_shared_cache_hit_rate": null,
+      "frontend_cached_tokens": null,
+      "frontend_input_tokens": null
+     },
+     "kv_cache": {
+      "gpu_usage_pct": 0.39,
+      "gpu_total_tokens": 19933120,
+      "cpu_usage_pct": null,
+      "cpu_used_tokens": null,
+      "cpu_total_tokens": null
+     },
+     "kv_offload": {
+      "bytes_gpu_to_cpu": null,
+      "bytes_cpu_to_gpu": null,
+      "time_gpu_to_cpu": null,
+      "time_cpu_to_gpu": null,
+      "bandwidth_gpu_to_cpu_bytes_per_second": null,
+      "bandwidth_cpu_to_gpu_bytes_per_second": null
+     },
+     "tokens": {
+      "prompt_total": 220815479,
+      "generation_total": 1982984,
+      "requests_completed": 2274,
+      "prompt_by_source": {
+       "gpu_cache_hit": 209787504,
+       "cpu_or_external_cache_hit": null,
+       "computed": 14199770,
+       "raw": {
+        "device": 209787504
+       }
+      }
+     },
+     "sources": []
+    },
+    "kv_cache_pool_tokens": 19933120,
+    "power_metric_schema_version": 2,
+    "power_valid": 0
+   }
+  }
+ ],
+ "after_bench": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/after/bench_output.json",
+   "sha256": "035af3b52fdc047941bb42f9aca53389421948adcb050264ea214f97e6c35b6a",
+   "size": 579,
+   "mtime": 1795005213,
+   "json": {
+    "total_throughput": 15302.45547,
+    "output_throughput": 136.37402,
+    "total_throughput_per_gpu": 15302.45547,
+    "conc": 16,
+    "tp": 4,
+    "ep": 4,
+    "scenario_type": "agentic-coding",
+    "spec_decoding": "dflash",
+    "kv_offloading": "none",
+    "num_requests_successful": 2274,
+    "num_requests_total": 2450,
+    "kv_cache_hit_rate": 0.95006,
+    "agg_json_path": "/workspace/exp/runs/after/agg_musespark_sglang_agentx_conc16.json",
+    "status": "ok",
+    "e2e_norm_intvty_p50": 54.88632,
+    "e2e_norm_intvty_p90": 27.46597,
+    "num_requests_measured": 2274,
+    "num_requests_warmup": 176
+   }
+  }
+ ],
+ "after_gsm8k": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/after/gsm8k.log",
+   "sha256": "90125fd3a06b8d0143fec31df151aa54433dee0000b47b4af30665740c8589de",
+   "size": 19158,
+   "mtime": 1795005274,
+   "tail": [
+    " 87%|████████▋ | 1152/1319 [00:50<00:06, 25.35it/s]",
+    " 88%|████████▊ | 1155/1319 [00:51<00:09, 18.15it/s]",
+    " 88%|████████▊ | 1160/1319 [00:51<00:08, 19.51it/s]",
+    " 88%|████████▊ | 1163/1319 [00:51<00:08, 18.00it/s]",
+    " 89%|████████▊ | 1168/1319 [00:51<00:07, 19.52it/s]",
+    " 89%|████████▉ | 1171/1319 [00:52<00:08, 18.00it/s]",
+    " 89%|████████▉ | 1178/1319 [00:52<00:06, 22.42it/s]",
+    " 90%|████████▉ | 1183/1319 [00:52<00:05, 22.76it/s]",
+    " 90%|█████████ | 1190/1319 [00:52<00:05, 25.62it/s]",
+    " 91%|█████████ | 1195/1319 [00:52<00:05, 24.80it/s]",
+    " 91%|█████████ | 1200/1319 [00:53<00:04, 24.20it/s]",
+    " 92%|█████████▏| 1207/1319 [00:53<00:04, 26.21it/s]",
+    " 92%|█████████▏| 1208/1319 [00:53<00:03, 28.92it/s]",
+    " 92%|█████████▏| 1214/1319 [00:53<00:03, 28.69it/s]",
+    " 92%|█████████▏| 1215/1319 [00:53<00:03, 29.89it/s]",
+    " 92%|█████████▏| 1218/1319 [00:53<00:04, 22.84it/s]",
+    " 93%|█████████▎| 1221/1319 [00:54<00:05, 17.29it/s]",
+    " 93%|█████████▎| 1226/1319 [00:54<00:04, 18.74it/s]",
+    " 93%|█████████▎| 1232/1319 [00:54<00:04, 21.15it/s]",
+    " 94%|█████████▎| 1236/1319 [00:54<00:04, 20.29it/s]",
+    " 94%|█████████▍| 1242/1319 [00:55<00:03, 22.17it/s]",
+    " 95%|█████████▍| 1250/1319 [00:55<00:02, 26.44it/s]",
+    " 95%|█████████▍| 1253/1319 [00:55<00:02, 22.83it/s]",
+    " 95%|█████████▌| 1254/1319 [00:55<00:03, 21.58it/s]",
+    " 95%|█████████▌| 1258/1319 [00:55<00:02, 20.80it/s]",
+    " 96%|█████████▌| 1265/1319 [00:55<00:02, 26.90it/s]",
+    " 96%|█████████▋| 1272/1319 [00:56<00:01, 32.30it/s]",
+    " 97%|█████████▋| 1278/1319 [00:56<00:01, 31.47it/s]",
+    " 97%|█████████▋| 1286/1319 [00:56<00:00, 38.78it/s]",
+    " 98%|█████████▊| 1293/1319 [00:56<00:00, 43.87it/s]",
+    " 98%|█████████▊| 1295/1319 [00:56<00:00, 50.23it/s]",
+    " 99%|█████████▊| 1301/1319 [00:56<00:00, 48.21it/s]",
+    " 99%|█████████▉| 1307/1319 [00:56<00:00, 48.29it/s]",
+    "100%|█████████▉| 1313/1319 [00:56<00:00, 46.75it/s]",
+    "100%|█████████▉| 1318/1319 [00:57<00:00, 41.65it/s]",
+    "100%|██████████| 1319/1319 [00:57<00:00, 23.09it/s]",
+    "Accuracy: 0.950",
+    "Invalid: 0.000",
+    "Latency: 57.280 s",
+    "Output throughput: 2183.957 token/s"
+   ],
+   "gsm8k_lines": [
+    "Accuracy: 0.950",
+    "Invalid: 0.000"
+   ],
+   "progress_total": 1319
+  }
+ ]
+}

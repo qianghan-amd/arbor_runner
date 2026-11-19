@@ -1,0 +1,2 @@
+# Same bytes on every platform: provenance sha256 values in baselines/ are computed over LF files.
+* text=auto eol=lf

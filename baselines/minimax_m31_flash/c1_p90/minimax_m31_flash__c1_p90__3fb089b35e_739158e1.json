@@ -151,7 +151,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/gsm8k.log#summary lines"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/minimax_m31_flash__c1_p90.json sha256=6b3f843b414d42b6d89402c82b63d28b6ef6c7154fb3f13d723df642bd56973a",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/minimax_m31_flash__c1_p90.json sha256=32a009d1ace66792425cf75bd4a2b1429c13ef9092fe7042957b6746c87a5ee4",
     "_source": "MiniMax M3.1 Flash - C1 P90 (standalone, final)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",

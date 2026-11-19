@@ -1,0 +1,156 @@
+# P1 port manifest: where each cell's ground truth lives (read-only), plus facts not in those files.
+# Paths are on crusoe2_006 (/shared_nfs). `ci` values are cross-checked against meta.json _note / GUIDE.md in the port log.
+# `data_quality_warning` entries follow docs/design.md section 2.1.
+# Cells whose ground truth is unreachable (conductor_355_2: Permission denied (publickey), 2026-11-19) or external
+# are in summary_only_cells.yaml instead.
+host: crusoe2_006
+E: /shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments
+
+cells:
+  muse_spark/c16_tput:
+    source: "musespark-c16-ab (2026-11-18 Crusoe re-measure, pristine CI point vs Campaign3 kept tree); not in model_summary.md, replaces conductor-only Campaign1 (INTENT Q7)"
+    files:
+      env_sh: "{E}/musespark-c16-ab/env.sh"
+      guide: "{E}/musespark-c16-ab/GUIDE.md"
+      summary_md: "{E}/musespark-c16-ab/SUMMARY.md"
+      spur_out: "{E}/musespark-c16-ab/spur-295364.out"
+      launch_before: "{E}/musespark-c16-ab/configs/before.json"
+      launch_after: "{E}/musespark-c16-ab/configs/after.json"
+      before_agg: "{E}/musespark-c16-ab/runs/before/agg_*.json"
+      before_bench: "{E}/musespark-c16-ab/runs/before/bench_output.json"
+      before_gsm8k: "{E}/musespark-c16-ab/runs/before/gsm8k.log"
+      after_agg: "{E}/musespark-c16-ab/runs/after/agg_*.json"
+      after_bench: "{E}/musespark-c16-ab/runs/after/bench_output.json"
+      after_gsm8k: "{E}/musespark-c16-ab/runs/after/gsm8k.log"
+    ci: { commit: 8a76a78e41, run_id: "38877885539", commit_date: "2026-10-16",
+          recipe_sh: "srt-slurm-recipes/musespark/sglang/mi355x-fp4-mtp/agentic.yaml", recipe_point: override_tp4_c16 }
+
+  muse_spark/c1_p90:
+    source: "Muse Spark - Campaign5 (C1 P90, final)"
+    files:
+      env_sh: "{E}/musespark-c1-p90-sa/env.sh"
+      guide: "{E}/musespark-c1-p90-sa/GUIDE.md"
+      spur_out: "{E}/musespark-c1-p90-sa/spur-285229.out"
+      meta: "{E}/musespark-c1-p90-sa/sessions/full/reports/trace/meta.json"
+      before_agg: "{E}/musespark-c1-p90-sa/runs/before/agg_*.json"
+      before_bench: "{E}/musespark-c1-p90-sa/runs/before/bench_output.json"
+      before_gsm8k: "{E}/musespark-c1-p90-sa/runs/before/gsm8k.log"
+      after_agg: "{E}/musespark-c1-p90-sa/runs/after/agg_*.json"
+      after_bench: "{E}/musespark-c1-p90-sa/runs/after/bench_output.json"
+      after_gsm8k: "{E}/musespark-c1-p90-sa/runs/after/gsm8k.log"
+    ci: { commit: 8a76a78e41, run_id: "38877885539", commit_date: "2026-10-16",
+          recipe_sh: "srt-slurm-recipes/musespark/sglang/mi355x-fp4-mtp/agentic.yaml", recipe_point: override_tp4_c1 }
+
+  kimik3/c1_p90:
+    source: "Kimi K3 - C1 P90 (standalone, final)"
+    files:
+      env_sh: "{E}/kimik3-c1-p90-sa/env.sh"
+      guide: "{E}/kimik3-c1-p90-sa/GUIDE.md"
+      spur_out: "{E}/kimik3-c1-p90-sa/spur-288217.out"
+      meta: "/shared_nfs/qiangh/arbor_runs/kimik3-c1-p90-sa/sessions/full/reports/trace/meta.json"
+      before_agg: "{E}/kimik3-c1-p90-sa/runs/before/agg_*.json"
+      before_bench: "{E}/kimik3-c1-p90-sa/runs/before/bench_output.json"
+      before_gsm8k: "{E}/kimik3-c1-p90-sa/runs/before/gsm8k.log"
+      after_agg: "{E}/kimik3-c1-p90-sa/runs/after/agg_*.json"
+      after_bench: "{E}/kimik3-c1-p90-sa/runs/after/bench_output.json"
+      after_gsm8k: "{E}/kimik3-c1-p90-sa/runs/after/gsm8k.log"
+    ci: { commit: 0df7e892b7, run_id: "40037005947", commit_date: "2026-10-23", recipe_sh: null, recipe_point: override_tp8_c1 }
+    # ci_pin_candidate_only lifted 2026-11-19: GitHub API run 40037005947 head_sha = 0df7e892b73c (verify_baseline.py)
+
+  kimik31pro/c1_p90:
+    source: "Kimi K3.1 Pro - C1 P90 (separate campaign)"
+    files:
+      env_sh: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/env.sh"
+      meta: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full/reports/trace/meta.json"
+      before_baseline: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json"
+      after_baseline: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/baseline.json"
+      after_gsm8k_results: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/gsm8k/**/results_*.json"
+    ci: { commit: ba19e2aa86, run_id: "41954410041", commit_date: "2026-11-05",
+          recipe_sh: "agentic.yaml (config key kimik3.1-fp4-mi355x-vllm-agentic-dspark)", recipe_point: null }
+    data_quality_warning:
+      - { code: iterative_vs_remeasure_conflict, detail: "iterative +7.9% (130.203 -> 140.53) vs full re-measure -0.2% (130.20273 -> 129.91161); never reconciled; do not trust without a re-run (design.md 2.1)" }
+      - { code: gsm8k_missing_before, detail: "GSM8K after only (before deferred per user 2026-11-13); correctness drift cannot be checked" }
+      - { code: objective_metric_mismatch, detail: "campaign optimized p90_interactivity = agg intvty.p90 (agentx-dsv41-6 validator bench_agentx.sh:141), not the target e2e_norm_intvty.p90; target metric was never measured for this cell" }
+
+  dsv41flash/c32_tput:
+    source: "DSv4.1 Flash (measure_before_campaign -> measure_after_campaign)"
+    files:
+      env_sh: "{E}/dsv41f-c32-tput/env.sh"
+      spur_out: "{E}/dsv41f-c32-tput/spur-272282.out"
+      meta: "{E}/dsv41f-c32-tput/sessions/c32-tput/reports/trace/meta.json"
+      before_agg: "{E}/dsv41f-c32-tput/sessions/measure_before_campaign/r1/agg_*.json"
+      before_bench: "{E}/dsv41f-c32-tput/sessions/measure_before_campaign/r1/bench_output.json"
+      before_gsm8k_results: "{E}/dsv41f-c32-tput/sessions/measure_before_campaign/gsm8k/*/results_*.json"
+      before_correctness: "{E}/dsv41f-c32-tput/sessions/measure_before_campaign/correctness.json"
+      after_agg: "{E}/dsv41f-c32-tput/sessions/measure_after_campaign/r1/agg_*.json"
+      after_bench: "{E}/dsv41f-c32-tput/sessions/measure_after_campaign/r1/bench_output.json"
+      ci_ref_agg: "{E}/dsv41f-c32-tput/sessions/measure_ci_ref/r1/agg_*.json"
+    ci: { commit: 86699be610, run_id: "34657748450", commit_date: "2026-09-11",
+          recipe_sh: "benchmarks/single_node/agentic/dsv41flash_fp4_mi355x_vllm_mtp.sh", recipe_point: null }
+    data_quality_warning:
+      - { code: gsm8k_missing_after, detail: "GSM8K before only; never re-measured after the campaign (design.md 2.1)" }
+      - { code: gsm8k_anomalous, detail: "before GSM8K 0.624 vs ~0.965 for the same model at C1; re-check before trusting (design.md 2.1)" }
+
+  dsv41flash/c1_p90:
+    source: "DSv4.1 Flash - C1 P90 (standalone, final)"
+    files:
+      env_sh: "{E}/dsv41f-c1-p90-sa2/env.sh"
+      guide: "{E}/dsv41f-c1-p90-sa2/GUIDE.md"
+      meta: "{E}/dsv41f-c1-p90-sa2/sessions/full/reports/trace/meta.json"
+      spur_out: "{E}/dsv41f-c1-p90-sa2/logs/*.out"
+      before_agg: "{E}/dsv41f-c1-p90-sa2/runs/before/agg_*.json"
+      before_bench: "{E}/dsv41f-c1-p90-sa2/runs/before/bench_output.json"
+      before_gsm8k: "{E}/dsv41f-c1-p90-sa2/runs/before/gsm8k.log"
+      after_agg: "{E}/dsv41f-c1-p90-sa2/runs/after/agg_*.json"
+      after_bench: "{E}/dsv41f-c1-p90-sa2/runs/after/bench_output.json"
+      after_gsm8k: "{E}/dsv41f-c1-p90-sa2/runs/after/gsm8k.log"
+    ci: { commit: 86699be610, run_id: "34657748450", commit_date: "2026-09-11",
+          recipe_sh: "benchmarks/single_node/agentic/dsv41flash_fp4_mi355x_vllm_mtp.sh", recipe_point: null }
+
+  glm52/c16_tput:
+    job_ambiguous: true
+    source: "GLM 5.2 (measure_ci_ref -> measure_after_campaign; GSM8K measure_bar -> measure_final_gsm8k)"
+    files:
+      env_sh: "{E}/glm52-c16-tput/env.sh"
+      spur_out: "{E}/glm52-c16-tput/spur-275767.out"
+      # 3 hold jobs ran here (274717, 275692, 275767); which one ran measure_ci_ref is not recorded
+      meta: "{E}/glm52-c16-tput/sessions/c16-tput/reports/trace/meta.json"
+      before_agg: "{E}/glm52-c16-tput/sessions/measure_ci_ref/r1/agg_*.json"
+      before_bench: "{E}/glm52-c16-tput/sessions/measure_ci_ref/r1/bench_output.json"
+      before_gsm8k_results: "{E}/glm52-c16-tput/sessions/measure_bar/gsm8k/*/results_*.json"
+      after_agg: "{E}/glm52-c16-tput/sessions/measure_after_campaign/r1/agg_*.json"
+      after_bench: "{E}/glm52-c16-tput/sessions/measure_after_campaign/r1/bench_output.json"
+      after_gsm8k_results: "{E}/glm52-c16-tput/sessions/measure_final_gsm8k/gsm8k/*/results_*.json"
+    ci: { commit: d204ac0de2, run_id: "31501371582", commit_date: "2026-08-11",
+          recipe_sh: "benchmarks/single_node/agentic/glm5.2_fp4_mi355x_sglang_mtp.sh", recipe_point: null }
+
+  glm52/c1_p90:
+    source: "GLM-5.2 - C1 P90 (standalone, final)"
+    files:
+      env_sh: "{E}/glm52-c1-p90-sa/env.sh"
+      guide: "{E}/glm52-c1-p90-sa/GUIDE.md"
+      spur_out: "{E}/glm52-c1-p90-sa/spur-288192.out"
+      meta: "/shared_nfs/qiangh/arbor_runs/glm52-c1-p90-sa/sessions/full/reports/trace/meta.json"
+      before_agg: "{E}/glm52-c1-p90-sa/runs/before/agg_*.json"
+      before_bench: "{E}/glm52-c1-p90-sa/runs/before/bench_output.json"
+      before_gsm8k: "{E}/glm52-c1-p90-sa/runs/before/gsm8k.log"
+      after_agg: "{E}/glm52-c1-p90-sa/runs/after/agg_*.json"
+      after_bench: "{E}/glm52-c1-p90-sa/runs/after/bench_output.json"
+      after_gsm8k: "{E}/glm52-c1-p90-sa/runs/after/gsm8k.log"
+    ci: { commit: d204ac0de2, run_id: "31501371582", commit_date: "2026-08-11",
+          recipe_sh: "benchmarks/single_node/agentic/glm5.2_fp4_mi355x_sglang_mtp.sh", recipe_point: null }
+
+  minimax_m31_flash/c1_p90:
+    source: "MiniMax M3.1 Flash - C1 P90 (standalone, final)"
+    files:
+      env_sh: "{E}/minimax-c1-p90-sa/env.sh"
+      guide: "{E}/minimax-c1-p90-sa/GUIDE.md"
+      spur_out: "{E}/minimax-c1-p90-sa/spur-288180.out"
+      meta: "{E}/minimax-c1-p90-sa/sessions/full/reports/trace/meta.json"
+      before_agg: "{E}/minimax-c1-p90-sa/runs/before/agg_*.json"
+      before_bench: "{E}/minimax-c1-p90-sa/runs/before/bench_output.json"
+      before_gsm8k: "{E}/minimax-c1-p90-sa/runs/before/gsm8k.log"
+      after_agg: "{E}/minimax-c1-p90-sa/runs/after/agg_*.json"
+      after_bench: "{E}/minimax-c1-p90-sa/runs/after/bench_output.json"
+      after_gsm8k: "{E}/minimax-c1-p90-sa/runs/after/gsm8k.log"
+    ci: { commit: 3fb089b35e, run_id: "39929767608", commit_date: "2026-10-23", recipe_sh: null, recipe_point: "zip_override_tp4_dspark7_mono[0]" }

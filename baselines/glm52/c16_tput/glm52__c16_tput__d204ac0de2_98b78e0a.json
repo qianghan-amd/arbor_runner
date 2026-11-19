@@ -153,7 +153,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_bar/gsm8k/amd__GLM-5.2-MXFP4/results_2026-11-09T12-35-56.735203.json#results.gsm8k"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/glm52__c16_tput.json sha256=1cc8b267ba94f782f7a25dc95d6c37f137ea785526c06517f557f6cbd31e16ad",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/glm52__c16_tput.json sha256=61550fc8a8e69bc544d99f7bb353aab3a334b75170b853664cfc37773154a495",
     "_source": "GLM 5.2 (measure_ci_ref -> measure_after_campaign; GSM8K measure_bar -> measure_final_gsm8k)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_ci_ref/r1/agg_glm5.2_sglang_agentx_conc16.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c16-tput/sessions/measure_ci_ref/r1/agg_glm5.2_sglang_agentx_conc16.json#request_metrics.throughput.per_gpu.total_tput_tps",

@@ -1,0 +1,99 @@
+# P1 port: cells whose raw files are not reachable from this run (conductor_355_2 rejects our key, 2026-11-19:
+# "Permission denied (publickey)") or that were measured by another team. Every value is copied from the cited
+# source line; nothing is derived except where `derived:` says so. Sources:
+#   K3  = master/backups/2026-11-13_additional_md_backup/conductor_355_2/arbor_kimi/reports/2026-11-08_summary.md (lines 40-57)
+#   K3R = .../arbor_kimi/experiments/kimi-k3-fp4/2026-11-07_campaign3/baseline_record.json (ci_parity_3600s)
+#   K31 = .../arbor_kimi_k31/experiments/kimik31-fp4/2026-11-09_c32-prep/{baseline_record.json,ci_c32_launch.json}
+#   K31M= .../arbor_kimi_k31/memory/kimi-k31-run-config.md
+#   MS  = master/reports/2026-11-08_model_summary.md
+#   AB37= Agent Board boards/ArborDevelopment#37 (comments c6745, c8713, c9619; read 2026-11-19 via the agent-board MCP)
+# Paths are relative to C:/Users/qiangh/mywork/agents/.
+
+cells:
+  kimik3/c32_tput:
+    cluster: conductor_355_2
+    node: smci355-ccs-aus-m13-29                       # K3R "node"
+    date: "2026-11-09"                                  # K3 table: BEFORE re-run 11-09 (11-07 first run)
+    replays: 2
+    duration_s: 3600                                    # K3 "DURATION=3600"
+    framework: vllm
+    tp: 8
+    ep: 1
+    dcp: 8
+    num_gpus: 8
+    image: "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392"
+    image_digest: "sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c"   # K3R launch scripts; same digest as kimik3-c1-p90-sa env.sh
+    ci: { commit: 0df7e892b7, run_id: "40037005947", commit_date: "2026-10-23", recipe_sh: null, recipe_point: "ci_c32_launch (CI run 40037005947 attempt 2, point 446550)" }
+    bench_client_commit: null
+    before:   # mean of the 2 BEFORE full runs (K3: 14,105.1 on 11-07 and 14,123.6 on 11-09; report's own mean 14,114.3)
+      tput_per_gpu: 14114.3
+      intvty_p90: 30.605                                # derived: mean of 30.29 and 30.92 (K3 "p90 intvty"; conductor-era validator: p90_interactivity = agg intvty.p90)
+      gsm8k_strict: 0.96855                             # derived: mean of 0.9697, 0.9674 (K3 "base" row, 2 full 1319Q runs)
+      gsm8k_flexible: 0.96815                           # derived: mean of 0.9697, 0.9666
+      gsm8k_n: 1319
+    after:    # mean of the 2 AFTER full runs (att. 2 15,494.4 / att. 3 15,417.0; report's own mean 15,455.7)
+      tput_per_gpu: 15455.7
+      intvty_p90: 35.545                                # derived: mean of 36.15 and 34.94 (report: 35.55)
+      gsm8k_strict: 0.9674
+      gsm8k_flexible: 0.9670                            # derived: mean of 0.9666, 0.9674
+      gsm8k_n: 1319
+      ref: "K3 AFTER att. 2 (11-08) + att. 3 (11-09), tree 9cbe5fb + KEEP config"
+    ci_reference_tput_per_gpu: [14441.47088, 14256.87709]   # K3R ci_parity_3600s.ci_reference (CI 10-26 / 10-27) -> used by the P2 numeric gate
+    data_quality_warning:
+      # ci_pin_candidate_only lifted 2026-11-19: GitHub API run 40037005947 head_sha = 0df7e892b73c (verify_baseline.py)
+      - { code: measured_off_crusoe, detail: "measured on conductor_355_2 (smci355-ccs-aus-m13-29); raw files unreachable from this run, ported from the campaign's own report in the local backup" }
+      - { code: value_discrepancy, detail: "MS pairs single runs 14105.09 -> 15417.03 (+9.30%); this record uses the report's 2-run means 14114.3 -> 15455.7 (+9.50%)" }
+
+  kimik31pro/c32_tput:
+    cluster: conductor_355_2
+    node: null
+    date: "2026-11-10"                                  # K31 baseline_record.json timestamp 2026-11-10T08:34Z
+    replays: 1
+    duration_s: null
+    framework: vllm
+    tp: 8
+    ep: 1
+    dcp: 8
+    num_gpus: 8
+    image: "vllm/vllm-openai-rocm:kimi-k31"
+    image_digest: "sha256:4930e37b377b3973384ed5e274dd3cfc18789cfd1f8a98c6cdb5c2dd359ab175"   # K31 ci_c32_launch.json container_image
+    ci: { commit: ba19e2aa86, run_id: "41954410041", commit_date: "2026-11-05", recipe_sh: "agentic.yaml (InferenceX PR #4806)", recipe_point: override_dram_c32 }
+    bench_client_commit: null
+    before:
+      tput_per_gpu: 5865.87371                          # K31 baseline_record.json total_throughput_per_gpu (sessions/baseline_before)
+    after: null                                         # never re-measured; iterative best 7389.68 (MS) is not a confirmed number
+    data_quality_warning:
+      - { code: no_before_after_remeasure, detail: "pristine before 5865.87 tok/s/GPU exists (baseline_before, 2026-11-10); no after re-measure; iterative 5924.27 -> 7389.68 (+24.74%) unconfirmed; campaign aborted at iter 25 (validator edited externally)" }
+      - { code: gsm8k_missing_before, detail: "no GSM8K run (design.md 2.1)" }
+      - { code: gsm8k_missing_after, detail: "no GSM8K run (design.md 2.1)" }
+      - { code: measured_off_crusoe, detail: "measured on conductor_355_2; raw agg unreachable from this run, ported from baseline_record.json in the local backup" }
+
+  minimax_m31_flash/c32_tput:
+    cluster: crusoe
+    node: crsuse2-m2m-v3-109                            # AB37 c8713 / c9663
+    date: "2026-11-12"                                  # AB37 c8713 (posted 2026-11-13 +08:00), job 278054 follow-up runs
+    job: "278054"
+    replays: 3
+    duration_s: 3600
+    framework: vllm
+    tp: 4
+    ep: 1
+    dcp: 1
+    num_gpus: 4
+    image: "vllm/vllm-openai-rocm:minimax-m31-flash"
+    image_digest: "sha256:ae8681212aa5291d8c27f06e90016435e3fca144a68fd5c439231f6475f74569"   # AB37 c8725 prefix ae8681212aa5 = minimax-c1-p90-sa env.sh digest
+    ci: { commit: 3fb089b35e, run_id: "39929767608", commit_date: "2026-10-23", recipe_sh: null, recipe_point: "zip_override_tp4_dspark3[1]" }
+    bench_client_commit: 3fb089b35e                      # AB37 c8713 "run 1's client (InferenceX 3fb089b35e, agentx-harness 1.0.12)"
+    before:   # AB37 c8713 "Day-0 mean" (3 runs)
+      tput_per_gpu: 49722
+      intvty_p90: 94.14                                 # "p90_intvty = 1 / P90 inter-token latency" = AgentX intvty.p90
+      intvty_p50: 133.99
+      e2e_norm_p90: 67.14
+    after:    # AB37 c9619 "Run 3 final, after the 48 h extension" (2 replays, same node and client; paired day-0 49,640)
+      tput_per_gpu: 58991
+      intvty_p90: 150.8
+      ref: "AB37 c9619 run 3 final (campaign-records 99014d1/8a2786c/d82ad45/ae6864f)"
+    ci_reference_tput_per_gpu: [49697]                 # AB37 c6745: "MI355X day-0 baseline is 49,697 (run 39929767608)"
+    data_quality_warning:
+      - { code: external_source, detail: "measured by Chris Cai's team (AB37 c8713, c9619), not by us; per-run aggregates are root-only on their cluster dir" }
+      - { code: gsm8k_missing_before, detail: "AB37 c9619 reports GSM8K full set day-0 0.9538, run-3 final 0.9492 (real acceptance) without the lm-eval filter name; not ported into a filter-specific field" }

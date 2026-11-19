@@ -65,7 +65,7 @@ def main():
             if args.evidence_dir:
                 args.evidence_dir.mkdir(parents=True, exist_ok=True)
                 (args.evidence_dir / f"{i}.json").write_text(json.dumps(
-                    {"artifact": wanted[i], "member": next(iter(members)), "json": ci_json[i]}, indent=1) + "\n", encoding="utf-8")
+                    {"artifact": wanted[i], "member": next(iter(members)), "json": ci_json[i]}, indent=1) + "\n", encoding="utf-8", newline="\n")
 
     rows = []
     for r in records:

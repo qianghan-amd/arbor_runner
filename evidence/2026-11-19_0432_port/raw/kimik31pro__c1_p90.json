@@ -1,0 +1,747 @@
+{
+ "env_sh": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/env.sh",
+   "sha256": "0f41e0ec9194cb193cbe4711cadc802b95b21e7d89fc5a79ebf7855397e95c63",
+   "size": 1571,
+   "mtime": 1794552908,
+   "env": {
+    "TOP": "/shared_nfs/qiangh/mywork/arbor_kimik31pro",
+    "EXP": "$TOP/experiments/kimik31pro-c1",
+    "LOGS": "$EXP/logs",
+    "ARBOR": "$TOP/codebases/Arbor",
+    "ARBOR_SHA": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02",
+    "INFX": "$TOP/codebases/InferenceX",
+    "VENV": "$EXP/.venv",
+    "PY": "$VENV/bin/python3",
+    "CONFIG_REL": "configs/mi355x/kimik31pro-fp4-agentx-c1.json",
+    "CONFIG": "$ARBOR/$CONFIG_REL",
+    "PACK": "agentx-kimik31pro-c1",
+    "SESSIONS": "$EXP/sessions",
+    "SESSION": "$SESSIONS/full",
+    "MMAP_CACHE": "$EXP/aiperf_mmap_cache",
+    "AGENT_HOME": "$EXP/agent_home",
+    "GATEWAY_ENV": "/home/qiangh/.arbor/gateway.env",
+    "IMAGE_TAG": "vllm/vllm-openai-rocm:kimi-k31",
+    "IMAGE_DIGEST": "sha256:4930e37b377b3973384ed5e274dd3cfc18789cfd1f8a98c6cdb5c2dd359ab175",
+    "CONTAINER": "qh_kimic1",
+    "PORT": "8893",
+    "HUB_NL": "/mnt/m2m_nobackup/qiangh/arbor_kimik31pro/job_280523/hf-hub",
+    "MODEL_ID": "moonshotai/Kimi-K3.1-Pro",
+    "MODEL_REV": "6d0a0202956796543364d666ab19c6ad1a494ee1",
+    "DRAFT_ID": "Inferact/Kimi-K3.1-Pro-DSpark-preview",
+    "DRAFT_REV": "5e654fbe920278f228a89519b06b2680aa56480f"
+   }
+  }
+ ],
+ "meta": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full/reports/trace/meta.json",
+   "sha256": "e621f66d41256cb59270a5f7c93e2274dd6bfb804c324f3d3c715b96d629d1dd",
+   "size": 29062,
+   "mtime": 1794601308,
+   "json": {
+    "arbor_session_dir": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full",
+    "started": "2026-11-13T07:52:45.007686+00:00",
+    "arbor_git_sha": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02",
+    "config": {
+     "pack": "agentx-kimik31pro-c1",
+     "identity": "inference:agentx:mi355x:vllm:fp4:kimik31pro:c1",
+     "goal": "Day-0 Arbor campaign for Kimi-K3.1-Pro MXFP4 AgentX on vLLM/ROCm MI355X, TP8xDCP8, real DSpark draft (Inferact/Kimi-K3.1-Pro-DSpark-preview), at CONCURRENCY 1. PRIMARY axis is p90_interactivity (project target), SECONDARY is output_throughput as a guard only (secondary_threshold_rel 1000 = never gated on it). No prior baseline on this node: run validator/baseline.sh before the first iteration and treat its output as the bar. See pack.yaml for the full framing and PR #4806 recipe notes.",
+     "docker_container": "qh_kimic1",
+     "model_path": "/hf-hub/hub/models--moonshotai--Kimi-K3.1-Pro/snapshots/6d0a0202956796543364d666ab19c6ad1a494ee1",
+     "model_name": "moonshotai/Kimi-K3.1-Pro",
+     "served_model_name": "moonshotai/Kimi-K3.1-Pro",
+     "gpu_type": "MI355X",
+     "gpu_ids": "0,1,2,3,4,5,6,7",
+     "tp": 8,
+     "port": 8893,
+     "framework": "vllm",
+     "_image": "vllm/vllm-openai-rocm:kimi-k31@sha256:4930e37b377b3973384ed5e274dd3cfc18789cfd1f8a98c6cdb5c2dd359ab175",
+     "_image_note": "Pinned to the exact digest InferenceX CI run 41954410041 (2026-11-05) used for config key kimik3.1-fp4-mi355x-vllm-agentic-dspark. A later PR #4806 perf-changelog entry cites a different digest (5f47cc10...) from a post-run image refresh -- that is NOT this run; stay on 4930e37b for apples-to-apples with the run we're using as context.",
+     "_upstream_recipe": "https://github.com/SemiAnalysisAI/InferenceX/blob/ba19e2aa8696aad76ae3f4f3219e15dafe772cc7/inferencex-e2e/benchmarks/single_node/srt-slurm-recipes/kimik3.1/vllm/mi355x-fp4-mtp/agentic.yaml (base + override_gpu_kv_c1, PR #4806)",
+     "server_flags": "--tensor-parallel-size 8 --decode-context-parallel-size 8 --dcp-comm-backend a2a --cp-kv-cache-interleave-size 1 --trust-remote-code --moe-backend auto --seed 7 --language-model-only --load-format fastsafetensors --enable-auto-tool-choice --tool-call-parser kimi_k3 --reasoning-parser kimi_k3 --max-model-len 1048576 --enable-prefix-caching --prefix-match-unit 64 --kv-cache-dtype fp8 --mamba-ssm-cache-dtype float32 --attention-config '{\"indexer_kv_dtype\":\"mxfp4\"}' --additional-config '{\"decode_backend\":\"latency_specialized\",\"kda_prefill_backend\":\"fused\"}' --max-num-batched-tokens 16384 --gpu-memory-utilization 0.90 --stream-interval 10 --disable-uvicorn-access-log --max-num-seqs 1 --compilation-config '{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"max_cudagraph_capture_size\":16,\"custom_ops\":[\"+fused_rms_norm_gated\"],\"cudagraph_capture_sizes\":[2,4,6,8,10,12,14,16]}' --speculative-config '{\"method\":\"dspark\",\"model\":\"/hf-hub/hub/models--Inferact--Kimi-K3.1-Pro-DSpark-preview/snapshots/5e654fbe920278f228a89519b06b2680aa56480f\",\"num_speculative_tokens\":7,\"attention_backend\":\"ROCM_AITER_MLA\",\"kv_cache_dtype\":\"fp8\",\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\"}'",
+     "_server_flags_note": "Model and draft are loaded from their exact local snapshot directories under /hf-hub (bind-mounted from the host's node-local NVMe), not by bare HF repo id -- the container's huggingface_hub 1.31.0 would not resolve a bare repo id from the local cache even with refs/main present and HF_HUB_OFFLINE=1 (tries the network first, fails). Direct paths sidestep that entirely and are simpler.",
+     "server_env": {
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE_SITUV2": "1",
+      "SAFETENSORS_FAST_GPU": "1",
+      "VLLM_USE_V2_MODEL_RUNNER": "1",
+      "VLLM_FASTSAFETENSORS_QUEUE_SIZE": "-1",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "0",
+      "VLLM_ROCM_AITER_MLA_ASM_PADDING": "asm",
+      "VLLM_ROCM_AITER_MLA_DCP_VERIFY": "asm",
+      "VLLM_ROCM_DCP_AITER_ALLGATHER": "1",
+      "VLLM_ROCM_USE_AITER_FLYDSL_SPARSE_MLA": "1",
+      "AITER_FLYDSL_SPARSE_MLA": "1",
+      "VLLM_ROCM_DSA_DCP_GLOBAL_KEY_PREFILL": "1",
+      "VLLM_ROCM_DSA_DCP_ROWSHARD_PREFILL": "1",
+      "VLLM_USE_DIRECT_DCP_A2A": "0",
+      "VLLM_USE_DIRECT_DCP_Q_GATHER": "0",
+      "VLLM_USE_DIRECT_DCP_KV_GATHER": "0",
+      "VLLM_ROCM_QUICK_REDUCE_QUANTIZATION": "NONE",
+      "AITER_FLYDSL_STAGE2_FP8": "0",
+      "AITER_BF16_FP8_MOE_BOUND": "0",
+      "HSA_NO_SCRATCH_RECLAIM": "1",
+      "THP_MEM_ALLOC_ENABLE": "1",
+      "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1200",
+      "PYTHONNOUSERSITE": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "7200",
+      "PYTHONHASHSEED": "42",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "vllm:",
+      "MODEL_PREFIX": "kimik31pro",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "dspark",
+      "RUNNER_TYPE": "mi355x-amds",
+      "TP": "8",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "PRIMARY_METRIC": "p90_interactivity",
+      "SECONDARY_METRIC": "output_throughput",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HOME": "/root/.cache/huggingface"
+     },
+     "concurrency": 1,
+     "num_prompts": 320,
+     "num_prompts_profile": 50,
+     "bench_timeout": 7200,
+     "bench_script": "/workspace/Arbor/packs/agentx-kimik31pro-c1/validator/bench_agentx.sh",
+     "correctness_script": "/workspace/Arbor/packs/agentx-kimik31pro-c1/validator/correctness.sh",
+     "baseline_script": "/workspace/Arbor/packs/agentx-kimik31pro-c1/validator/baseline.sh",
+     "workspace_root": "/opt/runtime-venv/lib/python3.12/site-packages/vllm",
+     "_workspace_root_note": "VERIFIED 2026-11-13 by docker exec inspection: python3 -c 'import vllm,os; print(os.path.dirname(vllm.__file__))' -> /opt/runtime-venv/lib/python3.12/site-packages/vllm (NOT /usr/local/lib/..., which was copied wrongly from the dsv41 config).",
+     "editable_packages": [],
+     "_editable_packages_note": "EMPTY, VERIFIED 2026-11-13: this image ships vllm (vllm-0.0.0+mum.f5926fb) and aiter (amd_aiter-0.1.0) as plain installed dist-info packages, not editable git checkouts -- there is no /workspace/vllm or /workspace/aiter source tree to patch. A framework/kernel-tier campaign iteration that wants to edit vllm or aiter source needs to set up an editable install first (clone the matching source, pip install -e); that is NOT done yet and is a real gap, not a config bug.",
+     "session_root": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full",
+     "target": {
+      "_status": "MEASURED on this node (crsuse2-m2m-v3-113, job 280523), 2026-11-13, 1 replay (REPEATS=1, relative_spread 0.0 -- not a real noise floor, just the only sample we have). No external bar imported.",
+      "p90_interactivity": 130.203,
+      "mean_interactivity": 213.709,
+      "output_throughput": 12.243,
+      "requests_successful": 204,
+      "requests_total": 216,
+      "_note": "No early-exit target set for Day 0 -- there is no precedent for an achievable multiplier on this model/node yet. The gate for each iteration is objective.measurement.threshold_rel in pack.yaml (relative to this baseline), not this dict."
+     },
+     "directives": [
+      "Day 0: there is no landed-work list and no roadmap for this model. Read pack.yaml's description for the concrete, verified starting context from PR #4806's recipe comments before guessing at the hot path.",
+      "Run validator/baseline.sh once before the first iteration. Nothing is comparable until that record exists.",
+      "p90_interactivity is the gated PRIMARY axis per the project's own target -- but it is a noisy metric (see pack.yaml). Use baseline.sh's relative_spread as the real noise floor before calling anything a KEEP.",
+      "Probe in eval/ before touching the server. A probe is minutes; a full server restart + bench is not.",
+      "This node (crsuse2-m2m-v3-113, job 280523) previously ran a different campaign (musespark-c16-tput). Its containers, caches and GPUs must be left alone; only touch what this campaign created."
+     ],
+     "time_budget_minutes": 979,
+     "bench_repeats": 1,
+     "_note": "Kimi-K3.1-Pro MXFP4, MI355X, vLLM TP8/DCP8, real DSpark draft, AgentX at CONCURRENCY 1. Built from InferenceX PR #4806's agentic.yaml (base + override_gpu_kv_c1), 2026-11-13. Validator scripts copied unmodified from packs/agentx-dsv41-6/validator (they are model-agnostic, env-var driven).",
+     "baseline_record": "experiments/kimik31pro-c1/runs/before/baseline.json"
+    },
+    "host": "crsuse2-m2m-v3-113",
+    "claude_version": "",
+    "model": "Claude-Opus-5.5",
+    "host_writable_session_root": true,
+    "claude_sessions": [
+     {
+      "session_id": "c7664529-9d2b-4e24-addb-cc64acaf4e2d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/c7664529-9d2b-4e24-addb-cc64acaf4e2d.jsonl",
+      "first_seen": "2026-11-13T07:52:48.116113+00:00",
+      "last_seen": "2026-11-13T07:55:43.512716+00:00"
+     },
+     {
+      "session_id": "9228a39f-ccf7-45bb-9be8-32df49f2ea54",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/9228a39f-ccf7-45bb-9be8-32df49f2ea54.jsonl",
+      "first_seen": "2026-11-13T07:56:15.029668+00:00",
+      "last_seen": "2026-11-13T08:01:30.843681+00:00"
+     },
+     {
+      "session_id": "8b0db109-6d05-4cf2-ae97-85e3d6a8dd6b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8b0db109-6d05-4cf2-ae97-85e3d6a8dd6b.jsonl",
+      "first_seen": "2026-11-13T08:01:35.700236+00:00",
+      "last_seen": "2026-11-13T08:02:00.074115+00:00"
+     },
+     {
+      "session_id": "a41d5825-df09-4674-b191-82d71725ea99",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/a41d5825-df09-4674-b191-82d71725ea99.jsonl",
+      "first_seen": "2026-11-13T08:13:39.431962+00:00",
+      "last_seen": "2026-11-13T08:26:17.528522+00:00"
+     },
+     {
+      "session_id": "93d9fcc3-c641-474a-8172-89aa784d06f2",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/93d9fcc3-c641-474a-8172-89aa784d06f2.jsonl",
+      "first_seen": "2026-11-13T08:26:44.350097+00:00",
+      "last_seen": "2026-11-13T08:30:45.713581+00:00"
+     },
+     {
+      "session_id": "68e4129a-c527-4fb7-ac80-f24004b7bb88",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/68e4129a-c527-4fb7-ac80-f24004b7bb88.jsonl",
+      "first_seen": "2026-11-13T08:30:51.776804+00:00",
+      "last_seen": "2026-11-13T08:31:19.790349+00:00"
+     },
+     {
+      "session_id": "bb6f3e01-49dd-472d-a3f4-30e48de8d7e4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/bb6f3e01-49dd-472d-a3f4-30e48de8d7e4.jsonl",
+      "first_seen": "2026-11-13T08:42:55.141003+00:00",
+      "last_seen": "2026-11-13T08:45:05.690120+00:00"
+     },
+     {
+      "session_id": "a5a01a30-128d-48c2-9cf7-072958750be7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/a5a01a30-128d-48c2-9cf7-072958750be7.jsonl",
+      "first_seen": "2026-11-13T08:45:22.260362+00:00",
+      "last_seen": "2026-11-13T08:45:25.339555+00:00"
+     },
+     {
+      "session_id": "c56b1763-5a2d-4ff0-b2a6-4c111e17f9ff",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/c56b1763-5a2d-4ff0-b2a6-4c111e17f9ff.jsonl",
+      "first_seen": "2026-11-13T08:45:59.125975+00:00",
+      "last_seen": "2026-11-13T08:47:12.565538+00:00"
+     },
+     {
+      "session_id": "79de58ee-5e97-493d-8410-bf3654f49fef",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/79de58ee-5e97-493d-8410-bf3654f49fef.jsonl",
+      "first_seen": "2026-11-13T08:47:56.657170+00:00",
+      "last_seen": "2026-11-13T08:48:15.745518+00:00"
+     },
+     {
+      "session_id": "dc754ec8-1b05-402a-882d-5c2eb1862da1",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/dc754ec8-1b05-402a-882d-5c2eb1862da1.jsonl",
+      "first_seen": "2026-11-13T08:48:43.340477+00:00",
+      "last_seen": "2026-11-13T08:52:16.882150+00:00"
+     },
+     {
+      "session_id": "50534667-aeba-4657-915c-b52965bc8d9d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/50534667-aeba-4657-915c-b52965bc8d9d.jsonl",
+      "first_seen": "2026-11-13T08:52:23.514947+00:00",
+      "last_seen": "2026-11-13T09:44:13.218565+00:00"
+     },
+     {
+      "session_id": "a9e16352-e2f9-4448-8198-3927d3edce5f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/a9e16352-e2f9-4448-8198-3927d3edce5f.jsonl",
+      "first_seen": "2026-11-13T09:56:22.988605+00:00",
+      "last_seen": "2026-11-13T09:56:31.956006+00:00"
+     },
+     {
+      "session_id": "5f824134-5d01-41cc-9c34-cbbfd31800bb",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/5f824134-5d01-41cc-9c34-cbbfd31800bb.jsonl",
+      "first_seen": "2026-11-13T10:18:08.209656+00:00",
+      "last_seen": "2026-11-13T10:23:59.948367+00:00"
+     },
+     {
+      "session_id": "24853b88-fbcf-46f0-98d9-617b9553d638",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/24853b88-fbcf-46f0-98d9-617b9553d638.jsonl",
+      "first_seen": "2026-11-13T10:24:17.790668+00:00",
+      "last_seen": "2026-11-13T10:24:20.550840+00:00"
+     },
+     {
+      "session_id": "af9ab56a-0325-44fb-89e7-8f419dca92b3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/af9ab56a-0325-44fb-89e7-8f419dca92b3.jsonl",
+      "first_seen": "2026-11-13T10:24:57.521286+00:00",
+      "last_seen": "2026-11-13T10:35:13.165430+00:00"
+     },
+     {
+      "session_id": "2b85d69c-04c0-483d-8bb5-7fb5483156e6",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/2b85d69c-04c0-483d-8bb5-7fb5483156e6.jsonl",
+      "first_seen": "2026-11-13T10:35:36.306709+00:00",
+      "last_seen": "2026-11-13T10:35:39.540501+00:00"
+     },
+     {
+      "session_id": "8520e778-5ffc-4d51-acaf-79152eea5f95",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8520e778-5ffc-4d51-acaf-79152eea5f95.jsonl",
+      "first_seen": "2026-11-13T10:36:17.123248+00:00",
+      "last_seen": "2026-11-13T12:02:45.564851+00:00"
+     },
+     {
+      "session_id": "712ffa5b-b384-4b6a-abbb-bde397a41349",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/712ffa5b-b384-4b6a-abbb-bde397a41349.jsonl",
+      "first_seen": "2026-11-13T12:03:22.801465+00:00",
+      "last_seen": "2026-11-13T12:06:54.676847+00:00"
+     },
+     {
+      "session_id": "02ce6e75-d420-424a-bc22-cc274a9d9743",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/02ce6e75-d420-424a-bc22-cc274a9d9743.jsonl",
+      "first_seen": "2026-11-13T12:06:59.737388+00:00",
+      "last_seen": "2026-11-13T12:07:22.547471+00:00"
+     },
+     {
+      "session_id": "a632fb8f-5924-46c8-bdd2-c7c93bf1c494",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/a632fb8f-5924-46c8-bdd2-c7c93bf1c494.jsonl",
+      "first_seen": "2026-11-13T12:18:52.954707+00:00",
+      "last_seen": "2026-11-13T12:20:03.100048+00:00"
+     },
+     {
+      "session_id": "30870060-d48f-49b0-be37-57067bfaf1a4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/30870060-d48f-49b0-be37-57067bfaf1a4.jsonl",
+      "first_seen": "2026-11-13T12:20:31.415143+00:00",
+      "last_seen": "2026-11-13T12:23:53.903000+00:00"
+     },
+     {
+      "session_id": "7c11a2b5-69f6-47d2-b4f5-c68f2dcc88e7",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/7c11a2b5-69f6-47d2-b4f5-c68f2dcc88e7.jsonl",
+      "first_seen": "2026-11-13T12:24:02.556208+00:00",
+      "last_seen": "2026-11-13T12:24:25.508382+00:00"
+     },
+     {
+      "session_id": "a7dfcc55-6dea-4ab5-8f40-37d49741407d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/a7dfcc55-6dea-4ab5-8f40-37d49741407d.jsonl",
+      "first_seen": "2026-11-13T12:35:55.769745+00:00",
+      "last_seen": "2026-11-13T12:36:54.551216+00:00"
+     },
+     {
+      "session_id": "8439fb71-888a-43b2-bf17-f3ceed466491",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8439fb71-888a-43b2-bf17-f3ceed466491.jsonl",
+      "first_seen": "2026-11-13T12:37:23.963144+00:00",
+      "last_seen": "2026-11-13T12:40:58.442203+00:00"
+     },
+     {
+      "session_id": "0fca7af1-2151-4eb5-87c3-0e99cc170d20",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/0fca7af1-2151-4eb5-87c3-0e99cc170d20.jsonl",
+      "first_seen": "2026-11-13T12:41:03.862457+00:00",
+      "last_seen": "2026-11-13T12:41:32.278240+00:00"
+     },
+     {
+      "session_id": "ac8c53a8-a448-418b-af34-18a4dc5471c0",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/ac8c53a8-a448-418b-af34-18a4dc5471c0.jsonl",
+      "first_seen": "2026-11-13T12:57:50.273506+00:00",
+      "last_seen": "2026-11-13T12:58:45.057404+00:00"
+     },
+     {
+      "session_id": "7418857a-16c8-47cc-a8c2-67cf5016e1ce",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/7418857a-16c8-47cc-a8c2-67cf5016e1ce.jsonl",
+      "first_seen": "2026-11-13T12:59:12.524952+00:00",
+      "last_seen": "2026-11-13T13:02:38.912174+00:00"
+     },
+     {
+      "session_id": "ef32be29-e4e9-4374-a085-66b1e22fcfb3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/ef32be29-e4e9-4374-a085-66b1e22fcfb3.jsonl",
+      "first_seen": "2026-11-13T13:02:44.978020+00:00",
+      "last_seen": "2026-11-13T13:03:08.975843+00:00"
+     },
+     {
+      "session_id": "b4b9d0b3-55f5-4a40-8949-b73fd12afd31",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/b4b9d0b3-55f5-4a40-8949-b73fd12afd31.jsonl",
+      "first_seen": "2026-11-13T13:17:29.518323+00:00",
+      "last_seen": "2026-11-13T13:18:08.923273+00:00"
+     },
+     {
+      "session_id": "0328905f-4ba6-46a5-8c67-6428d9748f1b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/0328905f-4ba6-46a5-8c67-6428d9748f1b.jsonl",
+      "first_seen": "2026-11-13T13:18:33.050043+00:00",
+      "last_seen": "2026-11-13T13:21:54.173468+00:00"
+     },
+     {
+      "session_id": "37133852-7ab4-4fa8-bc75-926c759aa2fb",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/37133852-7ab4-4fa8-bc75-926c759aa2fb.jsonl",
+      "first_seen": "2026-11-13T13:21:59.458014+00:00",
+      "last_seen": "2026-11-13T13:22:23.540345+00:00"
+     },
+     {
+      "session_id": "93be3421-dc76-4af6-a43c-6945c0f54cc4",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/93be3421-dc76-4af6-a43c-6945c0f54cc4.jsonl",
+      "first_seen": "2026-11-13T13:55:10.075106+00:00",
+      "last_seen": "2026-11-13T13:56:03.444326+00:00"
+     },
+     {
+      "session_id": "8f565576-5b54-46df-9011-4e440716f02d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8f565576-5b54-46df-9011-4e440716f02d.jsonl",
+      "first_seen": "2026-11-13T13:56:30.125699+00:00",
+      "last_seen": "2026-11-13T13:59:57.632178+00:00"
+     },
+     {
+      "session_id": "85fa9ac9-111f-4973-b355-2fe02c03059e",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/85fa9ac9-111f-4973-b355-2fe02c03059e.jsonl",
+      "first_seen": "2026-11-13T14:00:04.079310+00:00",
+      "last_seen": "2026-11-13T15:02:03.411160+00:00"
+     },
+     {
+      "session_id": "491d6fbc-03eb-4658-9100-99f4cd4d4a3f",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/491d6fbc-03eb-4658-9100-99f4cd4d4a3f.jsonl",
+      "first_seen": "2026-11-13T15:03:04.191934+00:00",
+      "last_seen": "2026-11-13T15:05:53.163070+00:00"
+     },
+     {
+      "session_id": "6f13bd73-2609-442e-a02f-39d7b9a8a26b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/6f13bd73-2609-442e-a02f-39d7b9a8a26b.jsonl",
+      "first_seen": "2026-11-13T15:06:10.740758+00:00",
+      "last_seen": "2026-11-13T15:06:13.669657+00:00"
+     },
+     {
+      "session_id": "3b67d9a9-9302-414a-8dd7-d2ee4ae94b36",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/3b67d9a9-9302-414a-8dd7-d2ee4ae94b36.jsonl",
+      "first_seen": "2026-11-13T15:06:47.019358+00:00",
+      "last_seen": "2026-11-13T15:33:57.323544+00:00"
+     },
+     {
+      "session_id": "87b4d6d1-db65-4c8e-984b-1405e443a44d",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/87b4d6d1-db65-4c8e-984b-1405e443a44d.jsonl",
+      "first_seen": "2026-11-13T15:34:33.113270+00:00",
+      "last_seen": "2026-11-13T15:38:03.184243+00:00"
+     },
+     {
+      "session_id": "d329373d-311b-47a5-a3c7-9dd73eaf1786",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/d329373d-311b-47a5-a3c7-9dd73eaf1786.jsonl",
+      "first_seen": "2026-11-13T15:38:07.502178+00:00",
+      "last_seen": "2026-11-13T16:40:18.118488+00:00"
+     },
+     {
+      "session_id": "c6699ba0-ba6f-4894-8c1d-0791fdfadca3",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/c6699ba0-ba6f-4894-8c1d-0791fdfadca3.jsonl",
+      "first_seen": "2026-11-13T16:40:28.026745+00:00",
+      "last_seen": "2026-11-13T16:40:32.298221+00:00"
+     },
+     {
+      "session_id": "418a1ec0-8a47-4fb5-87d3-c90b5cdb460b",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/418a1ec0-8a47-4fb5-87d3-c90b5cdb460b.jsonl",
+      "first_seen": "2026-11-13T16:41:30.877256+00:00",
+      "last_seen": "2026-11-13T17:50:49.307776+00:00"
+     },
+     {
+      "session_id": "8692aa35-696d-4987-be44-5a5623af2c1a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8692aa35-696d-4987-be44-5a5623af2c1a.jsonl",
+      "first_seen": "2026-11-13T17:51:29.769511+00:00",
+      "last_seen": "2026-11-13T17:56:23.734715+00:00"
+     },
+     {
+      "session_id": "123ef889-49a9-41b4-a099-e5367c67d95c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/123ef889-49a9-41b4-a099-e5367c67d95c.jsonl",
+      "first_seen": "2026-11-13T17:56:29.136184+00:00",
+      "last_seen": "2026-11-13T18:58:25.090905+00:00"
+     },
+     {
+      "session_id": "6f9cab44-2185-4d3e-91cf-9d74a629443c",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/6f9cab44-2185-4d3e-91cf-9d74a629443c.jsonl",
+      "first_seen": "2026-11-13T18:58:33.899091+00:00",
+      "last_seen": "2026-11-13T18:58:39.724476+00:00"
+     },
+     {
+      "session_id": "1ba9ab53-7794-416b-bc1a-7cc1e03f960a",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/1ba9ab53-7794-416b-bc1a-7cc1e03f960a.jsonl",
+      "first_seen": "2026-11-13T19:04:07.158775+00:00",
+      "last_seen": "2026-11-13T19:15:26.050949+00:00"
+     },
+     {
+      "session_id": "64cd806e-7301-4dc3-813e-aa3176eb4770",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/64cd806e-7301-4dc3-813e-aa3176eb4770.jsonl",
+      "first_seen": "2026-11-13T19:16:09.868589+00:00",
+      "last_seen": "2026-11-13T19:19:37.886030+00:00"
+     },
+     {
+      "session_id": "c47893d1-053c-4fec-9465-d5c5e11723bd",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/c47893d1-053c-4fec-9465-d5c5e11723bd.jsonl",
+      "first_seen": "2026-11-13T19:19:48.207438+00:00",
+      "last_seen": "2026-11-13T20:21:36.151383+00:00"
+     },
+     {
+      "session_id": "8985c230-2d19-45fa-812f-0f2e26a8d581",
+      "transcript_path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/agent_home/.claude/projects/-shared-nfs-qiangh-mywork-arbor-kimik31pro-codebases-Arbor/8985c230-2d19-45fa-812f-0f2e26a8d581.jsonl",
+      "first_seen": "2026-11-13T20:21:44.670136+00:00",
+      "last_seen": "2026-11-13T20:21:48.665428+00:00"
+     }
+    ],
+    "thinking_capture": "withheld-by-model"
+   }
+  }
+ ],
+ "before_baseline": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json",
+   "sha256": "50f730bf3621644979c4fe33d2caee4d26cb4a2e72b11ca98514229a581e94ed",
+   "size": 1255,
+   "mtime": 1794556105,
+   "json": {
+    "campaign": "dsv41flash-agentx-c1",
+    "concurrency": 1,
+    "metric": "p90_interactivity",
+    "unit": "tok/s/user",
+    "runs": [
+     130.20273
+    ],
+    "mean": 130.203,
+    "median": 130.203,
+    "weakest": 130.203,
+    "best": 130.203,
+    "relative_spread": 0.0,
+    "min_credible_gain": 1.01,
+    "requests_successful": [
+     204
+    ],
+    "requests_total": [
+     216
+    ],
+    "kv_cache_hit_rate": [
+     0.95577
+    ],
+    "raw": [
+     {
+      "output_throughput": 12.24335,
+      "total_throughput_per_gpu": 1491.23597,
+      "conc": 1,
+      "tp": 8,
+      "ep": 1,
+      "scenario_type": "agentic-coding",
+      "spec_decoding": "dspark",
+      "kv_offloading": "none",
+      "num_requests_successful": 204,
+      "num_requests_total": 216,
+      "kv_cache_hit_rate": 0.95577,
+      "mean_interactivity": 213.70906,
+      "p50_interactivity": 208.86406,
+      "p90_interactivity": 130.20273,
+      "p90_tpot_s": 0.00768,
+      "p90_ttft_s": 6.01335,
+      "agg_json_path": "/tmp/tmp.fPKidNO2KN/agg_kimik31pro_vllm_agentx_conc1.json",
+      "status": "ok"
+     }
+    ],
+    "secondary_metric": "output_throughput",
+    "runs_secondary": [
+     12.24335
+    ],
+    "mean_secondary": 12.243,
+    "weakest_secondary": 12.243,
+    "best_secondary": 12.243,
+    "relative_spread_secondary": 0.0
+   }
+  }
+ ],
+ "after_baseline": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/baseline.json",
+   "sha256": "81464b8fcb3366d7a4f48a6f8494d78dc064ece9e14abaad64fc1e0bb2e572b1",
+   "size": 1252,
+   "mtime": 1794607573,
+   "json": {
+    "campaign": "kimik31pro-agentx-c1",
+    "concurrency": 1,
+    "metric": "p90_interactivity",
+    "unit": "tok/s/user",
+    "runs": [
+     129.91161
+    ],
+    "mean": 129.912,
+    "median": 129.912,
+    "weakest": 129.912,
+    "best": 129.912,
+    "relative_spread": 0.0,
+    "min_credible_gain": 1.01,
+    "requests_successful": [
+     206
+    ],
+    "requests_total": [
+     218
+    ],
+    "kv_cache_hit_rate": [
+     0.95645
+    ],
+    "raw": [
+     {
+      "output_throughput": 12.27472,
+      "total_throughput_per_gpu": 1505.0942,
+      "conc": 1,
+      "tp": 8,
+      "ep": 1,
+      "scenario_type": "agentic-coding",
+      "spec_decoding": "dspark",
+      "kv_offloading": "none",
+      "num_requests_successful": 206,
+      "num_requests_total": 218,
+      "kv_cache_hit_rate": 0.95645,
+      "mean_interactivity": 211.09209,
+      "p50_interactivity": 198.30247,
+      "p90_interactivity": 129.91161,
+      "p90_tpot_s": 0.0077,
+      "p90_ttft_s": 5.8669,
+      "agg_json_path": "/tmp/tmp.EsxhoyeuQL/agg_kimik31pro_vllm_agentx_conc1.json",
+      "status": "ok"
+     }
+    ],
+    "secondary_metric": "output_throughput",
+    "runs_secondary": [
+     12.27472
+    ],
+    "mean_secondary": 12.275,
+    "weakest_secondary": 12.275,
+    "best_secondary": 12.275,
+    "relative_spread_secondary": 0.0
+   }
+  }
+ ],
+ "after_gsm8k_results": [
+  {
+   "path": "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/gsm8k/results_2026-11-14T00-01-19.896064.json",
+   "sha256": "0fc60e24c35af7df88de1eb2da4a94403c74037019223812dfe11843ef897340",
+   "size": 10265,
+   "mtime": 1794614479,
+   "json": {
+    "results": {
+     "gsm8k": {
+      "alias": "gsm8k",
+      "exact_match,strict-match": 0.9772554965883244,
+      "exact_match_stderr,strict-match": 0.004106620637749687,
+      "exact_match,flexible-extract": 0.976497346474602,
+      "exact_match_stderr,flexible-extract": 0.004172883669643977
+     }
+    },
+    "group_subtasks": {
+     "gsm8k": []
+    },
+    "configs": {
+     "gsm8k": {
+      "task": "gsm8k",
+      "tag": [
+       "math_word_problems"
+      ],
+      "dataset_path": "openai/gsm8k",
+      "dataset_name": "main",
+      "training_split": "train",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Question: {{question}}\nEnd your response with the answer on the last line, formatted as: #### [number]\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 5,
+      "metric_list": [
+       {
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "higher_is_better": true,
+        "ignore_case": true,
+        "ignore_punctuation": false,
+        "regexes_to_ignore": [
+         ",",
+         "\\$",
+         "(?s).*#### ",
+         "\\.$"
+        ]
+       }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+       "until": [
+        "</s>",
+        "<|im_end|>"
+       ],
+       "do_sample": false,
+       "temperature": 0,
+       "max_tokens": 2048,
+       "top_p": 1
+      },
+      "repeats": 1,
+      "filter_list": [
+       {
+        "name": "strict-match",
+        "filter": [
+         {
+          "function": "regex",
+          "group_select": -1,
+          "regex_pattern": "#### (\\-?[0-9\\.\\,]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       },
+       {
+        "name": "flexible-extract",
+        "filter": [
+         {
+          "function": "regex",
+          "group_select": -1,
+          "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+         },
+         {
+          "function": "take_first"
+         }
+        ]
+       }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+       "version": 3.0,
+       "model": "moonshotai/Kimi-K3.1-Pro",
+       "base_url": "http://0.0.0.0:8893/v1/chat/completions",
+       "api_key": "<dropped>",
+       "eos_string": "</s>",
+       "max_retries": 5,
+       "num_concurrent": 16,
+       "timeout": 1800,
+       "tokenized_requests": false,
+       "max_length": 4096
+      }
+     }
+    },
+    "versions": {
+     "gsm8k": 3.0
+    },
+    "n-shot": {
+     "gsm8k": 5
+    },
+    "higher_is_better": {
+     "gsm8k": {
+      "exact_match": true
+     }
+    },
+    "n-samples": {
+     "gsm8k": {
+      "original": 1319,
+      "effective": 1319
+     }
+    },
+    "config": {
+     "model": "local-chat-completions",
+     "model_args": {
+      "model": "moonshotai/Kimi-K3.1-Pro",
+      "base_url": "http://0.0.0.0:8893/v1/chat/completions",
+      "api_key": "<dropped>",
+      "eos_string": "</s>",
+      "max_retries": 5,
+      "num_concurrent": 16,
+      "timeout": 1800,
+      "tokenized_requests": false,
+      "max_length": 4096
+     },
+     "batch_size": 1,
+     "batch_sizes": [],
+     "device": "cuda:0",
+     "use_cache": null,
+     "limit": null,
+     "bootstrap_iters": 100000,
+     "gen_kwargs": {
+      "max_tokens": 2048,
+      "temperature": 0,
+      "top_p": 1
+     },
+     "random_seed": 0,
+     "numpy_seed": 1234,
+     "torch_seed": 1234,
+     "fewshot_seed": 1234
+    },
+    "git_hash": null,
+    "date": 1794612231.5694706,
+    "pretty_env_info": "PyTorch version: 2.13.0+rocm10.0.0\nIs debug build: False\nCUDA used to build PyTorch: N/A\nROCM used to build PyTorch: 7.15.26333\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nClang version: 23.0.0git (https://github.com/ROCm/llvm-project.git 8f497e0992fb7513f7f78a6f6b6f1056c375e961)\nCMake version: version 3.31.10\nLibc version: glibc-2.35\n\nPython version: 3.12.16 (main, Oct 26 2026, 15:28:01) [GCC 11.4.0] (64-bit runtime)\nPython platform: Linux-6.8.12-322.crusoe.amd64-g275dd86317a7-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: AMD Instinct MI355X (gfx950:sramecc+:xnack-)\nNvidia driver version: Could not collect\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: 7.16.26361\nMIOpen runtime version: 3.6.0\nIs XNNPACK available: False\nCaching allocator config: N/A\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  236\nOn-line CPU(s) list:                     0-235\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9575F 64-Core Processor\nCPU family:                              26\nModel:                                   2\nThread(s) per core:                      2\nCore(s) per socket:                      59\nSocket(s):                               2\nStepping:                                1\nBogoMIPS:                                6600.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 clzero xsaveerptr wbnoinvd arat npt lbrv nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload vgif vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid movdiri movdir64b fsrm avx512_vp2intersect flush_l1d arch_capabilities srso_user_kernel_no\nVirtualization:                          AMD-V\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               5.5 MiB (118 instances)\nL1i cache:                               3.7 MiB (118 instances)\nL2 cache:                                118 MiB (118 instances)\nL3 cache:                                512 MiB (16 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-117\nNUMA node1 CPU(s):                       118-235\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n\nVersions of relevant libraries:\n[pip3] amd-torch-device-gfx1100==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx1101==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx110x==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx1150==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx1151==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx115x==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx12-0==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx1200==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx1201==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx90a==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx942==2.13.0+rocm10.0.0\n[pip3] amd-torch-device-gfx950==2.13.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1100==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1101==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1150==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1151==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1200==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx1201==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx90a==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx942==0.28.0+rocm10.0.0\n[pip3] amd-torchvision-device-gfx950==0.28.0+rocm10.0.0\n[pip3] conch-triton-kernels==1.2.1\n[pip3] numpy==2.2.6\n[pip3] onnx==1.22.0\n[pip3] onnx-ir==1.1.0\n[pip3] onnxscript==0.7.2\n[pip3] onnxslim==0.1.98\n[pip3] torch==2.13.0+rocm10.0.0\n[pip3] torch_c_dlpack_ext==0.1.5\n[pip3] torchaudio==2.11.0+rocm10.0.0\n[pip3] torchcodec==0.10.0a0\n[pip3] torchvision==0.28.0+rocm10.0.0\n[pip3] triton==3.8.0+git669b31ac\n[conda] Could not collect",
+    "transformers_version": "5.21.1",
+    "lm_eval_version": "0.4.9.2",
+    "upper_git_hash": null,
+    "task_hashes": {
+     "gsm8k": "817087e7f46d87196e8aec44051fb73ec5731beec1ba4bd3750c178d25237d60"
+    },
+    "model_source": "local-chat-completions",
+    "model_name": "",
+    "model_name_sanitized": "",
+    "system_instruction": null,
+    "system_instruction_sha": null,
+    "fewshot_as_multiturn": true,
+    "chat_template": "",
+    "chat_template_sha": null,
+    "start_time": 1359815.560367578,
+    "end_time": 1362065.153301207,
+    "total_evaluation_time_seconds": "2249.592933629174"
+   }
+  }
+ ]
+}

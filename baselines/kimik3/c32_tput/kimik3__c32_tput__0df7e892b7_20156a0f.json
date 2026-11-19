@@ -123,7 +123,7 @@
     "gsm8k_log": null
   },
   "provenance": {
-    "_source": "experiments/arbor-ab-system/2026-11-19_0432_port/summary_only_cells.yaml#kimik3/c32_tput (values copied from the cited lines)",
+    "_source": "evidence/2026-11-19_0432_port/summary_only_cells.yaml#kimik3/c32_tput (values copied from the cited lines)",
     "metrics.total_tput_tps": "derived: tput_per_gpu x host.num_gpus (AgentX per-GPU definition)"
   },
   "superseded_by": null,

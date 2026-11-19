@@ -161,7 +161,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/gsm8k.log#summary lines"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/kimik3__c1_p90.json sha256=7592d7361b23874bc1865d3adc018b336cf24cdb5309889b701ed506f80aea8a",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/kimik3__c1_p90.json sha256=2feee4b362bc823ddbd27dac09017b838911e1c0528d30437d83a2eb41cbd212",
     "_source": "Kimi K3 - C1 P90 (standalone, final)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/agg_kimik3_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/kimik3-c1-p90-sa/runs/before/agg_kimik3_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",

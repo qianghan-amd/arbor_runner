@@ -138,7 +138,7 @@
     "gsm8k_log": null
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/kimik31pro__c1_p90.json sha256=5c5d539bff5f1cbc8b7d880fefa2ba445f256a130825257aa7438add0ca922b8",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/kimik31pro__c1_p90.json sha256=4797da711df89028b147938a8bc976fe8bd7a254b7c7923b39ade65e4e9cc66c",
     "_source": "Kimi K3.1 Pro - C1 P90 (separate campaign)",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json#raw[0].total_throughput_per_gpu",
     "metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json#raw[0].p50_interactivity",

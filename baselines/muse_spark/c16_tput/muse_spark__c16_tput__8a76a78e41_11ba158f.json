@@ -130,7 +130,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/gsm8k.log#summary lines"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/muse_spark__c16_tput.json sha256=46427b9b70f615d3584694662e27f0d661fc0731e105f3e639a93a3a42501ea5",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/muse_spark__c16_tput.json sha256=23a3e8cdf45feba2b1a7947ae8911604a69e0dba37db2c9b281ded17f8bc7719",
     "_source": "musespark-c16-ab (2026-11-18 Crusoe re-measure, pristine CI point vs Campaign3 kept tree); not in model_summary.md, replaces conductor-only Campaign1 (INTENT Q7)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/agg_musespark_sglang_agentx_conc16.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/musespark-c16-ab/runs/before/agg_musespark_sglang_agentx_conc16.json#request_metrics.throughput.per_gpu.total_tput_tps",

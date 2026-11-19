@@ -150,7 +150,7 @@
     "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/gsm8k.log#summary lines"
   },
   "provenance": {
-    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/glm52__c1_p90.json sha256=05c631c5747265807c44040a33e47fd301b3d67aec85293412a3cf1775f8cb55",
+    "_raw_bundle": "evidence/2026-11-19_0432_port/raw/glm52__c1_p90.json sha256=21a384665a22d907623ac42d4414bb449e20879f7f782c6031e3c3150b32f837",
     "_source": "GLM-5.2 - C1 P90 (standalone, final)",
     "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/agg_glm5.2_sglang_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
     "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/glm52-c1-p90-sa/runs/before/agg_glm5.2_sglang_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",
