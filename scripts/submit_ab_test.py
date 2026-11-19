@@ -24,7 +24,7 @@ from pathlib import Path
 
 import yaml
 
-from arbor_ab import REPO_ROOT, baseline, config, render
+from arbor_ab import REPO_ROOT, baseline, config, remote, render
 
 RUNNER_FILES = ("runner.sh", "serve_cmd.py", "fetch.py")
 
@@ -145,15 +145,19 @@ def main():
     subprocess.run(["ssh", "-o", "BatchMode=yes", host, "mkdir", "-p", remote_run], check=True)
     subprocess.run(["scp", "-q", "-r", str(tar), *[str(run_dir / c["cell"]) for c in cells], f"{host}:{remote_run}/"], check=True)
     shutil.rmtree(tmp)
-    script = "set -e\n" + "".join(f"sbatch --parsable {c['remote_dir']}/job.sbatch\n" for c in cells)
-    p = subprocess.run(["ssh", "-o", "BatchMode=yes", host, "bash", "-s"], input=script, capture_output=True, text=True)
-    ids = [ln.split(";")[0] for ln in p.stdout.split()]
+    # what landed on the cluster must be LF before anything is queued
+    check = "".join(f"if grep -l $'\\r' {c['remote_dir']}/*.sh {c['remote_dir']}/*.env {c['remote_dir']}/*.sbatch; "
+                    f"then echo 'CRLF in uploaded files' >&2; exit 3; fi\n" for c in cells)
+    script = "set -e\n" + check + "".join(f"sbatch --parsable {c['remote_dir']}/job.sbatch\n" for c in cells)
+    p = remote.run_bash(host, script, timeout=120)
+    out, err = p.stdout.decode(errors="replace"), p.stderr.decode(errors="replace")
+    ids = [ln.split(";")[0] for ln in out.split()]
     for c, j in zip(cells, ids):
         c["job_id"] = j
     run_config["submitted"] = p.returncode == 0 and len(ids) == len(cells)
-    run_config["submit_stderr"] = p.stderr[-2000:] or None
+    run_config["submit_stderr"] = err[-2000:] or None
     rc_path.write_text(json.dumps(run_config, indent=2) + "\n", encoding="utf-8", newline="\n")
-    print(f"submitted: {[(c['cell'], c['job_id']) for c in cells]}" if run_config["submitted"] else f"sbatch failed: {p.stderr}")
+    print(f"submitted: {[(c['cell'], c['job_id']) for c in cells]}" if run_config["submitted"] else f"sbatch failed: {err}")
     return 0 if run_config["submitted"] else 1
 
 
