@@ -5,11 +5,10 @@ import tarfile
 from arbor_ab import REPO_ROOT, baseline, render
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
-import poll_status  # noqa: E402
 import submit_ab_test  # noqa: E402
 
 SITE = {"node_local_root": "/mnt/nl/u/arbor_ab", "shared_hf_hub": "/shared_nfs/huggingface/hub", "infx_clone": "/x/InferenceX",
-        "gateway_env": None, "partition": "amd-spur-v2", "qos": "amd-hyperloom-qos", "account": None}
+        "gateway_env": None}
 
 
 def test_check_runnable_on_real_records():
@@ -40,9 +39,6 @@ def test_cell_env_and_sbatch():
     assert render.container_name("20261119-075610_f7abce97_smoke", "dsv41flash", "c1_p90") == "ab_20261119-075610_dsv41flash_c1_p90"
     assert render.job_minutes("smoke", 0, r) == 150
     assert render.job_minutes("full", 1440, r) == 60 + 30 + 2 * 150 + 1440 + 60
-    s = render.sbatch("/w/c", "ab-x", 1890, SITE)
-    assert "#SBATCH --time=1-07:30:00" in s and "#SBATCH --exclusive" in s and "--account" not in s
-    assert s.rstrip().endswith("exec bash /w/c/runner.sh /w/c")
 
 
 def _tar(files):
@@ -62,9 +58,3 @@ def test_archive_crlf_refuses_shell_only(tmp_path):
                         "x.py": b"print(1)\r\n", "ok.sh": b"echo ok\n", "bin.dat": b"\0\r\n"}).read())
     bad, other = submit_ab_test.archive_crlf_files(p)
     assert sorted(bad) == ["run.sh", "tool"] and sorted(other) == ["doc.md", "x.py"]
-
-
-def test_to_minutes():
-    assert poll_status.to_minutes("1-07:30:00") == 1890
-    assert poll_status.to_minutes("02:30:00") == 150
-    assert poll_status.to_minutes("45:00") == 45

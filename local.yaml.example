@@ -1,4 +1,6 @@
 # Copy to local.yaml (gitignored) and fill in. Never put a token or password in this file.
+# Execution backend (docs/design.md 5.1): crusoe_slurm is the only one. The ssh/remote/slurm keys below are its settings.
+backend: crusoe_slurm
 ssh:
   login_host: crs5                # ~/.ssh/config alias of the Crusoe login node (submit, squeue, file reads)
   github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves that host)

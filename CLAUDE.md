@@ -11,6 +11,8 @@ new class of problem in the repo (script, config, check, doc), never as a one-of
   origin main, pytest, the repo venv). Add a rule there, with a reason in the commit, instead of re-approving the same
   prompt; machine-only choices go in the untracked `.claude/settings.local.json`.
 - Tests: `python -m pytest -q tests` before every commit.
+- Commit locally as you go; push at checkpoints only (end of a phase, or a stop-and-report point), not after every
+  commit (user decision 2026-11-19).
 - Bytes are LF everywhere (`.gitattributes`). Provenance sha256 values in `baselines/` are over LF files. Python on
   Windows: pass `newline="\n"` to `write_text`/`open`. `git archive`: `-c core.autocrlf=false -c core.eol=lf`.
 - Edit code that contains backslash escapes with an editor tool, not a shell heredoc or `sed`: the shell layer turned
@@ -25,6 +27,9 @@ new class of problem in the repo (script, config, check, doc), never as a one-of
 - Never soften a finding: a failed gate, a client mismatch, a moved tag stay in the record as measured.
 
 ## Cluster (Crusoe)
+
+- Scheduler/cluster specifics live only in `scripts/arbor_ab/backends/<name>.py` (design.md 5.1). The orchestrator,
+  baselines, gate and report call the `Backend` contract; `scripts/runner/runner.sh` stays backend-neutral.
 
 - The scheduler is **Spur** (Slurm-compatible, `spur 0.15.0`): check a flag with `--help` before use; `sacct` has no
   `-X`/`-P`.

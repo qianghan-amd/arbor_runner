@@ -27,10 +27,11 @@ agents (only for full runs with a campaign).
 cat runs/requests/smoke-dsv41-c1.yaml
 # 2. render it locally and look at runs/<run_id>/ first
 .venv/bin/python scripts/submit_ab_test.py --request runs/requests/smoke-dsv41-c1.yaml --dry-run
-# 3. submit (one Slurm job per cell; the script exits at once)
+# 3. submit (one job per cell through the execution backend, design.md 5.1; the script exits at once)
 .venv/bin/python scripts/submit_ab_test.py --request runs/requests/smoke-dsv41-c1.yaml
-# 4. poll as often as you like (fetches small result files; --raise-time lifts a running job's time limit)
-.venv/bin/python scripts/poll_status.py --run-dir runs/<run_id>
+# 4. poll as often as you like (fetches the small result files)
+.venv/bin/python scripts/poll_status.py --run-dir runs/<run_id>      # --extend: more wall time if needed
+# (stop a run: .venv/bin/python scripts/cancel_run.py --run-dir runs/<run_id>)
 # 5. report: runs/<run_id>/<cell>/comparison.json (verdict stays null: a person reads it)
 .venv/bin/python scripts/generate_report.py --run-dir runs/<run_id>
 ```
@@ -50,7 +51,7 @@ Baselines: `scripts/verify_baseline.py` (two-layer gate against the InferenceX C
 | `schemas/baseline.schema.json` | the baseline record (v2) |
 | `baselines/<model>/<target>/` | one record per epoch + `latest.json` |
 | `evidence/` | raw ground truth the baselines were built from |
-| `scripts/` | CLIs; `scripts/arbor_ab/` the shared library; `scripts/runner/` what runs on the node |
+| `scripts/` | CLIs; `scripts/arbor_ab/` the shared library; `scripts/arbor_ab/backends/` where jobs run (design.md 5.1); `scripts/runner/` what runs on the node |
 | `runs/requests/` | request files (tracked); `runs/<run_id>/` local run dirs (ignored; commit results with `git add -f`) |
 | `skills/` | the two campaign skills the runner was built from |
 

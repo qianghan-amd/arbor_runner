@@ -132,11 +132,20 @@ A web UI is an explicit future layer on top of the same entry point, not designe
 
 ## 5. Scheduling
 
-**Reuses Slurm directly — no custom scheduler.** Every selected `(model, target)` campaign becomes its own `sbatch` submission; Slurm's own QOS/queueing handles contention. Node count is an open parameter, decided later.
+**Reuses the cluster's scheduler directly — no custom scheduler.** Every selected `(model, target)` cell becomes its own job; the scheduler's own QOS/queueing handles contention. Node count is an open parameter, decided later. On Crusoe the scheduler is Spur, a Slurm-compatible implementation (verified 2026-11-19); QOS `amd-agentx-qos` (user decision 2026-11-19).
+
+### 5.1 Execution backend boundary (extensibility point, added 2026-11-19)
+
+How and where a cell's job runs is isolated behind one small contract, so another cluster's scheduler, or a "run on this host, no scheduler" mode for local/dev use, can be added without touching the orchestrator, the baselines, the gate or the report.
+
+- **The payload is backend-neutral.** `scripts/runner/runner.sh` runs every phase of one cell (fetch, prepare, before, campaign, after) on one node with bash, docker and GPUs. It reads only its cell directory (`cell.env`, `arbor_config.json`), so it runs the same under any backend.
+- **The contract** (`scripts/arbor_ab/backends/__init__.py`, class `Backend`): `site()` (paths the payload needs on the node), `run_dir(run_id)`, `job_script(cell_dir, name, minutes)`, `stage(...)` (make the files visible to the job), `submit(cells)`, `status(cells)` (normalized states `PENDING RUNNING SUCCEEDED FAILED CANCELLED UNKNOWN` + the scheduler's own word), `fetch(cell, dir)` (the small result files), `cancel(cell)`, optional `extend(cell, status)`, and `check()` / `setup()` for `check_setup.py` / `setup_remote.py`.
+- **Backends:** `crusoe_slurm` (short ssh calls to the login node, Spur commands, `/shared_nfs` work root) is the only one. A new backend is one file, `backends/<name>.py` defining `BACKEND`, selected by `backend: <name>` in `local.yaml`. Each run records its backend in `run_config.json`; `poll_status.py` / `cancel_run.py` refuse a run made with another backend.
+- **What stays outside:** the GitHub relay and the registry checks (baseline verification, §3.4–3.5) are not job execution; they use their own relay host.
 
 ## 6. Orchestrator placement (and why)
 
-**Never runs on the Crusoe login node.** Crusoe's login node periodically kills long-running tmux/herdr-style processes (CPU-policing policy, observed repeatedly this session). The orchestrator runs anywhere else — a developer's machine today, a lightweight always-on service or CI runner later — and only talks to Crusoe via short-lived SSH calls (submit, `squeue`, fetch a result file). No long-lived foreground/background process ever sits on the login node.
+**Never runs on the Crusoe login node.** Crusoe's login node periodically kills long-running tmux/herdr-style processes (CPU-policing policy, observed repeatedly this session). The orchestrator runs anywhere else — a developer's machine today, a lightweight always-on service or CI runner later — and only talks to Crusoe via short-lived SSH calls (submit, `squeue`, fetch a result file). No long-lived foreground/background process ever sits on the login node. (These ssh calls are the `crusoe_slurm` backend's, §5.1; the orchestrator itself is cluster-agnostic.)
 
 **Extensibility requirement:** `submit_ab_test.py`, `poll_status.py`, and `generate_report.py` are each **stateless, idempotent CLI tools** with no hidden state beyond what's in `runs/` on disk. `submit_ab_test.py` writes `run_config.json` and exits immediately — it does not block waiting for results. This means *who* calls these scripts (a human, cron, a future CI pipeline step) is fully pluggable without changing the scripts themselves.
 
@@ -180,13 +189,18 @@ arbor-ab/
 ├── skills/
 │   ├── arbor-ci-campaign-setup/   # vendored, not a global-skill dependency
 │   └── crusoe-arbor-run/          # vendored
-├── scripts/
-│   ├── ab_template.sh             # deterministic before/after/GSM8K runner
-│   ├── make_baseline.py           # CI archaeology or user-custom intake -> 2-layer verify -> store + mirror image
+├── scripts/                       # (as built, 2026-11-19)
+│   ├── runner/                    # the backend-neutral job payload: runner.sh (all phases of one cell),
+│   │                              #   serve_cmd.py (launch rendered by the Arbor under test), fetch.py
+│   ├── arbor_ab/                  # shared library: baseline, gate, agentx field map, render, report, ...
+│   │   └── backends/              # execution-backend boundary (§5.1): __init__.py (contract), crusoe_slurm.py
+│   ├── make_baseline.py           # (P7, not built yet) CI archaeology or user-custom intake -> verify -> store + mirror
+│   ├── verify_baseline.py         # two-layer gate (§3.4) against the CI's bmk artifacts
 │   ├── check_baseline_health.py   # ci_artifact_available / image_available / local_mirror_exists
-│   ├── check_setup.py             # connectivity-only smoke test
-│   ├── submit_ab_test.py          # reads a request file -> submits sbatch jobs -> exits
-│   ├── poll_status.py             # squeue -> run status, callable repeatedly
+│   ├── setup_dev.sh, setup_remote.py, check_setup.py   # day-1 setup and its check (§10)
+│   ├── submit_ab_test.py          # reads a request file -> one job per cell through the backend -> exits
+│   ├── poll_status.py             # job + runner status, fetches result files; callable repeatedly
+│   ├── cancel_run.py              # stops a run's own jobs
 │   └── generate_report.py         # builds comparison.json (incl. verdict placeholder)
 ├── baselines/<model>/<target>/<epoch_id>.json (+ latest pointer)   # ships pre-populated with the 12 known baselines
 ├── runs/
@@ -216,6 +230,8 @@ No web UI in the MVP. No raw trajectory/transcript/hook-trace data is stored in 
 - **No commit de-duplication.** Submitting the same commit twice just creates two `run_id`s; no "already tested, reuse result" check.
 - **No image-mirror storage retention policy.** Mirrored images accumulate per epoch with no cleanup defined yet.
 - **Baseline creation is inherently human-paced** (agent-assisted CI archaeology) — this is a boundary, not a bug (see §7); only the PR-test path is meant to become fully unattended.
+- **One execution backend.** Only `crusoe_slurm` exists (§5.1). The natural second one is a no-scheduler `local` backend (run `runner.sh` directly on a GPU host, for dev use); another cluster gets its own file. Neither is built.
+- **A job that dies between `campaign` and `after` loses the kept tree** (the runner removes its container at exit); re-running `after` then needs the Arbor session restored (`python3 -m arbor restore`). The runner resumes cleanly at every other phase boundary.
 
 ## 12. Open parameters (deliberately not decided yet)
 

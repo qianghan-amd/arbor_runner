@@ -113,25 +113,8 @@ def env_file(env):
 
 
 def job_minutes(mode, minutes, record):
-    """Wall clock to ask Slurm for. Fetch <= 60, prepare <= 30, one measurement <= 75 + GSM8K (vLLM C1: 70)."""
+    """Wall clock the cell's job needs (the backend turns it into its own time limit). Fetch <= 60, prepare <= 30, one measurement <= 75 + GSM8K (vLLM C1: 70)."""
     meas = 75 + (75 if record["host"]["framework"] == "vllm" else 10)
     if mode == "smoke":
         return 60 + 30 + 30 + 30
     return 60 + 30 + 2 * meas + minutes + 60
-
-
-def sbatch(cell_dir, job_name, minutes_wall, site):
-    hh, mm = divmod(minutes_wall, 60)
-    dd, hh = divmod(hh, 24)
-    lines = ["#!/bin/bash",
-             f"#SBATCH --job-name={job_name}",
-             f"#SBATCH --partition={site['partition']}",
-             f"#SBATCH --qos={site['qos']}"]
-    if site.get("account"):
-        lines.append(f"#SBATCH --account={site['account']}")
-    lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive",
-              f"#SBATCH --time={dd}-{hh:02d}:{mm:02d}:00",
-              f"#SBATCH --output={cell_dir}/logs/slurm-%j.out",
-              "# One PR-test cell: the frozen runner does every phase; nothing else runs on the node.",
-              f"exec bash {cell_dir}/runner.sh {cell_dir}", ""]
-    return "\n".join(lines)
