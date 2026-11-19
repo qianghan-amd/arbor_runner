@@ -12,3 +12,13 @@ hold_job:
   max_time: "3-00:00:00"        # raise with scontrol once RUNNING
   ctrl_poll_s: 20
 # Orchestrator rule (design.md section 6): only short-lived ssh calls to the login node; nothing long-lived runs there.
+scheduler: spur                 # Slurm-compatible "spur 0.15.0": sacct has no -X/-P (verified 2026-11-19, sacct --help)
+qos_default: amd-agentx-qos     # user decision 2026-11-19: agentx (account amd-agentx), burst as fallback
+account_default: amd-agentx
+# LLM gateway for Arbor's agents (format of the earlier campaigns' gateway.env, verified 2026-11-19). The subscription
+# key itself is never here: scripts/setup_remote.py writes it into <work_root>/secrets/gateway.env (mode 600).
+llm_gateway:
+  base_url: https://llm-api.amd.com/Anthropic
+  key_header: Ocp-Apim-Subscription-Key
+  api_key_placeholder: dummy
+  models: { default: Claude-Opus-5.5, opus: Claude-Opus-5.5, sonnet: Claude-Sonnet-4.6, haiku: Claude-Haiku-4.5 }

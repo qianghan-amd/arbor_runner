@@ -36,6 +36,32 @@ def check_github(relay):
     return f"token on {relay} works (not shown); " + ", ".join(f"{r} 200" for r in codes)
 
 
+REMOTE_LAYOUT = r'''
+import os, shutil, stat
+def mode(p):
+    return oct(stat.S_IMODE(os.stat(p).st_mode)) if os.path.exists(p) else None
+wr, gw = PAYLOAD["work_root"], PAYLOAD["gateway_env"]
+print(json.dumps({"work_root": mode(wr), "runs": mode(wr + "/runs"), "secrets": mode(wr + "/secrets"),
+                  "gateway_env": mode(gw) if gw else "not configured",
+                  "commands": {c: bool(shutil.which(c)) for c in ("sbatch", "squeue", "sacct", "scontrol")}}))
+'''
+
+
+def check_remote_layout(local):
+    """What scripts/setup_remote.py sets up: dir modes, the gateway env file's mode (its contents are never read)."""
+    from arbor_ab import remote
+    r = remote.run_python(local["ssh"]["login_host"], REMOTE_LAYOUT,
+                          {"work_root": local["remote"]["work_root"], "gateway_env": local["arbor"].get("gateway_env")})
+    want = {"work_root": "0o755", "runs": "0o755", "secrets": "0o700"}
+    bad = [f"{k} is {r[k]} (want {v})" for k, v in want.items() if r[k] != v]
+    if r["gateway_env"] not in ("0o600", "not configured"):
+        bad.append(f"gateway_env is {r['gateway_env']} (want 0o600; run setup_remote.py --key-file)")
+    bad += [f"{c} not on PATH" for c, ok in r["commands"].items() if not ok]
+    if bad:
+        raise RuntimeError("; ".join(bad) + " -> run scripts/setup_remote.py")
+    return f"work_root 755, runs 755, secrets 700, gateway_env {r['gateway_env']}, sbatch/squeue/sacct/scontrol present"
+
+
 def check_skills():
     missing = [s for s in SKILLS if not (REPO_ROOT / "skills" / s / "SKILL.md").exists()]
     if missing:
@@ -57,8 +83,8 @@ def check_baselines():
 
 def main():
     results, local = [], None
-    steps = [("local.yaml", None), ("python deps", None), ("ssh login host", None), ("github via relay", None),
-             ("vendored skills", check_skills), ("baselines", check_baselines)]
+    steps = [("local.yaml", None), ("python deps", None), ("ssh login host", None), ("remote layout", None),
+             ("github via relay", None), ("vendored skills", check_skills), ("baselines", check_baselines)]
     for name, fn in steps:
         try:
             if name == "local.yaml":
@@ -68,6 +94,8 @@ def main():
                 msg = "yaml, jsonschema importable"
             elif name == "ssh login host":
                 msg = check_ssh(local["ssh"]["login_host"])
+            elif name == "remote layout":
+                msg = check_remote_layout(local)
             elif name == "github via relay":
                 msg = check_github(local["ssh"]["github_relay_host"])
             else:

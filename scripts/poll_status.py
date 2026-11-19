@@ -31,9 +31,12 @@ if ids:
     for line in run(["squeue", "-h", "-j", ",".join(ids), "-o", "%i|%T|%M|%l|%N|%R"]).splitlines():
         i, st, el, lim, node, reason = line.split("|", 5)
         sq[i] = {"state": st, "elapsed": el, "time_limit": lim, "node": node, "reason": reason}
-    for line in run(["sacct", "-X", "-n", "-P", "-j", ",".join(ids), "-o", "JobID,State,Elapsed,Timelimit,NodeList,ExitCode"]).splitlines():
-        i, st, el, lim, node, code = line.split("|", 5)
-        sq.setdefault(i, {"state": st, "elapsed": el, "time_limit": lim, "node": node, "exit_code": code})
+    # Spur's sacct (config/cluster/crusoe.yaml scheduler: spur) has no -X/-P: fixed fields, whitespace-separated
+    for line in run(["sacct", "-n", "-j", ",".join(ids), "-o", "JobID,State,Elapsed,Timelimit,NodeList,ExitCode"]).splitlines():
+        f = line.split()
+        if len(f) >= 2 and f[0] in ids:
+            sq.setdefault(f[0], {"state": f[1], "elapsed": f[2] if len(f) > 2 else "", "time_limit": f[3] if len(f) > 3 else "",
+                                 "node": f[4] if len(f) > 4 else "", "exit_code": f[5] if len(f) > 5 else ""})
 out = []
 for c in cells:
     d = c["remote_dir"]
