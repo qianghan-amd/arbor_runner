@@ -32,7 +32,9 @@ new class of problem in the repo (script, config, check, doc), never as a one-of
   baselines, gate and report call the `Backend` contract; `scripts/runner/runner.sh` stays backend-neutral.
 
 - The scheduler is **Spur** (Slurm-compatible, `spur 0.15.0`): check a flag with `--help` before use; `sacct` has no
-  `-X`/`-P`.
+  `-X`/`-P`; stderr is not merged into `--output` (it goes to `$HOME/spur-<job>.out` unless `--error` is set).
+- Network steps on the node (image pull, downloads, pip) fail transiently (Docker Hub CDN 504 seen): wrap them in the
+  runner's `retry`.
 - Login shells are tcsh: send multi-step commands as a script on stdin (`ssh host bash -s`, `ssh host python3 -`).
 - Nothing long-lived on the login node (design.md section 6); node work runs only inside the cell's Slurm job.
 - Remote work root (`local.yaml remote.work_root`) stays outside any git repo: Arbor's agents load every `CLAUDE.md`
