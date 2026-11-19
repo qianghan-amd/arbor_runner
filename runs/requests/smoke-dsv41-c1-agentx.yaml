@@ -1,0 +1,8 @@
+# P5 smoke #7 on agentx (user 2026-11-19: burst blocked by the per-user submit limit, taken by their own grove jobs).
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: smoke
+# crsuse2-m2m-v3-177: another user's vLLM server container was left running on it (GPU 95% VRAM; smoke job 299476)
+exclude_nodes: [crsuse2-m2m-v3-177]
+backend_options: { qos: amd-agentx-qos, account: amd-agentx }
+targets:
+  - { model: dsv41flash, target: c1_p90 }
