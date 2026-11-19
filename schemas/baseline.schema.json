@@ -66,7 +66,8 @@
         "ci_artifact_available": { "type": ["boolean", "null"] },
         "image_available": { "type": ["boolean", "null"] },
         "local_mirror_exists": { "type": ["boolean", "null"] },
-        "checked_at": { "type": ["string", "null"] }
+        "checked_at": { "type": ["string", "null"] },
+        "detail": { "type": ["string", "null"], "description": "Result of the last check in words (optional)" }
       }
     },
     "verification": {

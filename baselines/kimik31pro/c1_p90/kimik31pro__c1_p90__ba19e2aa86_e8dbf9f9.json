@@ -77,10 +77,11 @@
   },
   "epoch_id": "kimik31pro__c1_p90__ba19e2aa86_e8dbf9f9",
   "health": {
-    "ci_artifact_available": null,
-    "image_available": null,
-    "local_mirror_exists": null,
-    "checked_at": null
+    "ci_artifact_available": true,
+    "image_available": true,
+    "local_mirror_exists": false,
+    "checked_at": "2026-11-19T05:36:49Z",
+    "detail": "bmk tp8 conc1: 2 live, earliest expiry 2027-02-03; tag resolves; digest resolves; TAG MOVED: now sha256:5f47cc1004d9 != pinned sha256:4930e37b377b; no mirror recorded"
   },
   "verification": {
     "ci_verified": false,
