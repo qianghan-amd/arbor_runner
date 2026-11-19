@@ -1,0 +1,11 @@
+{
+  "phase": "smoke",
+  "started_at": "2026-11-19T19:58:39Z",
+  "ended_at": "2026-11-19T20:35:54Z",
+  "tree": "821bf9fe417e16ee245d8f4ff09c5cdfd6c6bdf7 baseline: framework as shipped in vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+  "launch_from": "pristine",
+  "node": "crsuse2-m2m-v3-020",
+  "job": "299608",
+  "duration_s": 600,
+  "gsm8k_questions": 200
+}

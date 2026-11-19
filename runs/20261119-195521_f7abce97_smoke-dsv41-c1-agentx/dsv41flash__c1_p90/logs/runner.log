@@ -1,0 +1,22 @@
+[runner] 2026-11-19T19:55:39Z fetch: start on crsuse2-m2m-v3-020 job=299608
+[runner] 2026-11-19T19:55:39Z weights: {  "weights_source": "downloaded",  "path": "/mnt/m2m_nobackup/qiangh/arbor_ab/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",  "model_id": "deepse
+[runner] 2026-11-19T19:55:39Z fetch: done
+[runner] 2026-11-19T19:55:39Z prepare: start on crsuse2-m2m-v3-020 job=299608
+[runner] 2026-11-19T19:55:39Z highest GPU VRAM% before start: 0
+[runner] 2026-11-19T19:56:31Z image vllm/vllm-openai-rocm:deepseekv41-flash-0909 @ sha256:2a1ade1954e64230fcd63d9f840bdfca68e357c550cdb48bd2e56d52e55a3430
+[runner] 2026-11-19T19:57:02Z Arbor f7abce978dc2d3f98f3efc6102cf4bb37983b537 at /shared_nfs/qiangh/arbor_ab/runs/20261119-195521_f7abce97_smoke-dsv41-c1-agentx/dsv41flash__c1_p90/arbor
+[runner] 2026-11-19T19:57:18Z submodule utils/aiperf @ 754356e9a3 extracted
+[runner] 2026-11-19T19:57:18Z InferenceX client 86699be610d5e6916eb6eb5b0c4a74676e8fb53d at /shared_nfs/qiangh/arbor_ab/runs/20261119-195521_f7abce97_smoke-dsv41-c1-agentx/dsv41flash__c1_p90/infx
+corpus offline load ok: 393
+[runner] 2026-11-19T19:58:38Z prepare: done
+[runner] 2026-11-19T19:58:38Z smoke: start on crsuse2-m2m-v3-020 job=299608
+[serve_cmd] pristine (no workspace config) launch: vllm, 23 flag words, 27 env vars
+[runner] 2026-11-19T20:07:58Z smoke: healthy after 559 s
+[runner] 2026-11-19T20:21:36Z smoke: AgentX rc=0 after 818 s
+[runner] AgentX status=ok total_throughput_per_gpu=3557.81072 e2e_norm_intvty_p90=15.17668 requests=24/35
+[runner] 2026-11-19T20:33:54Z smoke: GSM8K (200) after 738 s: 2026-11-19:20:22:04 INFO [_cli.run:375] Selected Tasks: [{'tag': ['math_word_problems'], 'task': 'gsm8k', 'dataset_path': 'openai/gsm8k', 'dataset_name': 'main', 'output_type': 'generate_until', 'trai
+[runner] 2026-11-19T20:35:54Z smoke: server group still alive after 120 s
+[runner] 2026-11-19T20:35:54Z smoke: server stopped
+[runner] 2026-11-19T20:35:54Z smoke: done
+[runner] 2026-11-19T20:35:54Z cell dsv41flash__c1_p90: all phases done
+[runner] 2026-11-19T20:35:58Z container ab_20261119-195521_dsv41flash_c1_p90 removed

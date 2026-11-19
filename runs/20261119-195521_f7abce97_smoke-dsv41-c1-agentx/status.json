@@ -1,0 +1,30 @@
+{
+  "run_id": "20261119-195521_f7abce97_smoke-dsv41-c1-agentx",
+  "backend": "crusoe_slurm",
+  "polled_at": "2026-11-19T20:38:58.124694+00:00",
+  "cells": [
+    {
+      "state": "SUCCEEDED",
+      "raw": "COMPLETED",
+      "node": "crsuse2-m2m-v3-020",
+      "elapsed": "00:40:21",
+      "time_limit": "02:30:00",
+      "reason": "",
+      "runner_state": "done",
+      "phases_done": [
+        "fetch",
+        "prepare",
+        "smoke"
+      ],
+      "log_tail": [
+        "[runner] 2026-11-19T20:35:54Z smoke: server group still alive after 120 s",
+        "[runner] 2026-11-19T20:35:54Z smoke: server stopped",
+        "[runner] 2026-11-19T20:35:54Z smoke: done",
+        "[runner] 2026-11-19T20:35:54Z cell dsv41flash__c1_p90: all phases done",
+        "[runner] 2026-11-19T20:35:58Z container ab_20261119-195521_dsv41flash_c1_p90 removed"
+      ],
+      "cell": "dsv41flash__c1_p90",
+      "files_fetched": 17
+    }
+  ]
+}
