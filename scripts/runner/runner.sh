@@ -258,7 +258,7 @@ PY
         MODEL_NAME='$MODEL_NAME' CONCURRENCY=$CONC NUM_PROMPTS=$NUM_PROMPTS BENCH_OUTPUT=$cin/bench_output.json; \
         cd /tmp && bash /workspace/Arbor/packs/agentx/validator/bench_agentx.sh" > "$out/bench.log" 2>&1
     log "$TAG: AgentX rc=$? after $(( $(date +%s) - T1 )) s"
-    "$PY" - "$out" "$cin" <<'PY' || { log "$TAG: no AgentX aggregate"; return 1; }
+    "$PY" - "$out" "$cin" <<'PY' | tee -a "$LOGS/runner.log" || { log "$TAG: no AgentX aggregate"; return 1; }
 import json, shutil, sys
 out, cin = sys.argv[1:3]
 b = json.load(open(f"{out}/bench_output.json"))
