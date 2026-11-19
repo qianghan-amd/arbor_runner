@@ -49,6 +49,11 @@ def tolerance_pct(matrix, model, target):
     return float(t.get("tolerance_pct", matrix["default_tolerance_pct"]))
 
 
+def gsm8k_max_drop(matrix, model, target):
+    t = matrix["models"][model]["targets"][target]
+    return float(t.get("gsm8k_max_drop", matrix["default_gsm8k_max_drop"]))
+
+
 def load_cluster(name="crusoe"):
     return _load_yaml(CONFIG_DIR / "cluster" / f"{name}.yaml")
 

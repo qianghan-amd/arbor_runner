@@ -19,6 +19,10 @@ target_kinds:
 # Layer-2 numeric gate tolerance (INTENT.md Q3: +/-3% on the primary metric; per-cell override allowed).
 default_tolerance_pct: 3.0
 
+# PR-test report: GSM8K status = fail when a score drops by more than this (absolute; 0.01 = 1 point, about
+# 1.6 stderr at 1319 questions and accuracy 0.95). Proposal 2026-11-19, not finalized; per-cell override allowed.
+default_gsm8k_max_drop: 0.01
+
 models:
   muse_spark:
     status: active
