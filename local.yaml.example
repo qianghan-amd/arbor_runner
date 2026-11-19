@@ -1,10 +1,24 @@
 # Copy to local.yaml (gitignored) and fill in. Never put a token or password in this file.
 ssh:
-  login_host: crs5              # ~/.ssh/config alias of the Crusoe login node
+  login_host: crs5                # ~/.ssh/config alias of the Crusoe login node (submit, squeue, file reads)
   github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves that host)
 remote:
-  # Per-user work root on /shared_nfs. Keep it OUTSIDE this repo: agents load every CLAUDE.md above their cwd.
+  # Per-user work root on /shared_nfs. Keep it OUTSIDE any repo: agents load every CLAUDE.md above their cwd.
   work_root: /shared_nfs/<user>/arbor_ab
+  # A git clone of SemiAnalysisAI/InferenceX that contains each baseline's bench-client commit (read with git archive).
+  infx_clone: /shared_nfs/<user>/codebases/InferenceX
+  # Node-local NVMe cache for models and corpora (per user; reused across runs on the same node).
+  node_local_root: /mnt/m2m_nobackup/<user>/arbor_ab
+  # Shared HF hub: corpora with a matching revision are copied from here (classic layout, loads offline).
+  shared_hf_hub: /shared_nfs/huggingface/hub
+slurm:
+  qos: amd-hyperloom-qos          # or amd-agentx-qos (12 h cap: a 24 h campaign does not fit)
+  account: null
+arbor:
+  clone: ../Arbor                 # local clone of AMD-AGI/Arbor; submit_ab_test.py runs `git archive <commit>` in it
+  # File (on the cluster) with the LLM gateway variables for Arbor's agents (ANTHROPIC_BASE_URL + token).
+  # Only the campaign phase needs it; a smoke run does not. Its owner must agree to unattended use.
+  gateway_env: null
 github:
   # relay_gh_hosts: on github_relay_host, read the token from ~/.config/gh/hosts.yml into a shell variable (never echoed)
   token_source: relay_gh_hosts

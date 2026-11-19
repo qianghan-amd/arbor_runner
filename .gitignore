@@ -12,3 +12,6 @@ venv/
 
 # per-user config (ssh hosts, remote paths)
 local.yaml
+
+# Local run dirs (rendered files, fetched results): commit a run deliberately with `git add -f runs/<run_id>/...`
+runs/2*/
