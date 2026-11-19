@@ -168,6 +168,7 @@ prepare() {
             --shm-size 64g --ulimit memlock=-1 --ulimit stack=67108864 \
             -v "$HUB":/hf-hub -v "$INFX":/workspace/InferenceX -v "$ARBOR":/workspace/Arbor \
             -v "$CELL_DIR/sessions":/workspace/sessions -v "$CELL_DIR/mmap":/aiperf_mmap_cache -v "$CELL_DIR":/workspace/exp \
+            -v "$ARBOR/.claude/skills/profiler/ruppell":/ruppell:ro -e RUPPELL_BUILD=/root/ruppell-work/build \
             -e HF_HUB_CACHE=/hf-hub -e HF_HOME=/root/.cache/huggingface -e HF_HUB_OFFLINE=1 \
             "$IMAGE_TAG" -c "sleep infinity" >/dev/null || { log "docker run"; return 1; }
     fi
@@ -211,6 +212,17 @@ prepare() {
         >> "$LOGS/corpus_check.log" 2>&1
     tail -1 "$LOGS/corpus_check.log" | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' \
         || { log "corpus does not load offline after warm-up (see logs/corpus_check.log)"; return 1; }
+
+    if [ "$MODE" = full ]; then
+        # the stock agentx pack loads the `profiler` skill and requires a profile before any change (pack.yaml);
+        # build its vendored ruppell, as the earlier campaigns' prepare.sh did (not fatal: Arbor's check decides)
+        in_c '[ -f /ruppell/runtime/build.sh ] || { echo "no vendored ruppell at /ruppell"; exit 0; }
+              mkdir -p /root/ruppell-work && bash /ruppell/runtime/build.sh > /root/ruppell-work/build.log 2>&1 \
+              && bash /ruppell/runtime/build_cpu_ops.sh >> /root/ruppell-work/build.log 2>&1; echo "rc=$? (RUPPELL_BUILD=$RUPPELL_BUILD)"' \
+            2>&1 | tail -1 | sed 's/^/ruppell build: /' | while read -r l; do log "$l"; done
+        # fail fast: a start Arbor would refuse must not cost the 2+ h of the `before` measurement first
+        ( campaign_env && arbor_check ) || { log "arbor check refuses this campaign (see campaign_check.json)"; return 1; }
+    fi
     return 0
 }
 
@@ -314,17 +326,27 @@ PY
 }
 
 # ---- campaign: Arbor under test, unattended (design.md section 7) ---------------------------------------------------
-campaign() {
+campaign_env() {   # what Arbor's driver and agents run with (the crusoe-arbor-run skill, section 2)
     [ -n "$GATEWAY_ENV" ] && [ -f "$GATEWAY_ENV" ] || { log "no LLM gateway env file configured (local.yaml arbor.gateway_env)"; return 1; }
     export HOME=$CELL_DIR/agent_home              # pins ~/.arbor/settings.env and the agents' ~/.claude
+    # the config lives in the cell dir, outside the Arbor tree: without ARBOR_ROOT, Arbor looks for
+    # <config dir>/packs/agentx and refuses the start (arbor/cli/iterate.py _find_arbor_root; seen in a P6 preview)
+    export ARBOR_ROOT=$ARBOR
     mkdir -p "$HOME/.claude" && printf '{"env": {"BASH_DEFAULT_TIMEOUT_MS": "7200000", "BASH_MAX_TIMEOUT_MS": "7200000"}}\n' > "$HOME/.claude/settings.json"
     export BASH_DEFAULT_TIMEOUT_MS=7200000 BASH_MAX_TIMEOUT_MS=7200000
     set -a; . "$GATEWAY_ENV"; set +a             # variables only; never echoed, never written into a container
     unset ROCR_VISIBLE_DEVICES HIP_VISIBLE_DEVICES CUDA_VISIBLE_DEVICES
-    local flags=(--config "$CELL_DIR/arbor_config.json" --no-review-gate)   # unattended by design (design.md section 7)
-    [ -n "$OPT_OBJECTIVE" ] && flags+=(--opt-objective "$OPT_OBJECTIVE")
-    # Arbor's AGENTS.md: check with the same flags first; exit 2 refuses; nothing may wait; `lacks` must be empty
-    (cd "$ARBOR" && "$PY" -m arbor check "${flags[@]}") > "$CELL_DIR/campaign_check.json" 2> "$LOGS/campaign_check.err"
+}
+
+arbor_flags() {   # the same flags for `arbor check` and `arbor run` (Arbor's AGENTS.md, step 3)
+    ARBOR_FLAGS=(--config "$CELL_DIR/arbor_config.json" --no-review-gate)   # unattended by design (design.md section 7)
+    [ -n "$OPT_OBJECTIVE" ] && ARBOR_FLAGS+=(--opt-objective "$OPT_OBJECTIVE")
+    return 0
+}
+
+arbor_check() {   # Arbor's AGENTS.md: check first; exit 2 refuses; nothing may wait; `lacks` must be empty
+    arbor_flags
+    (cd "$ARBOR" && "$PY" -m arbor check "${ARBOR_FLAGS[@]}") > "$CELL_DIR/campaign_check.json" 2> "$LOGS/campaign_check.err"
     local rc=$?
     "$PY" - "$CELL_DIR/campaign_check.json" "$rc" "${ALLOW_LACKS:-0}" <<'PY' | tee -a "$LOGS/runner.log" || return 1
 import json, sys
@@ -336,7 +358,13 @@ for w in doc.get("warnings") or []:
     print(f"[runner] arbor check warning: {w}")
 sys.exit(0 if rc == 0 and doc.get("ok") and not doc.get("waits") and (allow_lacks or not lacks) else 1)
 PY
-    (cd "$ARBOR" && "$PY" -m arbor run "${flags[@]}" --cooldown 30) > "$LOGS/campaign.log" 2>&1
+}
+
+campaign() {
+    campaign_env || return 1
+    arbor_check || return 1                     # again, right before the start, with the run's own flags
+    arbor_flags
+    (cd "$ARBOR" && "$PY" -m arbor run "${ARBOR_FLAGS[@]}" --cooldown 30) > "$LOGS/campaign.log" 2>&1
     log "campaign: arbor run rc=$?"
     local ex=$CELL_DIR/sessions/full/exit.json
     [ -f "$ex" ] && cp "$ex" "$CELL_DIR/campaign_exit.json" && log "campaign exit: $(tr -d '\n' < "$ex" | cut -c1-300)"

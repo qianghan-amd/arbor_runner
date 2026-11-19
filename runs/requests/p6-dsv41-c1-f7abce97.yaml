@@ -1,0 +1,10 @@
+# P6: first real PR test. Arbor commit f7abce97 (AMD-AGI/Arbor main, 2026-11-18; loop/measurement attribution change).
+# Cell DSv4.1 Flash C1 P90 (user decision D3), 3 h campaign (D4). agentx: a ~8 h job is too long for burst's
+# preempt-cancel; burst is also blocked by the per-user submit limit (2026-11-19).
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: full
+campaign_minutes: 180
+exclude_nodes: [crsuse2-m2m-v3-177]
+backend_options: { qos: amd-agentx-qos, account: amd-agentx }
+targets:
+  - { model: dsv41flash, target: c1_p90 }
