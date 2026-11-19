@@ -129,10 +129,6 @@
   "superseded_by": null,
   "data_quality_warning": [
     {
-      "code": "ci_pin_candidate_only",
-      "detail": "CI commit 0df7e892b7 is a candidate from a cached CI job JSON, not a config _note pin (MS Open item 1); epoch fingerprint depends on it"
-    },
-    {
       "code": "measured_off_crusoe",
       "detail": "measured on conductor_355_2 (smci355-ccs-aus-m13-29); raw files unreachable from this run, ported from the campaign's own report in the local backup"
     },

@@ -193,10 +193,5 @@
     "measured.arbor_commit": "env.sh ARBOR_SHA (upstream release)"
   },
   "superseded_by": null,
-  "data_quality_warning": [
-    {
-      "code": "ci_pin_candidate_only",
-      "detail": "CI commit 0df7e892b7 is a candidate from a cached CI job JSON, not a config _note pin (model_summary.md Open item 1); epoch fingerprint depends on it"
-    }
-  ]
+  "data_quality_warning": null
 }
