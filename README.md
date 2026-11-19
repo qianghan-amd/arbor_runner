@@ -22,6 +22,14 @@ agents (only for full runs with a campaign).
 
 ## Use
 
+One command for the whole path (submit, wait, report):
+
+```bash
+.venv/bin/python scripts/run_pr_test.py --request runs/requests/<name>.yaml   # or --run-dir runs/<run_id> to follow one
+```
+
+The same steps one at a time:
+
 ```bash
 # 1. write a request (the commit is the PR's head commit)
 cat runs/requests/smoke-dsv41-c1.yaml
