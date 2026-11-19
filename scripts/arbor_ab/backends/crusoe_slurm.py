@@ -144,11 +144,17 @@ class CrusoeSlurm(Backend):
     def run_dir(self, run_id):
         return f"{self.work_root}/runs/{run_id}"
 
-    def job_script(self, cell_dir, job_name, minutes, exclude=()):
+    def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
+        """options (request backend_options): {qos, account} override local.yaml slurm.qos/account for this run."""
+        opts = options or {}
+        unknown = set(opts) - {"qos", "account"}
+        if unknown:
+            raise ValueError(f"crusoe_slurm backend_options: unknown {sorted(unknown)} (known: qos, account)")
+        qos, account = opts.get("qos", self.qos), opts.get("account", self.account)
         lines = ["#!/bin/bash", f"#SBATCH --job-name={job_name}", f"#SBATCH --partition={self.partition}",
-                 f"#SBATCH --qos={self.qos}"]
-        if self.account:
-            lines.append(f"#SBATCH --account={self.account}")
+                 f"#SBATCH --qos={qos}"]
+        if account:
+            lines.append(f"#SBATCH --account={account}")
         if exclude:
             lines.append(f"#SBATCH --exclude={','.join(exclude)}")
         lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", f"#SBATCH --time={slurm_time(minutes)}",

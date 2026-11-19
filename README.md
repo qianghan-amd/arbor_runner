@@ -48,6 +48,17 @@ names the node and the other containers (never touched). Resubmit with that node
 exclude_nodes: [crsuse2-m2m-v3-177]
 ```
 
+### Choosing the QOS per run (optional `backend_options`)
+
+Backend-specific settings for one run, recorded in `run_config.json`. For `crusoe_slurm`, `qos` and `account`
+override `local.yaml`:
+
+```yaml
+backend_options: { qos: amd-burst-qos, account: amd-hyperloom }
+```
+
+`amd-burst-qos` has a 24 h wall and preempt mode "cancel": fine for smoke runs and short campaigns.
+
 ### Pre-downloaded weights (optional)
 
 When the served model's weights already sit on the node or on shared storage, skip the download per target:

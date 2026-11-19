@@ -30,7 +30,7 @@ class FakeBackend(backends.Backend):
     def run_dir(self, run_id):
         return str(self.root / run_id)
 
-    def job_script(self, cell_dir, job_name, minutes, exclude=()):
+    def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
         return "job.sh", f"#!/bin/bash\nexec bash {cell_dir}/runner.sh {cell_dir}\n"
 
     def stage(self, run_id, local_run_dir, cells, extra_files):
@@ -108,6 +108,11 @@ def test_crusoe_job_script():
     name, text = b.job_script("/w/runs/r1/c", "ab-c", 1890)
     assert name == "job.sbatch" and "--exclude" not in text
     assert "#SBATCH --exclude=n1,n2" in b.job_script("/w/c", "ab-c", 150, exclude=("n1", "n2"))[1]
+    burst = b.job_script("/w/c", "ab-c", 150, options={"qos": "amd-burst-qos", "account": "amd-hyperloom"})[1]
+    assert "#SBATCH --qos=amd-burst-qos" in burst and "#SBATCH --account=amd-hyperloom" in burst
+    import pytest
+    with pytest.raises(ValueError, match="unknown"):
+        b.job_script("/w/c", "ab-c", 150, options={"partition": "x"})
     for line in ("#SBATCH --partition=amd-spur-v2", "#SBATCH --qos=amd-agentx-qos", "#SBATCH --account=amd-agentx",
                  "#SBATCH --exclusive", "#SBATCH --time=1-07:30:00", "#SBATCH --error=/w/runs/r1/c/logs/slurm-%j.err",
                  "exec bash /w/runs/r1/c/runner.sh /w/runs/r1/c 2>&1"):

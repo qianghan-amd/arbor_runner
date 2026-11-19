@@ -32,9 +32,10 @@ class Backend:
         """Where the run's files live, as the job sees them."""
         raise NotImplementedError
 
-    def job_script(self, cell_dir, job_name, minutes, exclude=()):
+    def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
         """(file name, text) of the wrapper that starts `bash <cell_dir>/runner.sh <cell_dir>`. exclude: hosts the job
-        must not land on (request `exclude_nodes`, e.g. a node another user left dirty); ignore if not applicable."""
+        must not land on (request `exclude_nodes`, e.g. a node another user left dirty); ignore if not applicable.
+        options: the request's `backend_options` (backend-specific, e.g. crusoe_slurm {qos, account})."""
         raise NotImplementedError
 
     def stage(self, run_id, local_run_dir, cells, extra_files):

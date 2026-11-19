@@ -3,5 +3,7 @@ commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
 mode: smoke
 # crsuse2-m2m-v3-177: another user's vLLM server container was left running on it (GPU 95% VRAM; smoke job 299476)
 exclude_nodes: [crsuse2-m2m-v3-177]
+# user 2026-11-19: run the testing on the burst QOS (agentx often at its 10-node group limit)
+backend_options: { qos: amd-burst-qos, account: amd-hyperloom }
 targets:
   - { model: dsv41flash, target: c1_p90 }
