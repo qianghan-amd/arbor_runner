@@ -156,10 +156,16 @@ prepare() {
           source /workspace/InferenceX/benchmarks/benchmark_lib.sh && install_agentic_deps && touch "$AIPERF_RUNTIME_DIR/.ready"' \
         > "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
 
-    # the corpus must load OFFLINE with the bench's own datasets (huggingface_hub 2.4 layouts did not: fixcorpus.sh)
-    in_c "cd /tmp && HF_HUB_CACHE=/hf-hub HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 /root/inferencex-agentic/bin/python -c \
+    # the corpus must load OFFLINE with the bench's own datasets (huggingface_hub 2.4 layouts did not: fixcorpus.sh).
+    # The bench's python is InferenceX's own $AIPERF_PYTHON (benchmark_lib.sh): its path differs between InferenceX
+    # versions (…/venv/bin/python at 86699be610; smoke job 299409 failed on a hardcoded older path).
+    in_c "cd /tmp && export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic \
+          && source /workspace/InferenceX/benchmarks/benchmark_lib.sh >/dev/null && echo \"aiperf python: \$AIPERF_PYTHON\" \
+          && HF_HUB_CACHE=/hf-hub HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \"\$AIPERF_PYTHON\" -c \
           \"from datasets import load_dataset; ds = load_dataset('$CORPUS_ID'); print('corpus offline load ok:', {k: len(v) for k, v in ds.items()})\"" \
-        2>&1 | tail -1 | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' || { log "corpus does not load offline"; return 1; }
+        > "$LOGS/corpus_check.log" 2>&1
+    tail -1 "$LOGS/corpus_check.log" | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' \
+        || { log "corpus does not load offline (see logs/corpus_check.log)"; return 1; }
     return 0
 }
 
