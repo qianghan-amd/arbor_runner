@@ -174,16 +174,25 @@ prepare() {
           source /workspace/InferenceX/benchmarks/benchmark_lib.sh && install_agentic_deps && touch "$AIPERF_RUNTIME_DIR/.ready"' \
         >> "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
 
-    # the corpus must load OFFLINE with the bench's own datasets (huggingface_hub 2.4 layouts did not: fixcorpus.sh).
-    # The bench's python is InferenceX's own $AIPERF_PYTHON (benchmark_lib.sh): its path differs between InferenceX
-    # versions (…/venv/bin/python at 86699be610; smoke job 299409 failed on a hardcoded older path).
-    in_c "cd /tmp && export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic \
-          && source /workspace/InferenceX/benchmarks/benchmark_lib.sh >/dev/null && echo \"aiperf python: \$AIPERF_PYTHON\" \
-          && HF_HUB_CACHE=/hf-hub HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \"\$AIPERF_PYTHON\" -c \
-          \"from datasets import load_dataset; ds = load_dataset('$CORPUS_ID'); print('corpus offline load ok:', {k: len(v) for k, v in ds.items()})\"" \
-        > "$LOGS/corpus_check.log" 2>&1
+    # The corpus as the bench loads it: aiperf's weka loader calls datasets.load_dataset(<corpus>, split="train") with
+    # the launch's HF_HUB_OFFLINE=1 (recorded server_env; Arbor gives the bench the server's env, claude_loop.py
+    # _bench_env). Offline, `datasets` needs its own cache of the dataset (smoke job 299461 failed exactly there; the
+    # baseline campaigns' patched bench had unset HF_HUB_OFFLINE instead, which would also let the server resolve
+    # repo ids online). So: warm the container's datasets cache ONLINE at the pinned full revision, then prove the
+    # OFFLINE load the bench will do. The bench's python is InferenceX's own $AIPERF_PYTHON (benchmark_lib.sh; its path
+    # differs between InferenceX versions: smoke job 299409).
+    local crev; crev=$(cat "$HUB/datasets--${CORPUS_ID//\//--}/refs/main" 2>/dev/null)
+    [ -n "$crev" ] || { log "no pinned corpus revision in $HUB"; return 1; }
+    local aienv="cd /tmp && export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic \
+          && source /workspace/InferenceX/benchmarks/benchmark_lib.sh >/dev/null && export HF_HUB_CACHE=/hf-hub"
+    retry 3 in_c "$aienv && echo \"aiperf python: \$AIPERF_PYTHON\" && HF_HUB_OFFLINE=0 \"\$AIPERF_PYTHON\" -c \
+          \"from datasets import load_dataset; d = load_dataset('$CORPUS_ID', revision='$crev', split='train'); print('corpus cache warmed:', len(d))\"" \
+        >> "$LOGS/corpus_check.log" 2>&1 || { log "corpus cache warm-up failed (see logs/corpus_check.log)"; return 1; }
+    in_c "$aienv && HF_HUB_OFFLINE=1 \"\$AIPERF_PYTHON\" -c \
+          \"from datasets import load_dataset; d = load_dataset('$CORPUS_ID', split='train'); print('corpus offline load ok:', len(d))\"" \
+        >> "$LOGS/corpus_check.log" 2>&1
     tail -1 "$LOGS/corpus_check.log" | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' \
-        || { log "corpus does not load offline (see logs/corpus_check.log)"; return 1; }
+        || { log "corpus does not load offline after warm-up (see logs/corpus_check.log)"; return 1; }
     return 0
 }
 
