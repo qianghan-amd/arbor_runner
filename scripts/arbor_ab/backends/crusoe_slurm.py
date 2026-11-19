@@ -144,11 +144,13 @@ class CrusoeSlurm(Backend):
     def run_dir(self, run_id):
         return f"{self.work_root}/runs/{run_id}"
 
-    def job_script(self, cell_dir, job_name, minutes):
+    def job_script(self, cell_dir, job_name, minutes, exclude=()):
         lines = ["#!/bin/bash", f"#SBATCH --job-name={job_name}", f"#SBATCH --partition={self.partition}",
                  f"#SBATCH --qos={self.qos}"]
         if self.account:
             lines.append(f"#SBATCH --account={self.account}")
+        if exclude:
+            lines.append(f"#SBATCH --exclude={','.join(exclude)}")
         lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", f"#SBATCH --time={slurm_time(minutes)}",
                   f"#SBATCH --output={cell_dir}/logs/slurm-%j.out",
                   # Spur does not merge stderr into --output: without --error it goes to $HOME/spur-<job>.out

@@ -39,6 +39,15 @@ cat runs/requests/smoke-dsv41-c1.yaml
 Modes: `smoke` (fetch, prepare, 600 s AgentX + 200 GSM8K questions; no campaign) and `full` (before, an Arbor campaign
 of `campaign_minutes`, after). Which cells can run: `render.check_runnable` (see `scripts/check_setup.py` output).
 
+### A node left dirty by someone else (optional `exclude_nodes`)
+
+The runner refuses a node where a GPU is already in use (a foreign server would disturb the measurement); its log
+names the node and the other containers (never touched). Resubmit with that node excluded:
+
+```yaml
+exclude_nodes: [crsuse2-m2m-v3-177]
+```
+
 ### Pre-downloaded weights (optional)
 
 When the served model's weights already sit on the node or on shared storage, skip the download per target:

@@ -103,9 +103,18 @@ archive_tree() {
 # ---- prepare: image, Arbor tree, InferenceX client, venv, container, framework tree, aiperf, corpus gate ----------------
 prepare() {
     docker info >/dev/null 2>&1 || { log "no working docker daemon"; return 1; }
-    docker ps --format '{{.Names}} {{.Image}}' | grep -v "^$CONTAINER " | sed 's/^/[runner] other container (not ours, not touched): /'
+    # A measurement needs a clean node: a foreign server competes for CPU, memory bandwidth and network even on GPUs
+    # we do not use. Other users' containers are listed, never touched (smoke job 299476 met a leftover vLLM server
+    # of another user on an exclusive node: resubmit with the request's exclude_nodes).
+    local c; while read -r c; do [ -n "$c" ] && log "other container on this node (not ours, not touched): $c"; done \
+        < <(docker ps --format '{{.Names}} {{.Image}}' | grep -v "^$CONTAINER ")
     local vram; vram=$(rocm-smi --showmemuse 2>/dev/null | awk '/VRAM%/ {print $NF}' | sort -n | tail -1)
-    log "highest GPU VRAM% before start: ${vram:-?}"; [ "${vram:-0}" -le 1 ] || { log "a GPU is in use"; return 1; }
+    log "highest GPU VRAM% before start: ${vram:-?}"
+    if [ "${vram:-0}" -gt 1 ]; then
+        log "per GPU: $(rocm-smi --showmemuse 2>/dev/null | awk '/VRAM%/ {printf "%s=%s%% ", $1, $NF}')"
+        log "node $(hostname -s) is not clean (a GPU is in use): resubmit with exclude_nodes: [$(hostname -s)]"
+        return 1
+    fi
 
     local repo=${IMAGE_TAG%:*}
     mkdir -p "$CELL_DIR/.docker_anon"   # anonymous pulls: no registry credential of anyone's is used

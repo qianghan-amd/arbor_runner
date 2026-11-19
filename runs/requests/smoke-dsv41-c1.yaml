@@ -1,5 +1,7 @@
-# P5 smoke (needs supervisor OK before a real submit): runner end to end on one cell, no campaign.
+# P5 smoke: runner end to end on one cell, no campaign.
 commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
 mode: smoke
+# crsuse2-m2m-v3-177: another user's vLLM server container was left running on it (GPU 95% VRAM; smoke job 299476)
+exclude_nodes: [crsuse2-m2m-v3-177]
 targets:
   - { model: dsv41flash, target: c1_p90 }

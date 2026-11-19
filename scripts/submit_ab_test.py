@@ -6,6 +6,7 @@ Request:
   commit: <Arbor commit SHA>             # identified by commit, not PR number (design.md section 4)
   mode: smoke | full                     # smoke = fetch + prepare + 600 s AgentX + 200 GSM8K questions, no campaign
   campaign_minutes: 180                  # full mode only (Arbor's time_budget_minutes)
+  exclude_nodes: [crsuse2-m2m-v3-177]    # optional: hosts not to use (e.g. left dirty by another user)
   targets:
     - { model: dsv41flash, target: c1_p90 }
     - { model: glm52, target: c1_p90, weights_path: /shared_nfs/<...>/snapshots/<rev> }   # optional, see README
@@ -115,7 +116,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         write(cdir / "cell.env", render.env_file(env))
         write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes), indent=2) + "\n")
         wall = render.job_minutes(mode, minutes, r)
-        jname, jtext = backend.job_script(rcdir, f"ab-{cell}"[:40], wall)
+        jname, jtext = backend.job_script(rcdir, f"ab-{cell}"[:40], wall, exclude=tuple(req.get("exclude_nodes") or ()))
         write(cdir / jname, jtext)
         for f in RUNNER_FILES:
             shutil.copyfile(REPO_ROOT / "scripts" / "runner" / f, cdir / f)
@@ -128,6 +129,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
                   "arbor_tar_sha256": tar_sha, "mode": mode, "campaign_minutes": minutes, "backend": backend.name,
                   "remote_run_dir": remote_run, "site": {k: v for k, v in site.items() if k != "gateway_env"},
                   "gateway_configured": bool(site.get("gateway_env")), "reference": req.get("reference"),
+                  "exclude_nodes": list(req.get("exclude_nodes") or []),
                   "cells": cells, "submitted": False}
     rc_path = run_dir / "run_config.json"
     write(rc_path, json.dumps(run_config, indent=2) + "\n")
