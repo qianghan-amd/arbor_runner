@@ -215,15 +215,30 @@ prepare() {
 }
 
 # ---- one measurement: fresh server (Arbor's own launch), AgentX replay, GSM8K ---------------------------------------
-stop_server() {
+stop_server() {   # returns non-zero if the GPUs are not free afterwards: the next phase must start on a clean node
     local pidf=/workspace/exp/$TAG/server.pid
     in_c "pid=\$(cat $pidf 2>/dev/null); [ -n \"\$pid\" ] && kill -TERM -- -\$pid 2>/dev/null; for i in \$(seq 1 24); do kill -0 \$pid 2>/dev/null || exit 0; sleep 5; done; exit 1" \
-        || log "$TAG: server group still alive after 120 s"
+        || { log "$TAG: server group still alive 120 s after SIGTERM"
+             # vLLM may be SIGKILLed (arbor/frameworks/vllm.py); smoke jobs 299522/299608 needed it. SGLang never:
+             # it holds KFD memory until a clean exit (arbor/frameworks/sglang.py), so it gets more time instead
+             if [ "$FRAMEWORK" = vllm ]; then
+                 in_c "kill -KILL -- -\$(cat $pidf) 2>/dev/null; true"; log "$TAG: server group SIGKILLed"
+             else
+                 in_c "pid=\$(cat $pidf); for i in \$(seq 1 36); do kill -0 \$pid 2>/dev/null || exit 0; sleep 5; done; exit 1" \
+                     || log "$TAG: SGLang server still alive after 300 s (not SIGKILLed)"
+             fi; }
     if [ "$FRAMEWORK" = vllm ]; then   # vLLM engine workers can outlive the API server; ours carry our GPU mask
         in_c "for p in \$(pgrep -f VLLM::); do grep -qa 'ROCR_VISIBLE_DEVICES=$GPUS' /proc/\$p/environ 2>/dev/null && kill -9 \$p; done; true"
-    fi   # SGLang is never SIGKILLed: it holds KFD memory until a clean exit (arbor/frameworks/sglang.py)
+    fi
     in_c "pkill -9 -f '[a]iperf' 2>/dev/null; true"
-    SERVER_UP=0; log "$TAG: server stopped"
+    SERVER_UP=0
+    local vram i
+    for i in $(seq 1 24); do   # wait for the memory to be released, up to 120 s
+        vram=$(rocm-smi --showmemuse 2>/dev/null | awk '/VRAM%/ {print $NF}' | sort -n | tail -1)
+        [ "${vram:-0}" -le 1 ] && { log "$TAG: server stopped, GPUs free"; return 0; }
+        sleep 5
+    done
+    log "$TAG: server stopped but a GPU still holds memory (VRAM ${vram}%)"; return 1
 }
 
 measure() {   # measure <tag> <duration_s> <gsm8k_questions>
@@ -285,8 +300,8 @@ PY
             > "$out/gsm8k.log" 2>&1
         grep -qa '^Accuracy:' "$out/gsm8k.log" || { log "$TAG: GSM8K printed no accuracy"; return 1; }
     fi
-    log "$TAG: GSM8K ($nq) after $(( $(date +%s) - T2 )) s: $(grep -aE '^Accuracy:|flexible-extract|strict-match' "$out/gsm8k.log" | tr -s ' ' | tr '\n' ' ' | cut -c1-200)"
-    stop_server
+    log "$TAG: GSM8K ($nq) after $(( $(date +%s) - T2 )) s: $(grep -aE '^Accuracy:|^\|.*(flexible-extract|strict-match)' "$out/gsm8k.log" | tr -s ' ' | tr '\n' ' ' | cut -c1-200)"
+    stop_server || return 1
 
     "$PY" - "$out/phase.json" "$TAG" "$t0" "$(date -u +%FT%TZ)" "$(head -1 "$out/tree.txt")" "$out/launch.json" \
         "$(hostname -s)" "${SLURM_JOB_ID:-}" "$dur" "$nq" <<'PY'
