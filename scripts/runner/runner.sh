@@ -63,6 +63,21 @@ fetch() {
     return "${PIPESTATUS[0]}"
 }
 
+# archive_tree <repo> <commit> <dest>: the commit's files, plus every submodule at the commit its gitlink records,
+# recursively. `git archive` alone leaves submodules empty: InferenceX's utils/aiperf is one, and aiperf's install then
+# fails ("does not appear to be a Python project"; smoke job 299333, 2026-11-19).
+archive_tree() {
+    local repo=$1 sha=$2 dest=$3 mode type gsha path
+    mkdir -p "$dest" && git -C "$repo" archive "$sha" | tar -x -C "$dest" || return 1
+    while read -r mode type gsha path; do
+        [ "$type" = commit ] || continue
+        git -C "$repo/$path" cat-file -e "$gsha^{commit}" 2>/dev/null \
+            || { log "submodule $path @ $gsha is not available in $repo/$path (git submodule update there)"; return 1; }
+        archive_tree "$repo/$path" "$gsha" "$dest/$path" || return 1
+        log "submodule $path @ ${gsha:0:10} extracted"
+    done < <(git -C "$repo" ls-tree -r "$sha")
+}
+
 # ---- prepare: image, Arbor tree, InferenceX client, venv, container, framework tree, aiperf, corpus gate ----------------
 prepare() {
     docker info >/dev/null 2>&1 || { log "no working docker daemon"; return 1; }
@@ -92,9 +107,9 @@ prepare() {
     [ "$(cat "$ARBOR/SOURCE_COMMIT")" = "$ARBOR_SHA" ] || { log "$ARBOR is not Arbor $ARBOR_SHA"; return 1; }
     log "Arbor $ARBOR_SHA at $ARBOR"
 
-    if [ ! -f "$INFX/.source_commit" ]; then
+    if [ ! -f "$INFX/.source_commit" ]; then   # the marker is written last, so a half-built tree is rebuilt on resume
         git -C "$INFX_CLONE" cat-file -e "$INFX_SHA^{commit}" || { log "InferenceX $INFX_SHA not in $INFX_CLONE"; return 1; }
-        mkdir -p "$INFX" && git -C "$INFX_CLONE" archive "$INFX_SHA" | tar -x -C "$INFX" || return 1
+        rm -rf "$INFX" && archive_tree "$INFX_CLONE" "$INFX_SHA" "$INFX" || return 1
         echo "$INFX_SHA" > "$INFX/.source_commit"
     fi
     [ -f "$INFX/benchmarks/benchmark_lib.sh" ] || [ -d "$INFX/infx" ] || { log "InferenceX client has neither benchmark_lib.sh nor infx"; return 1; }
