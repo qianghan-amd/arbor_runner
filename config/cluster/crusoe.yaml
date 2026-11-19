@@ -15,6 +15,9 @@ hold_job:
 scheduler: spur                 # Slurm-compatible "spur 0.15.0": sacct has no -X/-P (verified 2026-11-19, sacct --help)
 qos_default: amd-agentx-qos     # user decision 2026-11-19: agentx (account amd-agentx), burst as fallback
 account_default: amd-agentx
+# Fallback when agentx is at its 10-node group limit (QOSGrpNodeLimit): qos amd-burst-qos with account amd-hyperloom
+# (the account the user's burst jobs run under, 2026-11-19); 24 h wall, preempt mode cancel: short runs only.
+qos_fallback: { qos: amd-burst-qos, account: amd-hyperloom }
 # LLM gateway for Arbor's agents (format of the earlier campaigns' gateway.env, verified 2026-11-19). The subscription
 # key itself is never here: scripts/setup_remote.py writes it into <work_root>/secrets/gateway.env (mode 600).
 llm_gateway:
