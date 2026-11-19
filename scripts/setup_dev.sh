@@ -4,7 +4,12 @@
 # usage: bash scripts/setup_dev.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PYBIN=$(command -v python3 || command -v python) || { echo "need python 3.10+"; exit 1; }
+# run each candidate: on Windows `python3` can be the Microsoft Store alias, which is on PATH but is not Python
+PYBIN=
+for c in python3 python py; do
+    if "$c" -c 'import sys; sys.exit(sys.version_info < (3, 10))' >/dev/null 2>&1; then PYBIN=$c; break; fi
+done
+[ -n "$PYBIN" ] || { echo "need python 3.10+ (python3, python or py)"; exit 1; }
 [ -d .venv ] || "$PYBIN" -m venv .venv
 VPY=.venv/bin/python; [ -x "$VPY" ] || VPY=.venv/Scripts/python
 "$VPY" -m pip install -q --upgrade pip
