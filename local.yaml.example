@@ -1,0 +1,10 @@
+# Copy to local.yaml (gitignored) and fill in. Never put a token or password in this file.
+ssh:
+  login_host: crs5              # ~/.ssh/config alias of the Crusoe login node
+  github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves that host)
+remote:
+  # Per-user work root on /shared_nfs. Keep it OUTSIDE this repo: agents load every CLAUDE.md above their cwd.
+  work_root: /shared_nfs/<user>/arbor_ab
+github:
+  # relay_gh_hosts: on github_relay_host, read the token from ~/.config/gh/hosts.yml into a shell variable (never echoed)
+  token_source: relay_gh_hosts

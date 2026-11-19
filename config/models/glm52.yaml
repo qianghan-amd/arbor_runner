@@ -1,0 +1,7 @@
+# Per-model static facts. Launch details (image, flags, pins) live in the baseline records, not here.
+key: glm52
+display_name: "GLM-5.2"
+# Column header in master/reports/2026-11-08_model_summary.md that each cell is ported from (P1 provenance).
+summary_columns:
+  tput: "GLM 5.2"
+  p90: "GLM-5.2 — C1 P90 (standalone, final)"

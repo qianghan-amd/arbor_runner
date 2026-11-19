@@ -1,0 +1,7 @@
+# Per-model static facts. Launch details (image, flags, pins) live in the baseline records, not here.
+key: dsv41flash
+display_name: "DeepSeek-V4.1-Flash"
+# Column header in master/reports/2026-11-08_model_summary.md that each cell is ported from (P1 provenance).
+summary_columns:
+  tput: "DSv4.1 Flash"
+  p90: "DSv4.1 Flash — C1 P90 (standalone, final)"

@@ -1,0 +1,186 @@
+{
+  "schema_version": 2,
+  "model": "minimax_m31_flash",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 4,
+    "ep": 1,
+    "dcp": 1,
+    "num_gpus": 4,
+    "recipe_sh": null,
+    "recipe_point": "zip_override_tp4_dspark7_mono[0]",
+    "model_path": "amd/MiniMax-M3.1-Flash-Quark-MXFP4",
+    "server_flags": "--gpu-memory-utilization 0.85 --language-model-only --trust-remote-code --reasoning-parser minimax_m3 --tool-call-parser minimax_m3 --enable-auto-tool-choice --block-size 128 --kv-cache-dtype fp8 --attention-config '{\"indexer_kv_dtype\":\"fp8\"}' --moe-backend aiter --disable-hybrid-kv-cache-manager --enable-prefix-caching --max-model-len 1048576 --max-num-batched-tokens 8192 --disable-uvicorn-access-log --compilation-config '{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"}' --max-num-seqs 2 --speculative-config '{\"method\":\"dspark\",\"num_speculative_tokens\":7,\"attention_backend\":\"TRITON_ATTN\",\"kv_cache_dtype\":\"fp8\",\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\"}'",
+    "server_env": {
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE": "1",
+      "VLLM_ROCM_USE_AITER_FUSION_SHARED_EXPERTS": "0",
+      "VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT": "1",
+      "VLLM_ROCM_MINIMAX_M3_MONO": "1",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONUNBUFFERED": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "7200",
+      "VLLM_HTTP_TIMEOUT_KEEP_ALIVE": "900",
+      "HF_HUB_OFFLINE": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "vllm:",
+      "MODEL_PREFIX": "minimaxm31flash",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:minimax-m31-flash",
+      "TP": "4",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:minimax-m31-flash",
+    "image_digest": "sha256:ae8681212aa5291d8c27f06e90016435e3fca144a68fd5c439231f6475f74569",
+    "local_mirror_path": null,
+    "ci_commit": "3fb089b35e",
+    "ci_run_id": "39929767608",
+    "ci_commit_date": "2026-10-23",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "minimax_m31_flash__c1_p90__3fb089b35e_739158e1",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": true,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "detail": "run 39929767608 head_sha 3fb089b35e4f matches ci_commit; bmk candidates tp4 conc1: 1 (1 live); chosen artifact 12495193112 (307 requests); bench client 86699be610 != CI 3fb089b35e"
+    },
+    "numeric": {
+      "status": "client_mismatch",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/12495193112",
+      "ci_value": 134.60992,
+      "measured_value": 152.35759,
+      "delta_pct": 13.185,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": "2026-11-15T00:58:21Z",
+    "cluster": "crusoe",
+    "node": "crsuse2-m2m-v3-006",
+    "job": "288180",
+    "replays": 1,
+    "duration_s": 3600,
+    "bench_client_commit": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "arbor_commit": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02"
+  },
+  "metrics": {
+    "total_tput_tps": 29045.55624,
+    "tput_per_gpu": 7261.38906,
+    "intvty": {
+      "p50": 661.22314,
+      "p90": 424.66736,
+      "p95": 389.57806
+    },
+    "e2e_norm_intvty": {
+      "p50": 392.73521,
+      "p90": 152.35759,
+      "p95": 111.26983
+    },
+    "gsm8k": {
+      "flexible_extract": 0.9651,
+      "strict_match": 0.9651,
+      "accuracy": null,
+      "num_questions": 1319
+    }
+  },
+  "ceiling": {
+    "metrics": {
+      "total_tput_tps": 31603.47295,
+      "tput_per_gpu": 7900.86824,
+      "intvty": {
+        "p50": 753.34025,
+        "p90": 462.79672,
+        "p95": 409.4201
+      },
+      "e2e_norm_intvty": {
+        "p50": 533.50213,
+        "p90": 282.13802,
+        "p95": 196.10854
+      },
+      "gsm8k": {
+        "flexible_extract": 0.9674,
+        "strict_match": 0.9682,
+        "accuracy": null,
+        "num_questions": 1319
+      }
+    },
+    "source": {
+      "kind": "full_remeasure_after",
+      "ref": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json",
+      "date": null,
+      "cluster": "crusoe",
+      "node": "crsuse2-m2m-v3-006",
+      "job": "288180"
+    }
+  },
+  "artifacts": {
+    "bench_output": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/bench_output.json",
+    "agg_json": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json",
+    "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/gsm8k.log#summary lines"
+  },
+  "provenance": {
+    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/minimax_m31_flash__c1_p90.json sha256=6b3f843b414d42b6d89402c82b63d28b6ef6c7154fb3f13d723df642bd56973a",
+    "_source": "MiniMax M3.1 Flash - C1 P90 (standalone, final)",
+    "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
+    "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",
+    "metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p50",
+    "metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p90",
+    "metrics.intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p95",
+    "metrics.e2e_norm_intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p50",
+    "metrics.e2e_norm_intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p90",
+    "metrics.e2e_norm_intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p95",
+    "metrics.gsm8k": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/gsm8k.log#summary lines",
+    "ceiling.metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
+    "ceiling.metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",
+    "ceiling.metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p50",
+    "ceiling.metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p90",
+    "ceiling.metrics.intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p95",
+    "ceiling.metrics.e2e_norm_intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p50",
+    "ceiling.metrics.e2e_norm_intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p90",
+    "ceiling.metrics.e2e_norm_intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/agg_minimaxm31flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p95",
+    "ceiling.metrics.gsm8k": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/after/gsm8k.log#summary lines",
+    "host.framework/tp/ep/num_gpus": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/runs/before/agg_minimaxm31flash_vllm_agentx_conc1.json#framework,tp,ep,num_gpus",
+    "host.dcp": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/sessions/full/reports/trace/meta.json#server_flags --decode-context-parallel-size (agg dcp_size is unreliable)",
+    "host.model_path/server_flags/server_env": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/sessions/full/reports/trace/meta.json#config",
+    "fingerprint.image/image_digest": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/minimax-c1-p90-sa/env.sh#IMAGE_TAG,IMAGE_DIGEST",
+    "fingerprint.ci_*": "cells.yaml ci (from model_summary.md / GUIDE.md / meta _note)",
+    "measured.date": "mtime (UTC) of the before agg JSON",
+    "measured.node": "meta.json host",
+    "measured.job": "spur-<job>.out file name",
+    "measured.duration_s": "configured 3600 s replay (agg measured window 3596.08727 s)",
+    "measured.arbor_commit": "env.sh ARBOR_SHA (upstream release)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": null
+}

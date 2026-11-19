@@ -1,0 +1,143 @@
+{
+  "schema_version": 2,
+  "model": "kimik3",
+  "target": {
+    "key": "c32_tput",
+    "conc": 32,
+    "direction": "max",
+    "primary_metric_path": "metrics.total_tput_tps",
+    "primary_metric_per_gpu_path": "metrics.tput_per_gpu",
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 8,
+    "ep": 1,
+    "dcp": 8,
+    "num_gpus": 8,
+    "recipe_sh": null,
+    "recipe_point": "ci_c32_launch (CI run 40037005947 attempt 2, point 446550)",
+    "model_path": null,
+    "server_flags": null,
+    "server_env": null
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+    "image_digest": "sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c",
+    "local_mirror_path": null,
+    "ci_commit": "0df7e892b7",
+    "ci_run_id": "40037005947",
+    "ci_commit_date": "2026-10-23",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "kimik3__c32_tput__0df7e892b7_20156a0f",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": true,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "detail": "run 40037005947 head_sha 0df7e892b73c matches ci_commit; bmk candidates tp8 conc32: 1 (1 live); chosen artifact 12547742741 (2976 requests); bench client commit unknown"
+    },
+    "numeric": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/12547742741",
+      "ci_value": 115531.76704,
+      "measured_value": 112914.4,
+      "delta_pct": -2.265,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": "2026-11-09",
+    "cluster": "conductor_355_2",
+    "node": "smci355-ccs-aus-m13-29",
+    "job": null,
+    "replays": 2,
+    "duration_s": 3600,
+    "bench_client_commit": null,
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": 112914.4,
+    "tput_per_gpu": 14114.3,
+    "intvty": {
+      "p50": null,
+      "p90": 30.605,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": 0.96815,
+      "strict_match": 0.96855,
+      "accuracy": null,
+      "num_questions": 1319
+    }
+  },
+  "ceiling": {
+    "metrics": {
+      "total_tput_tps": 123645.6,
+      "tput_per_gpu": 15455.7,
+      "intvty": {
+        "p50": null,
+        "p90": 35.545,
+        "p95": null
+      },
+      "e2e_norm_intvty": {
+        "p50": null,
+        "p90": null,
+        "p95": null
+      },
+      "gsm8k": {
+        "flexible_extract": 0.967,
+        "strict_match": 0.9674,
+        "accuracy": null,
+        "num_questions": 1319
+      }
+    },
+    "source": {
+      "kind": "full_remeasure_after",
+      "ref": "K3 AFTER att. 2 (11-08) + att. 3 (11-09), tree 9cbe5fb + KEEP config",
+      "date": null,
+      "cluster": "conductor_355_2",
+      "node": "smci355-ccs-aus-m13-29",
+      "job": null
+    }
+  },
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "experiments/arbor-ab-system/2026-11-19_0432_port/summary_only_cells.yaml#kimik3/c32_tput (values copied from the cited lines)",
+    "metrics.total_tput_tps": "derived: tput_per_gpu x host.num_gpus (AgentX per-GPU definition)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": [
+    {
+      "code": "ci_pin_candidate_only",
+      "detail": "CI commit 0df7e892b7 is a candidate from a cached CI job JSON, not a config _note pin (MS Open item 1); epoch fingerprint depends on it"
+    },
+    {
+      "code": "measured_off_crusoe",
+      "detail": "measured on conductor_355_2 (smci355-ccs-aus-m13-29); raw files unreachable from this run, ported from the campaign's own report in the local backup"
+    },
+    {
+      "code": "value_discrepancy",
+      "detail": "MS pairs single runs 14105.09 -> 15417.03 (+9.30%); this record uses the report's 2-run means 14114.3 -> 15455.7 (+9.50%)"
+    }
+  ]
+}

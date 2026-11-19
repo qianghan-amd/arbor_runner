@@ -1,0 +1,184 @@
+{
+  "schema_version": 2,
+  "model": "dsv41flash",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 4,
+    "ep": 1,
+    "dcp": 1,
+    "num_gpus": 4,
+    "recipe_sh": "benchmarks/single_node/agentic/dsv41flash_fp4_mi355x_vllm_mtp.sh",
+    "recipe_point": null,
+    "model_path": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "server_flags": "--language-model-only --tokenizer-mode deepseek_v41 --tool-call-parser deepseek_v41 --enable-auto-tool-choice --reasoning-parser deepseek_v41 --moe-backend aiter_triton_mxfp4_bf16 --gpu-memory-utilization 0.9 --speculative-config '{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"synthetic\",\"synthetic_acceptance_length\":3.51,\"enable_adaptive_verification\":false}' --max-model-len 1048576 --max-num-seqs 2 --max-cudagraph-capture-size 16 --max-num-batched-tokens 16384 --disable-uvicorn-access-log",
+    "server_env": {
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE": "1",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "1",
+      "OMP_NUM_THREADS": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+      "VLLM_USE_RUST_FRONTEND": "1",
+      "PYTHONUNBUFFERED": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HUB_OFFLINE": "1",
+      "AGENTX_TOKENIZER": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "MODEL_PREFIX": "dsv41flash",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+      "TP": "4",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "image_digest": "sha256:2a1ade1954e64230fcd63d9f840bdfca68e357c550cdb48bd2e56d52e55a3430",
+    "local_mirror_path": null,
+    "ci_commit": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "ci_run_id": "34657748450",
+    "ci_commit_date": "2026-09-11",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "dsv41flash__c1_p90__86699be610_55915fb0",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": true,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "detail": "run 34657748450 head_sha 86699be610d5 matches ci_commit; bmk candidates tp4 conc1: 1 (1 live); chosen artifact 10287842536 (125 requests)"
+    },
+    "numeric": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/10287842536",
+      "ci_value": 13.73835,
+      "measured_value": 13.81163,
+      "delta_pct": 0.533,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": "2026-11-14T13:17:53Z",
+    "cluster": "crusoe",
+    "node": "crsuse2-m2m-v3-189",
+    "job": null,
+    "replays": 1,
+    "duration_s": 3600,
+    "bench_client_commit": "86699be610d5e6916eb6eb5b0c4a74676e8fb53d",
+    "arbor_commit": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02"
+  },
+  "metrics": {
+    "total_tput_tps": 6132.72403,
+    "tput_per_gpu": 1533.18101,
+    "intvty": {
+      "p50": 37.29616,
+      "p90": 35.98979,
+      "p95": 34.9411
+    },
+    "e2e_norm_intvty": {
+      "p50": 33.23598,
+      "p90": 13.81163,
+      "p95": 9.79972
+    },
+    "gsm8k": {
+      "flexible_extract": 0.9651,
+      "strict_match": 0.9522,
+      "accuracy": null,
+      "num_questions": 1319
+    }
+  },
+  "ceiling": {
+    "metrics": {
+      "total_tput_tps": 16300.72898,
+      "tput_per_gpu": 4075.18225,
+      "intvty": {
+        "p50": 211.84492,
+        "p90": 198.27863,
+        "p95": 187.48591
+      },
+      "e2e_norm_intvty": {
+        "p50": 195.52673,
+        "p90": 124.05897,
+        "p95": 77.63113
+      },
+      "gsm8k": {
+        "flexible_extract": 0.9659,
+        "strict_match": 0.9439,
+        "accuracy": null,
+        "num_questions": 1319
+      }
+    },
+    "source": {
+      "kind": "full_remeasure_after",
+      "ref": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json",
+      "date": null,
+      "cluster": "crusoe",
+      "node": "crsuse2-m2m-v3-189",
+      "job": null
+    }
+  },
+  "artifacts": {
+    "bench_output": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/bench_output.json",
+    "agg_json": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json",
+    "gsm8k_log": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/gsm8k.log#summary lines"
+  },
+  "provenance": {
+    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/dsv41flash__c1_p90.json sha256=0697ca7b60abf652eabaaff77b6764e8f44ce4b4f6d4f01e2fd5b1c25b1ebf0f",
+    "_source": "DSv4.1 Flash - C1 P90 (standalone, final)",
+    "metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
+    "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",
+    "metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p50",
+    "metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p90",
+    "metrics.intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p95",
+    "metrics.e2e_norm_intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p50",
+    "metrics.e2e_norm_intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p90",
+    "metrics.e2e_norm_intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p95",
+    "metrics.gsm8k": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/gsm8k.log#summary lines",
+    "ceiling.metrics.total_tput_tps": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.total.tokens_per_second",
+    "ceiling.metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.throughput.per_gpu.total_tput_tps",
+    "ceiling.metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p50",
+    "ceiling.metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p90",
+    "ceiling.metrics.intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.intvty.p95",
+    "ceiling.metrics.e2e_norm_intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p50",
+    "ceiling.metrics.e2e_norm_intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p90",
+    "ceiling.metrics.e2e_norm_intvty.p95": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/agg_dsv41flash_vllm_agentx_conc1.json#request_metrics.latency.e2e_norm_intvty.p95",
+    "ceiling.metrics.gsm8k": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/after/gsm8k.log#summary lines",
+    "host.framework/tp/ep/num_gpus": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/runs/before/agg_dsv41flash_vllm_agentx_conc1.json#framework,tp,ep,num_gpus",
+    "host.dcp": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/sessions/full/reports/trace/meta.json#server_flags --decode-context-parallel-size (agg dcp_size is unreliable)",
+    "host.model_path/server_flags/server_env": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/sessions/full/reports/trace/meta.json#config",
+    "fingerprint.image/image_digest": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments/dsv41f-c1-p90-sa2/env.sh#IMAGE_TAG,IMAGE_DIGEST",
+    "fingerprint.ci_*": "cells.yaml ci (from model_summary.md / GUIDE.md / meta _note)",
+    "measured.date": "mtime (UTC) of the before agg JSON",
+    "measured.node": "meta.json host",
+    "measured.job": "unknown",
+    "measured.duration_s": "configured 3600 s replay (agg measured window 3611.8131 s)",
+    "measured.arbor_commit": "env.sh ARBOR_SHA (upstream release)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": null
+}

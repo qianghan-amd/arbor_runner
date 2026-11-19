@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "model": "dsv41flash",
+  "target": {
+    "conc": 32,
+    "primary_metric_path": "metrics.total_tput_tps",
+    "primary_metric_per_gpu_path": "metrics.tput_per_gpu",
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 4,
+    "ep": 1,
+    "num_gpus": 4,
+    "recipe_sh": "..."
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:deepseekv41-flash-0909",
+    "local_mirror_path": null,
+    "ci_commit": "86699be610",
+    "ci_run_id": "34657748450",
+    "ci_commit_date": "2026-09-11",
+    "recipe_fingerprint": "239ed287f0"
+  },
+  "epoch_id": "dsv41flash__c32_tput__86699be610",
+  "health": {
+    "ci_artifact_available": true,
+    "image_available": true,
+    "local_mirror_exists": false
+  },
+  "measured": {
+    "date": "2026-11-07T10:40:22Z",
+    "node": "crsuse2-m2m-v3-244",
+    "job": "272282",
+    "replays": 1,
+    "duration_s": 3600
+  },
+  "metrics": {
+    "total_tput_tps": 68051.03812,
+    "tput_per_gpu": 17012.75953,
+    "intvty": {
+      "p50": 21.37104,
+      "p90": 13.3463,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null
+    }
+  },
+  "artifacts": {
+    "bench_output": "...",
+    "agg_json": "...",
+    "gsm8k_log": "..."
+  },
+  "superseded_by": null,
+  "data_quality_warning": null
+}

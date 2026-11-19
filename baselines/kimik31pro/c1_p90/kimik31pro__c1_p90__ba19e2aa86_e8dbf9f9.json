@@ -1,0 +1,175 @@
+{
+  "schema_version": 2,
+  "model": "kimik31pro",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 8,
+    "ep": 1,
+    "dcp": 8,
+    "num_gpus": 8,
+    "recipe_sh": "agentic.yaml (config key kimik3.1-fp4-mi355x-vllm-agentic-dspark)",
+    "recipe_point": null,
+    "model_path": "/hf-hub/hub/models--moonshotai--Kimi-K3.1-Pro/snapshots/6d0a0202956796543364d666ab19c6ad1a494ee1",
+    "server_flags": "--tensor-parallel-size 8 --decode-context-parallel-size 8 --dcp-comm-backend a2a --cp-kv-cache-interleave-size 1 --trust-remote-code --moe-backend auto --seed 7 --language-model-only --load-format fastsafetensors --enable-auto-tool-choice --tool-call-parser kimi_k3 --reasoning-parser kimi_k3 --max-model-len 1048576 --enable-prefix-caching --prefix-match-unit 64 --kv-cache-dtype fp8 --mamba-ssm-cache-dtype float32 --attention-config '{\"indexer_kv_dtype\":\"mxfp4\"}' --additional-config '{\"decode_backend\":\"latency_specialized\",\"kda_prefill_backend\":\"fused\"}' --max-num-batched-tokens 16384 --gpu-memory-utilization 0.90 --stream-interval 10 --disable-uvicorn-access-log --max-num-seqs 1 --compilation-config '{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"max_cudagraph_capture_size\":16,\"custom_ops\":[\"+fused_rms_norm_gated\"],\"cudagraph_capture_sizes\":[2,4,6,8,10,12,14,16]}' --speculative-config '{\"method\":\"dspark\",\"model\":\"/hf-hub/hub/models--Inferact--Kimi-K3.1-Pro-DSpark-preview/snapshots/5e654fbe920278f228a89519b06b2680aa56480f\",\"num_speculative_tokens\":7,\"attention_backend\":\"ROCM_AITER_MLA\",\"kv_cache_dtype\":\"fp8\",\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\"}'",
+    "server_env": {
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE_SITUV2": "1",
+      "SAFETENSORS_FAST_GPU": "1",
+      "VLLM_USE_V2_MODEL_RUNNER": "1",
+      "VLLM_FASTSAFETENSORS_QUEUE_SIZE": "-1",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "0",
+      "VLLM_ROCM_AITER_MLA_ASM_PADDING": "asm",
+      "VLLM_ROCM_AITER_MLA_DCP_VERIFY": "asm",
+      "VLLM_ROCM_DCP_AITER_ALLGATHER": "1",
+      "VLLM_ROCM_USE_AITER_FLYDSL_SPARSE_MLA": "1",
+      "AITER_FLYDSL_SPARSE_MLA": "1",
+      "VLLM_ROCM_DSA_DCP_GLOBAL_KEY_PREFILL": "1",
+      "VLLM_ROCM_DSA_DCP_ROWSHARD_PREFILL": "1",
+      "VLLM_USE_DIRECT_DCP_A2A": "0",
+      "VLLM_USE_DIRECT_DCP_Q_GATHER": "0",
+      "VLLM_USE_DIRECT_DCP_KV_GATHER": "0",
+      "VLLM_ROCM_QUICK_REDUCE_QUANTIZATION": "NONE",
+      "AITER_FLYDSL_STAGE2_FP8": "0",
+      "AITER_BF16_FP8_MOE_BOUND": "0",
+      "HSA_NO_SCRATCH_RECLAIM": "1",
+      "THP_MEM_ALLOC_ENABLE": "1",
+      "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1200",
+      "PYTHONNOUSERSITE": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "7200",
+      "PYTHONHASHSEED": "42",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "vllm:",
+      "MODEL_PREFIX": "kimik31pro",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "dspark",
+      "RUNNER_TYPE": "mi355x-amds",
+      "TP": "8",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "PRIMARY_METRIC": "p90_interactivity",
+      "SECONDARY_METRIC": "output_throughput",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HOME": "/root/.cache/huggingface"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:kimi-k31",
+    "image_digest": "sha256:4930e37b377b3973384ed5e274dd3cfc18789cfd1f8a98c6cdb5c2dd359ab175",
+    "local_mirror_path": null,
+    "ci_commit": "ba19e2aa86",
+    "ci_run_id": "41954410041",
+    "ci_commit_date": "2026-11-05",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "kimik31pro__c1_p90__ba19e2aa86_e8dbf9f9",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": true,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "detail": "run 41954410041 head_sha ba19e2aa8696 matches ci_commit; bmk candidates tp8 conc1: 2 (2 live); chosen artifact 13391983303 (200 requests); bench client commit unknown"
+    },
+    "numeric": {
+      "status": "not_run",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/13391983303",
+      "ci_value": 30.52953,
+      "measured_value": null,
+      "delta_pct": null,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": null,
+    "cluster": "crusoe",
+    "node": "crsuse2-m2m-v3-113",
+    "job": null,
+    "replays": 1,
+    "duration_s": null,
+    "bench_client_commit": null,
+    "arbor_commit": "2c2fd3df9ddcfdb59c2ec2ef1c1fb9ca7fcc2a02"
+  },
+  "metrics": {
+    "total_tput_tps": null,
+    "tput_per_gpu": 1491.23597,
+    "intvty": {
+      "p50": 208.86406,
+      "p90": 130.20273,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": null,
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_raw_bundle": "experiments/arbor-ab-system/2026-11-19_0432_port/raw/kimik31pro__c1_p90.json sha256=5c5d539bff5f1cbc8b7d880fefa2ba445f256a130825257aa7438add0ca922b8",
+    "_source": "Kimi K3.1 Pro - C1 P90 (separate campaign)",
+    "metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json#raw[0].total_throughput_per_gpu",
+    "metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json#raw[0].p50_interactivity",
+    "metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/before/baseline.json#raw[0].p90_interactivity",
+    "ceiling.metrics.tput_per_gpu": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/baseline.json#raw[0].total_throughput_per_gpu",
+    "ceiling.metrics.intvty.p50": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/baseline.json#raw[0].p50_interactivity",
+    "ceiling.metrics.intvty.p90": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/baseline.json#raw[0].p90_interactivity",
+    "ceiling.metrics.gsm8k": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/runs/after/gsm8k/results_2026-11-14T00-01-19.896064.json#results.gsm8k",
+    "host.framework/tp/ep/num_gpus": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full/reports/trace/meta.json",
+    "host.dcp": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full/reports/trace/meta.json#server_flags --decode-context-parallel-size (agg dcp_size is unreliable)",
+    "host.model_path/server_flags/server_env": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/sessions/full/reports/trace/meta.json#config",
+    "fingerprint.image/image_digest": "crusoe2_006:/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/env.sh#IMAGE_TAG,IMAGE_DIGEST",
+    "fingerprint.ci_*": "cells.yaml ci (from model_summary.md / GUIDE.md / meta _note)",
+    "measured.date": "mtime (UTC) of the before agg JSON",
+    "measured.node": "meta.json host",
+    "measured.job": "unknown",
+    "measured.duration_s": "unknown",
+    "measured.arbor_commit": "env.sh ARBOR_SHA (upstream release)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": [
+    {
+      "code": "iterative_vs_remeasure_conflict",
+      "detail": "iterative +7.9% (130.203 -> 140.53) vs full re-measure -0.2% (130.20273 -> 129.91161); never reconciled; do not trust without a re-run (design.md 2.1)"
+    },
+    {
+      "code": "gsm8k_missing_before",
+      "detail": "GSM8K after only (before deferred per user 2026-11-13); correctness drift cannot be checked"
+    },
+    {
+      "code": "objective_metric_mismatch",
+      "detail": "campaign optimized p90_interactivity = agg intvty.p90 (agentx-dsv41-6 validator bench_agentx.sh:141), not the target e2e_norm_intvty.p90; target metric was never measured for this cell"
+    }
+  ]
+}

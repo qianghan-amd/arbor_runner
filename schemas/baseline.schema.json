@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arbor-ab/baseline.schema.json",
+  "title": "Arbor A/B baseline epoch record",
+  "description": "One baseline epoch for one (model, target) cell. See docs/design.md section 3.6. Metric field names mirror AgentX's raw nested structure; flattened names (p90_intvty, e2e_norm_intvty_p90, ...) are rejected on purpose.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "model", "target", "host", "fingerprint", "epoch_id", "health", "verification",
+               "measured", "metrics", "ceiling", "artifacts", "provenance", "superseded_by", "data_quality_warning"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "model": { "$ref": "#/$defs/key" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "conc", "direction", "primary_metric_path", "primary_metric_per_gpu_path", "secondary_metric_path"],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "conc": { "type": "integer", "minimum": 1 },
+        "direction": { "enum": ["max", "min"] },
+        "primary_metric_path": { "$ref": "#/$defs/metric_path" },
+        "primary_metric_per_gpu_path": { "anyOf": [{ "$ref": "#/$defs/metric_path" }, { "type": "null" }] },
+        "secondary_metric_path": { "anyOf": [{ "$ref": "#/$defs/metric_path" }, { "type": "null" }] }
+      }
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["framework", "tp", "ep", "dcp", "num_gpus", "recipe_sh", "recipe_point", "model_path", "server_flags", "server_env"],
+      "properties": {
+        "framework": { "enum": ["vllm", "sglang"] },
+        "tp": { "type": "integer", "minimum": 1 },
+        "ep": { "type": "integer", "minimum": 1 },
+        "dcp": { "type": "integer", "minimum": 1 },
+        "num_gpus": { "type": "integer", "minimum": 1 },
+        "recipe_sh": { "type": ["string", "null"] },
+        "recipe_point": { "type": ["string", "null"], "description": "Named override block in a static agentic.yaml recipe, e.g. override_tp4_c1" },
+        "model_path": { "type": ["string", "null"] },
+        "server_flags": { "type": ["string", "null"] },
+        "server_env": { "type": ["object", "null"], "additionalProperties": { "type": "string" } }
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "image", "image_digest", "local_mirror_path", "ci_commit", "ci_run_id", "ci_commit_date", "recipe_fingerprint"],
+      "properties": {
+        "source_type": { "enum": ["agentx_ci", "user_custom"] },
+        "image": { "type": "string", "minLength": 1 },
+        "image_digest": { "anyOf": [{ "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }, { "type": "null" }] },
+        "local_mirror_path": { "type": ["string", "null"] },
+        "ci_commit": { "anyOf": [{ "type": "string", "pattern": "^[0-9a-f]{7,40}$" }, { "type": "null" }] },
+        "ci_run_id": { "anyOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "null" }] },
+        "ci_commit_date": { "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }] },
+        "recipe_fingerprint": { "type": ["string", "null"] }
+      },
+      "if": { "properties": { "source_type": { "const": "agentx_ci" } } },
+      "then": { "properties": { "ci_commit": { "type": "string" }, "ci_run_id": { "type": "string" } } }
+    },
+    "epoch_id": { "type": "string", "pattern": "^[a-z0-9_]+__[a-z0-9_]+__[a-z0-9_]+$" },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ci_artifact_available", "image_available", "local_mirror_exists", "checked_at"],
+      "properties": {
+        "ci_artifact_available": { "type": ["boolean", "null"] },
+        "image_available": { "type": ["boolean", "null"] },
+        "local_mirror_exists": { "type": ["boolean", "null"] },
+        "checked_at": { "type": ["string", "null"] }
+      }
+    },
+    "verification": {
+      "description": "Two-layer gate, docs/design.md section 3.4.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ci_verified", "unverified_against_ci", "structural", "numeric"],
+      "properties": {
+        "ci_verified": { "type": "boolean" },
+        "unverified_against_ci": { "type": "boolean" },
+        "structural": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "checked_at", "detail"],
+          "properties": {
+            "status": { "enum": ["not_run", "pass", "fail"] },
+            "checked_at": { "type": ["string", "null"] },
+            "detail": { "type": ["string", "null"] }
+          }
+        },
+        "numeric": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "checked_at", "ci_artifact", "ci_value", "measured_value", "delta_pct", "tolerance_pct"],
+          "properties": {
+            "status": { "enum": ["not_run", "pass", "fail", "client_mismatch", "artifact_expired"] },
+            "checked_at": { "type": ["string", "null"] },
+            "ci_artifact": { "type": ["string", "null"] },
+            "ci_value": { "type": ["number", "null"] },
+            "measured_value": { "type": ["number", "null"] },
+            "delta_pct": { "type": ["number", "null"] },
+            "tolerance_pct": { "type": ["number", "null"] }
+          }
+        }
+      }
+    },
+    "measured": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "cluster", "node", "job", "replays", "duration_s", "bench_client_commit", "arbor_commit"],
+      "properties": {
+        "date": { "type": ["string", "null"] },
+        "cluster": { "type": ["string", "null"] },
+        "node": { "type": ["string", "null"] },
+        "job": { "type": ["string", "null"] },
+        "replays": { "type": ["integer", "null"], "minimum": 1 },
+        "duration_s": { "type": ["integer", "null"], "minimum": 1 },
+        "bench_client_commit": { "type": ["string", "null"], "description": "InferenceX commit of the bench client; may differ from fingerprint.ci_commit (then numeric check = client_mismatch)" },
+        "arbor_commit": { "type": ["string", "null"] }
+      }
+    },
+    "metrics": { "$ref": "#/$defs/metrics" },
+    "ceiling": {
+      "description": "Best confirmed full re-measure (never an iterative-only number) in this epoch. null until one exists.",
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["metrics", "source"],
+          "properties": {
+            "metrics": { "$ref": "#/$defs/metrics" },
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "ref", "date", "cluster", "node", "job"],
+              "properties": {
+                "kind": { "enum": ["full_remeasure_after", "ab_run_after", "pristine_before"] },
+                "ref": { "type": "string" },
+                "date": { "type": ["string", "null"] },
+                "cluster": { "type": ["string", "null"] },
+                "node": { "type": ["string", "null"] },
+                "job": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bench_output", "agg_json", "gsm8k_log"],
+      "properties": {
+        "bench_output": { "type": ["string", "null"] },
+        "agg_json": { "type": ["string", "null"] },
+        "gsm8k_log": { "type": ["string", "null"] }
+      }
+    },
+    "provenance": {
+      "description": "Where each ported value came from: dotted field path -> source file path (+ key). Required so every number traces to ground truth.",
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "superseded_by": { "type": ["string", "null"] },
+    "data_quality_warning": {
+      "description": "docs/design.md section 2.1. null = no known problem. Otherwise a list of specific problems.",
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "detail"],
+            "properties": {
+              "code": { "enum": ["no_before_after_remeasure", "gsm8k_missing_before", "gsm8k_missing_after", "gsm8k_anomalous",
+                                 "external_source", "iterative_vs_remeasure_conflict", "ci_pin_candidate_only",
+                                 "measured_off_crusoe", "value_discrepancy", "objective_metric_mismatch"] },
+              "detail": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "key": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "metric_path": { "type": "string", "pattern": "^metrics\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$" },
+    "pctl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["p50", "p90", "p95"],
+      "properties": {
+        "p50": { "type": ["number", "null"] },
+        "p90": { "type": ["number", "null"] },
+        "p95": { "type": ["number", "null"] }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_tput_tps", "tput_per_gpu", "intvty", "e2e_norm_intvty", "gsm8k"],
+      "properties": {
+        "total_tput_tps": { "type": ["number", "null"] },
+        "tput_per_gpu": { "type": ["number", "null"] },
+        "intvty": { "$ref": "#/$defs/pctl" },
+        "e2e_norm_intvty": { "$ref": "#/$defs/pctl" },
+        "gsm8k": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flexible_extract", "strict_match", "accuracy", "num_questions"],
+          "properties": {
+            "flexible_extract": { "type": ["number", "null"], "description": "lm-eval-harness (vLLM packs)" },
+            "strict_match": { "type": ["number", "null"], "description": "lm-eval-harness (vLLM packs)" },
+            "accuracy": { "type": ["number", "null"], "description": "sglang.test.few_shot_gsm8k single score (SGLang packs)" },
+            "num_questions": { "type": ["integer", "null"] }
+          }
+        }
+      }
+    }
+  }
+}

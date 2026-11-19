@@ -1,0 +1,139 @@
+{
+  "schema_version": 2,
+  "model": "minimax_m31_flash",
+  "target": {
+    "key": "c32_tput",
+    "conc": 32,
+    "direction": "max",
+    "primary_metric_path": "metrics.total_tput_tps",
+    "primary_metric_per_gpu_path": "metrics.tput_per_gpu",
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 4,
+    "ep": 1,
+    "dcp": 1,
+    "num_gpus": 4,
+    "recipe_sh": null,
+    "recipe_point": "zip_override_tp4_dspark3[1]",
+    "model_path": null,
+    "server_flags": null,
+    "server_env": null
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:minimax-m31-flash",
+    "image_digest": "sha256:ae8681212aa5291d8c27f06e90016435e3fca144a68fd5c439231f6475f74569",
+    "local_mirror_path": null,
+    "ci_commit": "3fb089b35e",
+    "ci_run_id": "39929767608",
+    "ci_commit_date": "2026-10-23",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "minimax_m31_flash__c32_tput__3fb089b35e_739158e1",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": true,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "detail": "run 39929767608 head_sha 3fb089b35e4f matches ci_commit; bmk candidates tp4 conc32: 1 (1 live); chosen artifact 12495607354 (4259 requests)"
+    },
+    "numeric": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:50Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/12495607354",
+      "ci_value": 198788.60352,
+      "measured_value": 198888,
+      "delta_pct": 0.05,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": "2026-11-12",
+    "cluster": "crusoe",
+    "node": "crsuse2-m2m-v3-109",
+    "job": "278054",
+    "replays": 3,
+    "duration_s": 3600,
+    "bench_client_commit": "3fb089b35e",
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": 198888,
+    "tput_per_gpu": 49722,
+    "intvty": {
+      "p50": 133.99,
+      "p90": 94.14,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": 67.14,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": {
+    "metrics": {
+      "total_tput_tps": 235964,
+      "tput_per_gpu": 58991,
+      "intvty": {
+        "p50": null,
+        "p90": 150.8,
+        "p95": null
+      },
+      "e2e_norm_intvty": {
+        "p50": null,
+        "p90": null,
+        "p95": null
+      },
+      "gsm8k": {
+        "flexible_extract": null,
+        "strict_match": null,
+        "accuracy": null,
+        "num_questions": null
+      }
+    },
+    "source": {
+      "kind": "full_remeasure_after",
+      "ref": "AB37 c9619 run 3 final (campaign-records 99014d1/8a2786c/d82ad45/ae6864f)",
+      "date": null,
+      "cluster": "crusoe",
+      "node": "crsuse2-m2m-v3-109",
+      "job": "278054"
+    }
+  },
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "experiments/arbor-ab-system/2026-11-19_0432_port/summary_only_cells.yaml#minimax_m31_flash/c32_tput (values copied from the cited lines)",
+    "metrics.total_tput_tps": "derived: tput_per_gpu x host.num_gpus (AgentX per-GPU definition)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": [
+    {
+      "code": "external_source",
+      "detail": "measured by Chris Cai's team (AB37 c8713, c9619), not by us; per-run aggregates are root-only on their cluster dir"
+    },
+    {
+      "code": "gsm8k_missing_before",
+      "detail": "AB37 c9619 reports GSM8K full set day-0 0.9538, run-3 final 0.9492 (real acceptance) without the lm-eval filter name; not ported into a filter-specific field"
+    }
+  ]
+}

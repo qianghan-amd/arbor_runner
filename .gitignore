@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.vscode/
+.idea/
+*.swp
+.env
+.env.local
+
+# per-user config (ssh hosts, remote paths)
+local.yaml

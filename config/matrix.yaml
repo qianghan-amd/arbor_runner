@@ -1,0 +1,57 @@
+# Campaign matrix: which (model, target) cells exist. docs/design.md section 2 / 2.1.
+# Host config here is only the EXPECTED value from design.md section 2 (a cross-check when porting).
+# The source of truth for a cell's launch is its baseline record (baselines/<model>/<target>/latest.json).
+schema_version: 1
+
+# Target kinds: how a target key maps to schema metric paths (paths into a baseline record's `metrics` object).
+target_kinds:
+  tput:
+    direction: max
+    primary_metric_path: metrics.total_tput_tps
+    primary_metric_per_gpu_path: metrics.tput_per_gpu
+    secondary_metric_path: metrics.e2e_norm_intvty.p50
+  p90:
+    direction: max          # interactivity is tok/s/user: higher is better (model_summary.md update 7)
+    primary_metric_path: metrics.e2e_norm_intvty.p90
+    primary_metric_per_gpu_path: null
+    secondary_metric_path: metrics.e2e_norm_intvty.p50
+
+# Layer-2 numeric gate tolerance (INTENT.md Q3: +/-3% on the primary metric; per-cell override allowed).
+default_tolerance_pct: 3.0
+
+models:
+  muse_spark:
+    status: active
+    targets:
+      c16_tput: { kind: tput, conc: 16, expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
+  kimik3:
+    status: active
+    targets:
+      c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
+  kimik31pro:
+    status: active
+    targets:
+      c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
+  dsv41flash:
+    status: active
+    targets:
+      c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
+  glm52:
+    status: active
+    targets:
+      c16_tput: { kind: tput, conc: 16, expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
+  minimax_m31_flash:
+    status: active
+    targets:
+      c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
+  qwen38:
+    status: placeholder     # design.md 2.1: no data in this project; host config TBD (section 12)
+    targets:
+      c32_tput: { kind: tput, conc: 32, expected_host: null }
+      c1_p90:   { kind: p90,  conc: 1,  expected_host: null }

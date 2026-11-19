@@ -1,0 +1,14 @@
+# Crusoe MI355X Slurm cluster facts (from .claude/skills/crusoe-arbor-run). Isolated here so a later cluster gets its own file.
+name: crusoe
+login_host_alias: crs5          # ssh alias; login shell is tcsh -> wrap multi-step commands in `bash -c` or a script
+login_shell: tcsh
+partition: amd-spur-v2
+qos: amd-hyperloom-qos
+qos_group_node_limit: 5         # a released node may not come back
+gpu_type: mi355x
+gpus_per_node: 8
+hold_job:
+  submit_time: "1-00:00:00"     # a pending job longer than the QOS max wall is blocked
+  max_time: "3-00:00:00"        # raise with scontrol once RUNNING
+  ctrl_poll_s: 20
+# Orchestrator rule (design.md section 6): only short-lived ssh calls to the login node; nothing long-lived runs there.

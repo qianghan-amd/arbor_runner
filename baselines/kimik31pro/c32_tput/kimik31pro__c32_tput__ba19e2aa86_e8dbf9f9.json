@@ -1,0 +1,118 @@
+{
+  "schema_version": 2,
+  "model": "kimik31pro",
+  "target": {
+    "key": "c32_tput",
+    "conc": 32,
+    "direction": "max",
+    "primary_metric_path": "metrics.total_tput_tps",
+    "primary_metric_per_gpu_path": "metrics.tput_per_gpu",
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 8,
+    "ep": 1,
+    "dcp": 8,
+    "num_gpus": 8,
+    "recipe_sh": "agentic.yaml (InferenceX PR #4806)",
+    "recipe_point": "override_dram_c32",
+    "model_path": null,
+    "server_flags": null,
+    "server_env": null
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:kimi-k31",
+    "image_digest": "sha256:4930e37b377b3973384ed5e274dd3cfc18789cfd1f8a98c6cdb5c2dd359ab175",
+    "local_mirror_path": null,
+    "ci_commit": "ba19e2aa86",
+    "ci_run_id": "41954410041",
+    "ci_commit_date": "2026-11-05",
+    "recipe_fingerprint": null
+  },
+  "epoch_id": "kimik31pro__c32_tput__ba19e2aa86_e8dbf9f9",
+  "health": {
+    "ci_artifact_available": null,
+    "image_available": null,
+    "local_mirror_exists": null,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "pass",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "detail": "run 41954410041 head_sha ba19e2aa8696 matches ci_commit; bmk candidates tp8 conc32: 2 (2 live); chosen artifact 13393428026 (2681 requests); bench client commit unknown"
+    },
+    "numeric": {
+      "status": "fail",
+      "checked_at": "2026-11-19T05:06:49Z",
+      "ci_artifact": "SemiAnalysisAI/InferenceX/actions/artifacts/13393428026",
+      "ci_value": 100363.86164,
+      "measured_value": 46926.98968,
+      "delta_pct": -53.243,
+      "tolerance_pct": 3.0
+    }
+  },
+  "measured": {
+    "date": "2026-11-10",
+    "cluster": "conductor_355_2",
+    "node": null,
+    "job": null,
+    "replays": 1,
+    "duration_s": null,
+    "bench_client_commit": null,
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": 46926.98968,
+    "tput_per_gpu": 5865.87371,
+    "intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": null,
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "experiments/arbor-ab-system/2026-11-19_0432_port/summary_only_cells.yaml#kimik31pro/c32_tput (values copied from the cited lines)",
+    "metrics.total_tput_tps": "derived: tput_per_gpu x host.num_gpus (AgentX per-GPU definition)"
+  },
+  "superseded_by": null,
+  "data_quality_warning": [
+    {
+      "code": "no_before_after_remeasure",
+      "detail": "pristine before 5865.87 tok/s/GPU exists (baseline_before, 2026-11-10); no after re-measure; iterative 5924.27 -> 7389.68 (+24.74%) unconfirmed; campaign aborted at iter 25 (validator edited externally)"
+    },
+    {
+      "code": "gsm8k_missing_before",
+      "detail": "no GSM8K run (design.md 2.1)"
+    },
+    {
+      "code": "gsm8k_missing_after",
+      "detail": "no GSM8K run (design.md 2.1)"
+    },
+    {
+      "code": "measured_off_crusoe",
+      "detail": "measured on conductor_355_2; raw agg unreachable from this run, ported from baseline_record.json in the local backup"
+    }
+  ]
+}

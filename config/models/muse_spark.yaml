@@ -1,0 +1,7 @@
+# Per-model static facts. Launch details (image, flags, pins) live in the baseline records, not here.
+key: muse_spark
+display_name: "Muse Spark Open"
+# Column header in master/reports/2026-11-08_model_summary.md that each cell is ported from (P1 provenance).
+summary_columns:
+  tput: "Muse Spark — Campaign1"
+  p90: "Muse Spark — Campaign5 (C1 P90, final)"

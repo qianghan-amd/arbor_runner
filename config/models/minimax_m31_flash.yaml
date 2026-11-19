@@ -1,0 +1,7 @@
+# Per-model static facts. Launch details (image, flags, pins) live in the baseline records, not here.
+key: minimax_m31_flash
+display_name: "MiniMax-M3.1-Flash"
+# Column header in master/reports/2026-11-08_model_summary.md that each cell is ported from (P1 provenance).
+summary_columns:
+  tput: "MiniMax-M3.1-Flash — Run 1 (standalone Arbor)"
+  p90: "MiniMax M3.1 Flash — C1 P90 (standalone, final)"
