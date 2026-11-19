@@ -21,6 +21,9 @@ set -uo pipefail
 CELL_DIR=${1:?usage: runner.sh <cell_dir>}
 . "$CELL_DIR/cell.env"
 LOGS=$CELL_DIR/logs; mkdir -p "$LOGS" "$CELL_DIR/phases"
+# every error message goes where the job's output goes: a scheduler may send stderr elsewhere (Spur wrote it to
+# $HOME/spur-<job>.out, so smoke job 299452's real error was not in the run's logs)
+exec 2>&1
 NL=$NL_ROOT; HUB=$NL/hf-hub
 ARBOR=$CELL_DIR/arbor; INFX=$CELL_DIR/infx; VENV=$CELL_DIR/.venv; PY=$VENV/bin/python
 PHASE=start; SERVER_UP=0
@@ -28,6 +31,15 @@ PHASE=start; SERVER_UP=0
 log() { echo "[runner] $(date -u +%FT%TZ) $*" | tee -a "$LOGS/runner.log"; }
 die() { log "FATAL ($PHASE): $*"; echo "failed:$PHASE" > "$CELL_DIR/state"; exit 1; }
 in_c() { docker exec "$CONTAINER" bash -c "$1"; }
+# retry <tries> <command...>: for network steps (image pull, downloads, pip). A transient registry/CDN error must not
+# end a multi-hour job (smoke job 299452: Docker Hub CDN "504 Gateway Time-out" on the first try). Backoff 30 s, 60 s, ...
+retry() {
+    local max=$1 n=1; shift
+    until "$@"; do
+        [ "$n" -ge "$max" ] && { log "gave up after $n tries: $*"; return 1; }
+        log "try $n/$max failed, retrying in $((30 * n)) s: $*"; sleep $((30 * n)); n=$((n + 1))
+    done
+}
 
 cleanup() {
     [ "$SERVER_UP" = 1 ] && stop_server
@@ -46,11 +58,7 @@ run_phase() {   # run_phase <name> <function> [args...]: skipped when already do
 }
 
 # ---- fetch: pinned model / draft / corpus into node-local NVMe ----------------------------------------------------------
-fetch() {
-    mkdir -p "$NL" || return 1
-    if [ ! -x "$NL/dlvenv/bin/python" ]; then
-        python3 -m venv "$NL/dlvenv" && "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
-    fi
+fetch_once() {   # one attempt; fetch.py skips what is already pinned and complete, so a retry resumes
     local items=("$MODEL_ID:$MODEL_REV:model" "$CORPUS_ID:$CORPUS_REV:dataset")
     [ -n "$DRAFT_ID" ] && items+=("$DRAFT_ID:$DRAFT_REV:model")
     # the token, if this user has one, stays in this one process's environment on the host
@@ -61,6 +69,14 @@ fetch() {
         "$NL/dlvenv/bin/python" "$CELL_DIR/fetch.py" "$HUB" "${SHARED_HUB:--}" "${items[@]}" 2>&1 | tee -a "$LOGS/fetch.log"
     fi
     return "${PIPESTATUS[0]}"
+}
+
+fetch() {
+    mkdir -p "$NL" || return 1
+    if [ ! -x "$NL/dlvenv/bin/python" ]; then
+        python3 -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
+    fi
+    retry 3 fetch_once
 }
 
 # archive_tree <repo> <commit> <dest>: the commit's files, plus every submodule at the commit its gitlink records,
@@ -86,14 +102,15 @@ prepare() {
     log "highest GPU VRAM% before start: ${vram:-?}"; [ "${vram:-0}" -le 1 ] || { log "a GPU is in use"; return 1; }
 
     local repo=${IMAGE_TAG%:*}
+    mkdir -p "$CELL_DIR/.docker_anon"   # anonymous pulls: no registry credential of anyone's is used
     if [ -n "$IMAGE_DIGEST" ]; then
         docker image inspect "$repo@$IMAGE_DIGEST" >/dev/null 2>&1 || \
-            DOCKER_CONFIG=$CELL_DIR/.docker_anon docker pull -q "$repo@$IMAGE_DIGEST" || { log "image pull"; return 1; }
+            retry 3 env DOCKER_CONFIG="$CELL_DIR/.docker_anon" docker pull -q "$repo@$IMAGE_DIGEST" || { log "image pull"; return 1; }
         docker tag "$repo@$IMAGE_DIGEST" "$IMAGE_TAG" || return 1
         docker image inspect --format '{{join .RepoDigests " "}}' "$IMAGE_TAG" | grep -q "$IMAGE_DIGEST" \
             || { log "image digest mismatch"; return 1; }
     else
-        DOCKER_CONFIG=$CELL_DIR/.docker_anon docker pull -q "$IMAGE_TAG" || return 1
+        retry 3 env DOCKER_CONFIG="$CELL_DIR/.docker_anon" docker pull -q "$IMAGE_TAG" || return 1
     fi
     log "image $IMAGE_TAG @ ${IMAGE_DIGEST:-<tag only>}"
 
@@ -116,7 +133,8 @@ prepare() {
     log "InferenceX client $INFX_SHA at $INFX"
 
     if [ ! -x "$PY" ]; then
-        python3 -m venv "$VENV" && "$PY" -m pip install -q --upgrade pip && "$PY" -m pip install -q pyyaml claude-agent-sdk || return 1
+        python3 -m venv "$VENV" && retry 3 "$PY" -m pip install -q --upgrade pip \
+            && retry 3 "$PY" -m pip install -q pyyaml claude-agent-sdk || return 1
     fi
     "$PY" -c 'import importlib.metadata as m; print("[runner] venv: pyyaml", m.version("pyyaml"), "claude-agent-sdk", m.version("claude-agent-sdk"))'
 
@@ -151,10 +169,10 @@ prepare() {
           && echo \"framework tree $(basename "$WORKSPACE_ROOT") at \$(git rev-parse --short HEAD), dirty: \$(git status --porcelain --untracked-files=no | wc -l)\"" \
         | sed 's/^/[runner] /' || return 1
 
-    in_c 'export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic
+    retry 3 in_c 'export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic
           [ -f "$AIPERF_RUNTIME_DIR/.ready" ] && exit 0
           source /workspace/InferenceX/benchmarks/benchmark_lib.sh && install_agentic_deps && touch "$AIPERF_RUNTIME_DIR/.ready"' \
-        > "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
+        >> "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
 
     # the corpus must load OFFLINE with the bench's own datasets (huggingface_hub 2.4 layouts did not: fixcorpus.sh).
     # The bench's python is InferenceX's own $AIPERF_PYTHON (benchmark_lib.sh): its path differs between InferenceX

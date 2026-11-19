@@ -98,7 +98,8 @@ def test_crusoe_job_script():
     name, text = b.job_script("/w/runs/r1/c", "ab-c", 1890)
     assert name == "job.sbatch"
     for line in ("#SBATCH --partition=amd-spur-v2", "#SBATCH --qos=amd-agentx-qos", "#SBATCH --account=amd-agentx",
-                 "#SBATCH --exclusive", "#SBATCH --time=1-07:30:00", "exec bash /w/runs/r1/c/runner.sh /w/runs/r1/c"):
+                 "#SBATCH --exclusive", "#SBATCH --time=1-07:30:00", "#SBATCH --error=/w/runs/r1/c/logs/slurm-%j.err",
+                 "exec bash /w/runs/r1/c/runner.sh /w/runs/r1/c 2>&1"):
         assert line in text
 
 

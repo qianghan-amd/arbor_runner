@@ -151,8 +151,10 @@ class CrusoeSlurm(Backend):
             lines.append(f"#SBATCH --account={self.account}")
         lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", f"#SBATCH --time={slurm_time(minutes)}",
                   f"#SBATCH --output={cell_dir}/logs/slurm-%j.out",
+                  # Spur does not merge stderr into --output: without --error it goes to $HOME/spur-<job>.out
+                  f"#SBATCH --error={cell_dir}/logs/slurm-%j.err",
                   "# One PR-test cell: the frozen runner does every phase; nothing else runs on the node.",
-                  f"exec bash {cell_dir}/runner.sh {cell_dir}", ""]
+                  f"exec bash {cell_dir}/runner.sh {cell_dir} 2>&1", ""]
         return "job.sbatch", "\n".join(lines)
 
     def stage(self, run_id, local_run_dir, cells, extra_files):
