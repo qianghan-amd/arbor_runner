@@ -15,7 +15,10 @@ def test_check_runnable_on_real_records():
     assert render.check_runnable(baseline.load_latest("dsv41flash", "c1_p90")) == []
     assert any("MODEL_PREFIX" in w for w in render.check_runnable(baseline.load_latest("muse_spark", "c16_tput")))
     assert render.check_runnable(baseline.load_latest("kimik3", "c32_tput"))[0].startswith("no launch block")
-    assert any("corpus_rev" in w for w in render.check_runnable(baseline.load_latest("glm52", "c1_p90")))
+    assert any("corpus_id" in w for w in render.check_runnable(baseline.load_latest("glm52", "c16_tput")))
+    # corpus pins recovered from evidence (evidence/2026-11-19_0830_launch/corpus_pins.yaml)
+    assert render.check_runnable(baseline.load_latest("glm52", "c1_p90")) == []
+    assert render.check_runnable(baseline.load_latest("dsv41flash", "c32_tput")) == []
 
 
 def test_arbor_config_dsv41_c1():
