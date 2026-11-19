@@ -192,5 +192,36 @@
       "code": "gsm8k_anomalous",
       "detail": "before GSM8K 0.624 vs ~0.965 for the same model at C1; re-check before trusting (design.md 2.1)"
     }
-  ]
+  ],
+  "launch": {
+    "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "model_rev": "dba1be0a40aa45a94ad051997016db3960a90277",
+    "draft_id": null,
+    "draft_rev": null,
+    "corpus_id": null,
+    "corpus_rev": null,
+    "served_model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
+    "editable_packages": [
+      {
+        "name": "aiter",
+        "path": "/usr/local/lib/python3.12/dist-packages/aiter",
+        "rebuild": null
+      }
+    ],
+    "gpu_ids": "0,1,2,3",
+    "concurrency": 32,
+    "num_prompts": 320,
+    "bench_timeout_s": 5400,
+    "gsm8k": {
+      "tool": "infx_lm_eval",
+      "num_questions": 1319,
+      "concurrency": null
+    },
+    "missing": [
+      "corpus_id",
+      "corpus_rev"
+    ],
+    "source": "evidence/2026-11-19_0432_port/raw/dsv41flash__c32_tput.json + evidence/2026-11-19_0830_launch/raw/dsv41flash__c32_tput.json"
+  }
 }

@@ -162,5 +162,27 @@
     "measured.arbor_commit": "meta.json arbor_git_sha"
   },
   "superseded_by": null,
-  "data_quality_warning": null
+  "data_quality_warning": null,
+  "launch": {
+    "model_id": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "model_rev": "c7bc74fd64371315a091bc15f9723882eead0dc1",
+    "draft_id": "RadixArk/Muse-Spark-Open-DFlash2",
+    "draft_rev": "46c90f412549c472941a68382d91a99e5e6372a0",
+    "corpus_id": "semianalysisai/cc-traces-weka-062126-256k",
+    "corpus_rev": "8fecd2fc56694469f758f0afbbb6335ad3043740",
+    "served_model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "workspace_root": "/sgl-workspace/sglang",
+    "editable_packages": null,
+    "gpu_ids": "0,1,2,3",
+    "concurrency": 16,
+    "num_prompts": null,
+    "bench_timeout_s": null,
+    "gsm8k": {
+      "tool": "sglang_few_shot",
+      "num_questions": 1319,
+      "concurrency": 64
+    },
+    "missing": [],
+    "source": "evidence/2026-11-19_0432_port/raw/muse_spark__c16_tput.json + evidence/2026-11-19_0830_launch/raw/muse_spark__c16_tput.json"
+  }
 }

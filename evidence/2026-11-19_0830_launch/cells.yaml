@@ -1,0 +1,55 @@
+# P4 launch inputs: the scripts that hold what the baseline record does not (model/draft/corpus revisions, GSM8K
+# command, prepare steps). Read-only collection from crusoe2_006; scripts are stored in full, credential-looking
+# assignments redacted by collect_remote.py.
+host: crusoe2_006
+E: /shared_nfs/qiangh/mywork/arbor_dsv41flash/experiments
+
+cells:
+  dsv41flash/c1_p90:
+    files:
+      dl_sh: "{E}/dsv41f-c1-p90-sa2/dl.sh"
+      ab_sh: "{E}/dsv41f-c1-p90-sa2/ab.sh"
+      ab_fixed_sh: "{E}/dsv41f-c1-p90-sa2/logs/ab.fix3.sh"
+      prepare_sh: "{E}/dsv41f-c1-p90-sa2/prepare.sh"
+  dsv41flash/c32_tput:
+    files:
+      prepare_sh: "{E}/dsv41f-c32-tput/prepare.sh"
+      stage1_sh: "{E}/dsv41f-c32-tput/stage1.sh"
+      measure_py: "{E}/dsv41f-c32-tput/tools/measure.py"
+  muse_spark/c1_p90:
+    files:
+      dl_sh: "{E}/musespark-c1-p90-sa/dl.sh"
+      ab_sh: "{E}/musespark-c1-p90-sa/ab.sh"
+      prepare_sh: "{E}/musespark-c1-p90-sa/prepare.sh"
+  muse_spark/c16_tput:
+    files:
+      dl_sh: "{E}/musespark-c16-ab/dl.sh"
+      ab_sh: "{E}/musespark-c16-ab/ab.sh"
+      prepare_sh: "{E}/musespark-c16-ab/prepare.sh"
+      run_sh: "{E}/musespark-c16-ab/run.sh"
+  kimik3/c1_p90:
+    files:
+      dl_sh: "{E}/kimik3-c1-p90-sa/dl.sh"
+      ab_sh: "{E}/kimik3-c1-p90-sa/ab.sh"
+      prepare_sh: "{E}/kimik3-c1-p90-sa/prepare.sh"
+  glm52/c1_p90:
+    files:
+      dl_sh: "{E}/glm52-c1-p90-sa/dl.sh"
+      ab_sh: "{E}/glm52-c1-p90-sa/ab.sh"
+      prepare_sh: "{E}/glm52-c1-p90-sa/prepare.sh"
+  glm52/c16_tput:
+    files:
+      prepare_sh: "{E}/glm52-c16-tput/prepare.sh"
+      stage1_sh: "{E}/glm52-c16-tput/stage1.sh"
+      measure_py: "{E}/glm52-c16-tput/tools/measure.py"
+  minimax_m31_flash/c1_p90:
+    files:
+      dl_sh: "{E}/minimax-c1-p90-sa/dl.sh"
+      ab_sh: "{E}/minimax-c1-p90-sa/ab.sh"
+      prepare_sh: "{E}/minimax-c1-p90-sa/prepare.sh"
+  kimik31pro/c1_p90:
+    files:
+      run_baseline_sh: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/run_baseline.sh"
+      run_gsm8k_sh: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/run_gsm8k.sh"
+      launch_server_sh: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/launch_server.sh"
+      launch_container_sh: "/shared_nfs/qiangh/mywork/arbor_kimik31pro/experiments/kimik31pro-c1/launch_container.sh"

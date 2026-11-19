@@ -172,5 +172,30 @@
       "code": "objective_metric_mismatch",
       "detail": "campaign optimized p90_interactivity = agg intvty.p90 (agentx-dsv41-6 validator bench_agentx.sh:141), not the target e2e_norm_intvty.p90; target metric was never measured for this cell"
     }
-  ]
+  ],
+  "launch": {
+    "model_id": "moonshotai/Kimi-K3.1-Pro",
+    "model_rev": "6d0a0202956796543364d666ab19c6ad1a494ee1",
+    "draft_id": "Inferact/Kimi-K3.1-Pro-DSpark-preview",
+    "draft_rev": "5e654fbe920278f228a89519b06b2680aa56480f",
+    "corpus_id": null,
+    "corpus_rev": null,
+    "served_model_name": "moonshotai/Kimi-K3.1-Pro",
+    "workspace_root": "/opt/runtime-venv/lib/python3.12/site-packages/vllm",
+    "editable_packages": [],
+    "gpu_ids": "0,1,2,3,4,5,6,7",
+    "concurrency": 1,
+    "num_prompts": 320,
+    "bench_timeout_s": 7200,
+    "gsm8k": {
+      "tool": "infx_lm_eval",
+      "num_questions": 1319,
+      "concurrency": 16
+    },
+    "missing": [
+      "corpus_id",
+      "corpus_rev"
+    ],
+    "source": "evidence/2026-11-19_0432_port/raw/kimik31pro__c1_p90.json + evidence/2026-11-19_0830_launch/raw/kimik31pro__c1_p90.json"
+  }
 }

@@ -179,5 +179,36 @@
     "measured.arbor_commit": "meta.json arbor_git_sha"
   },
   "superseded_by": null,
-  "data_quality_warning": null
+  "data_quality_warning": null,
+  "launch": {
+    "model_id": "amd/GLM-5.2-MXFP4",
+    "model_rev": "386bd0e4ec821f7b07975701cec3c3b953a5576a",
+    "draft_id": null,
+    "draft_rev": null,
+    "corpus_id": null,
+    "corpus_rev": null,
+    "served_model_name": "amd/GLM-5.2-MXFP4",
+    "workspace_root": "/sgl-workspace/sglang/python/sglang",
+    "editable_packages": [
+      {
+        "name": "aiter",
+        "path": "/sgl-workspace/aiter/aiter",
+        "rebuild": null
+      }
+    ],
+    "gpu_ids": "0,1,2,3",
+    "concurrency": 16,
+    "num_prompts": 320,
+    "bench_timeout_s": 14400,
+    "gsm8k": {
+      "tool": "sglang_few_shot",
+      "num_questions": 1319,
+      "concurrency": null
+    },
+    "missing": [
+      "corpus_id",
+      "corpus_rev"
+    ],
+    "source": "evidence/2026-11-19_0432_port/raw/glm52__c16_tput.json + evidence/2026-11-19_0830_launch/raw/glm52__c16_tput.json"
+  }
 }

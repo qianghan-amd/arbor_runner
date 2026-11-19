@@ -115,5 +115,6 @@
       "code": "measured_off_crusoe",
       "detail": "measured on conductor_355_2; raw agg unreachable from this run, ported from baseline_record.json in the local backup"
     }
-  ]
+  ],
+  "launch": null
 }

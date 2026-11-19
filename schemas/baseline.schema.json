@@ -162,6 +162,46 @@
       "type": "object",
       "additionalProperties": { "type": "string" }
     },
+    "launch": {
+      "description": "Optional. What the node-side PR-test runner needs beyond `host` to rebuild the pristine launch (pinned model/draft/corpus revisions, bench and GSM8K settings). `missing` lists inputs a run still needs; a cell with a non-empty `missing` cannot run a PR test.",
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model_id", "model_rev", "draft_id", "draft_rev", "corpus_id", "corpus_rev", "served_model_name",
+                       "workspace_root", "editable_packages", "gpu_ids", "concurrency", "num_prompts", "bench_timeout_s",
+                       "gsm8k", "missing", "source"],
+          "properties": {
+            "model_id": { "type": ["string", "null"] },
+            "model_rev": { "type": ["string", "null"] },
+            "draft_id": { "type": ["string", "null"] },
+            "draft_rev": { "type": ["string", "null"] },
+            "corpus_id": { "type": ["string", "null"] },
+            "corpus_rev": { "type": ["string", "null"] },
+            "served_model_name": { "type": ["string", "null"] },
+            "workspace_root": { "type": ["string", "null"] },
+            "editable_packages": { "type": ["array", "null"], "items": { "type": "object" } },
+            "gpu_ids": { "type": ["string", "null"] },
+            "concurrency": { "type": ["integer", "null"] },
+            "num_prompts": { "type": ["integer", "null"] },
+            "bench_timeout_s": { "type": ["integer", "null"] },
+            "gsm8k": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["tool", "num_questions", "concurrency"],
+              "properties": {
+                "tool": { "enum": ["infx_lm_eval", "sglang_few_shot", null] },
+                "num_questions": { "type": ["integer", "null"] },
+                "concurrency": { "type": ["integer", "null"] }
+              }
+            },
+            "missing": { "type": "array", "items": { "type": "string" } },
+            "source": { "type": "string" }
+          }
+        }
+      ]
+    },
     "superseded_by": { "type": ["string", "null"] },
     "data_quality_warning": {
       "description": "docs/design.md section 2.1. null = no known problem. Otherwise a list of specific problems.",
