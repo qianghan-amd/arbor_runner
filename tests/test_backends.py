@@ -72,7 +72,8 @@ def test_orchestrator_runs_on_any_backend(tmp_path):
     sha = _git_repo(tmp_path / "arbor")
     fake = FakeBackend(tmp_path / "cluster")
     (tmp_path / "cluster").mkdir()
-    req = {"commit": sha, "mode": "smoke", "targets": [{"model": "dsv41flash", "target": "c1_p90"}]}
+    req = {"commit": sha, "mode": "smoke",
+           "targets": [{"model": "dsv41flash", "target": "c1_p90", "weights_path": "/shared/weights/dsv41"}]}
     rc = submit_ab_test.submit(req, "fake-test.yaml", fake, tmp_path / "arbor")
     run_dir = REPO_ROOT / "runs" / rc["run_id"]
     try:
@@ -81,11 +82,20 @@ def test_orchestrator_runs_on_any_backend(tmp_path):
         assert (cell_dir / "job.sh").exists() and (cell_dir / "runner.sh").exists()
         env = (cell_dir / "cell.env").read_text()
         assert f"CELL_DIR={rc['cells'][0]['remote_dir']}" in env.replace("'", "") and "MODE=smoke" in env
+        assert "WEIGHTS_PATH=/shared/weights/dsv41" in env and rc["cells"][0]["weights_path"] == "/shared/weights/dsv41"
         doc = poll_status.poll(run_dir, fake)
         assert doc["cells"][0]["state"] == "SUCCEEDED" and (run_dir / "dsv41flash__c1_p90" / "state").read_text() == "done"
         assert json.loads((run_dir / "status.json").read_text())["backend"] == "fake"
     finally:
         shutil.rmtree(run_dir, ignore_errors=True)
+
+
+def test_relative_weights_path_refused(tmp_path):
+    import pytest
+    sha = _git_repo(tmp_path / "arbor")
+    req = {"commit": sha, "mode": "smoke", "targets": [{"model": "dsv41flash", "target": "c1_p90", "weights_path": "w/x"}]}
+    with pytest.raises(SystemExit, match="absolute path"):
+        submit_ab_test.submit(req, "fake-test.yaml", FakeBackend(tmp_path / "cluster"), tmp_path / "arbor")
 
 
 def test_get_selects_backend():

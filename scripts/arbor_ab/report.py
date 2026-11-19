@@ -6,6 +6,7 @@ Run-dir contract (written by the node-side runner, read here):
       bench_output.json the pack's bench summary (kept for debugging; not used for numbers, see agentx.py traps)
       gsm8k.log         lm-eval table (vLLM) or `Accuracy:` line (SGLang)
       phase.json        {"started_at", "ended_at", "tree", "launch_from", "node", "job"} (optional)
+  runs/<run_id>/<model>__<target>/weights.json   {"weights_source": "downloaded" | "user_path", ...} (fetch.py)
 `verdict` stays null: a human reads the report (design.md section 8 / 11). Automating it later = filling that field.
 """
 from . import agentx
@@ -45,7 +46,7 @@ def gsm8k_check(before, after, max_drop):
     return {"max_drop": max_drop, "status": status, "scores": out}
 
 
-def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=None, phases=None):
+def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=None, phases=None, weights=None):
     """record: the baseline record of the cell (current epoch). before/after: schema metrics blocks."""
     tgt = record["target"]
     primary = tgt["primary_metric_path"].split(".", 1)[1]
@@ -72,5 +73,7 @@ def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=
                            "numeric_gate": record["verification"]["numeric"]["status"],
                            "data_quality_warning": [w["code"] for w in record["data_quality_warning"] or []]},
         "phases": phases or {},
+        # where the served weights came from: downloaded at the pin, or a user path checked against the pin (fetch.py)
+        "weights": weights or {"weights_source": "unknown", "note": "no weights.json in the run (made before 2026-11-19)"},
         "verdict": None,
     }

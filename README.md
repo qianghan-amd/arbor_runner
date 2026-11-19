@@ -39,6 +39,25 @@ cat runs/requests/smoke-dsv41-c1.yaml
 Modes: `smoke` (fetch, prepare, 600 s AgentX + 200 GSM8K questions; no campaign) and `full` (before, an Arbor campaign
 of `campaign_minutes`, after). Which cells can run: `render.check_runnable` (see `scripts/check_setup.py` output).
 
+### Pre-downloaded weights (optional)
+
+When the served model's weights already sit on the node or on shared storage, skip the download per target:
+
+```yaml
+targets:
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/<you>/models/DeepSeek-V4.1-Flash/<rev> }
+```
+
+- `weights_path` is an absolute path, as the node sees it, to a directory holding the model files
+  (`config.json`, `model.safetensors.index.json`, the shards). Without it, nothing changes: the weights are downloaded
+  at the baseline's pinned revision.
+- The weights must be the **pinned** ones: the runner downloads only `config.json` and `model.safetensors.index.json`
+  at the pinned revision and requires both to be byte-identical to yours, and every indexed shard to exist; otherwise
+  the run fails. The launch does not change (the pinned hub entry is linked to your path; it is mounted read-only).
+- Every run records where the weights came from: `runs/<run_id>/<cell>/weights.json` and the `weights` block of
+  `comparison.json` (`weights_source: downloaded | user_path`, the path, the pinned revision, the two files' sha256).
+  If the pinned weights are already on the node, they are used and recorded as `downloaded`, with a note.
+
 Baselines: `scripts/verify_baseline.py` (two-layer gate against the InferenceX CI artifacts) and
 `scripts/check_baseline_health.py` (CI artifact, image digest/tag, mirror). Evidence behind every number:
 [`evidence/README.md`](evidence/README.md).

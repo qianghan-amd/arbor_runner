@@ -47,12 +47,13 @@ def main():
         record = baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json")
         comp = report.comparison(rc["run_id"], record, before, after, config.gsm8k_max_drop(matrix, model, target),
                                  rc["commit"], reference=rc.get("reference"),
-                                 phases={"before": before_meta, "after": after_meta})
+                                 phases={"before": before_meta, "after": after_meta}, weights=read_json(d / "weights.json"))
         comp["generated_at"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         (d / "comparison.json").write_text(json.dumps(comp, indent=2) + "\n", encoding="utf-8", newline="\n")
         p = comp["deltas"][record["target"]["primary_metric_path"].split(".", 1)[1]]
         rows.append((model, target, "ok", f"primary {p['before']} -> {p['after']} ({p['change_pct']}%), "
-                                          f"after vs ceiling {comp['ceiling']['after_vs_ceiling_pct']}%, GSM8K {comp['gsm8k']['status']}"))
+                                          f"after vs ceiling {comp['ceiling']['after_vs_ceiling_pct']}%, GSM8K {comp['gsm8k']['status']}, "
+                                          f"weights {comp['weights']['weights_source']}"))
         if args.print:
             print(json.dumps(comp, indent=2))
     for r in rows:

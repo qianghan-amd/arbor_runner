@@ -8,6 +8,7 @@ Request:
   campaign_minutes: 180                  # full mode only (Arbor's time_budget_minutes)
   targets:
     - { model: dsv41flash, target: c1_p90 }
+    - { model: glm52, target: c1_p90, weights_path: /shared_nfs/<...>/snapshots/<rev> }   # optional, see README
 Where the jobs run is the execution backend's business (local.yaml `backend`, default crusoe_slurm; design.md 5.1).
 Stateless: everything it decides is written to runs/<run_id>/run_config.json; it never waits for results.
 --dry-run renders every file locally and touches no cluster. A cell that is not runnable (render.check_runnable)
@@ -89,6 +90,8 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     for t in req["targets"]:
         r = baseline.load_latest(t["model"], t["target"])
         why = ["no baseline record"] if r is None else render.check_runnable(r)
+        if t.get("weights_path") and not str(t["weights_path"]).startswith("/"):
+            why.append(f"weights_path {t['weights_path']!r} must be an absolute path on the node")
         if why:
             refusals.append(f"{t['model']}/{t['target']}: " + "; ".join(why))
         records.append(r)
@@ -102,12 +105,13 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     tar_sha = arbor_archive(clone, commit, tar)
 
     cells = []
-    for r in records:
+    for t, r in zip(req["targets"], records):
         cell = render.cell_name(r["model"], r["target"]["key"])
         cdir, rcdir = run_dir / cell, f"{remote_run}/{cell}"
         cdir.mkdir(parents=True)
         container = render.container_name(run_id, r["model"], r["target"]["key"])
-        env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha)
+        env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha,
+                              weights_path=t.get("weights_path"))
         write(cdir / "cell.env", render.env_file(env))
         write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes), indent=2) + "\n")
         wall = render.job_minutes(mode, minutes, r)
@@ -116,7 +120,8 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         for f in RUNNER_FILES:
             shutil.copyfile(REPO_ROOT / "scripts" / "runner" / f, cdir / f)
         cells.append({"model": r["model"], "target": r["target"]["key"], "epoch_id": r["epoch_id"], "cell": cell,
-                      "remote_dir": rcdir, "container": container, "job_minutes": wall, "job_id": None})
+                      "remote_dir": rcdir, "container": container, "job_minutes": wall, "job_id": None,
+                      "weights_path": t.get("weights_path")})
 
     run_config = {"schema_version": 1, "run_id": run_id, "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                   "request": req, "request_file": Path(request_file).as_posix(), "commit": commit, "arbor_repo": "AMD-AGI/Arbor",

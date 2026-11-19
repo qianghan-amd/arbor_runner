@@ -17,6 +17,7 @@ def make_run(tmp_path):
         d.mkdir(parents=True)
         (d / "agg.json").write_text(json.dumps(raw[f"{phase}_agg"][0]["json"]), encoding="utf-8")
         (d / "gsm8k.log").write_text("\n".join(raw[f"{phase}_gsm8k"][0]["gsm8k_lines"]) + "\n", encoding="utf-8")
+    (run / "dsv41flash__c1_p90" / "weights.json").write_text(json.dumps({"weights_source": "user_path", "path": "/w"}))
     (run / "run_config.json").write_text(json.dumps({
         "run_id": "r1", "commit": "f7abce978dc2d3f98f3efc6102cf4bb37983b537",
         "cells": [{"model": "dsv41flash", "target": "c1_p90", "epoch_id": EPOCH}]}), encoding="utf-8")
@@ -35,6 +36,7 @@ def test_generate_report_reproduces_known_result(tmp_path):
     g = c["gsm8k"]
     assert g["scores"]["strict_match"]["drop"] == 0.0083 and g["status"] == "pass"   # 0.9522 -> 0.9439 at max_drop 0.01
     assert c["verdict"] is None and c["baseline_flags"]["numeric_gate"] == "pass"
+    assert c["weights"] == {"weights_source": "user_path", "path": "/w"}
 
 
 def test_incomplete_cell_gets_no_comparison(tmp_path):

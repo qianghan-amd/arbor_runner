@@ -84,8 +84,9 @@ def opt_objective(record):
     return P90_OBJECTIVE if record["target"]["primary_metric_path"] == "metrics.e2e_norm_intvty.p90" else None
 
 
-def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256):
-    """Shell variables for scripts/runner/runner.sh (written as cell.env)."""
+def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None):
+    """Shell variables for scripts/runner/runner.sh (written as cell.env). weights_path: optional pre-downloaded weights
+    of the served model on the node (request `weights_path`); fetch.py checks them against the pin and links them."""
     h, lau, fp = record["host"], record["launch"], record["fingerprint"]
     return {
         "ARBOR_TAR": arbor_tar, "ARBOR_TAR_SHA256": arbor_tar_sha256,
@@ -105,6 +106,7 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         "DUR_FULL": "3600", "NQ_FULL": str(lau["gsm8k"].get("num_questions") or 1319), "DUR_SMOKE": "600", "NQ_SMOKE": "200",
         "CAMPAIGN_MINUTES": str(minutes), "OPT_OBJECTIVE": opt_objective(record) or "",
         "GATEWAY_ENV": site.get("gateway_env") or "",
+        "WEIGHTS_PATH": weights_path or "",
     }
 
 

@@ -15,7 +15,7 @@ import importlib
 STATES = ("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED", "UNKNOWN")
 
 # What the runner writes that is small enough to bring home (relative to a cell dir). No model data, no traces.
-RESULT_FILES = ("state", "phases", "logs/runner.log", "campaign_check.json", "campaign_exit.json",
+RESULT_FILES = ("state", "phases", "logs/runner.log", "weights.json", "campaign_check.json", "campaign_exit.json",
                 "*/agg.json", "*/bench_output.json", "*/gsm8k.log", "*/phase.json", "*/launch.json", "*/cmdline.txt",
                 "*/tree.txt", "*/gsm8k/results_*.json", "*/gsm8k/*/results_*.json")
 

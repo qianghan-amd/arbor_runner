@@ -59,7 +59,11 @@ run_phase() {   # run_phase <name> <function> [args...]: skipped when already do
 
 # ---- fetch: pinned model / draft / corpus into node-local NVMe ----------------------------------------------------------
 fetch_once() {   # one attempt; fetch.py skips what is already pinned and complete, so a retry resumes
-    local items=("$MODEL_ID:$MODEL_REV:model" "$CORPUS_ID:$CORPUS_REV:dataset")
+    # options first, then the items; the served model is the first `model` item
+    local items=(--provenance "$CELL_DIR/weights.json")
+    # WEIGHTS_PATH (request `weights_path`): pre-downloaded weights, checked against the pin and linked, not downloaded
+    [ -n "${WEIGHTS_PATH:-}" ] && items+=(--user-model "$WEIGHTS_PATH")
+    items+=("$MODEL_ID:$MODEL_REV:model" "$CORPUS_ID:$CORPUS_REV:dataset")
     [ -n "$DRAFT_ID" ] && items+=("$DRAFT_ID:$DRAFT_REV:model")
     # the token, if this user has one, stays in this one process's environment on the host
     local tok=; [ -f ~/.cache/huggingface/token ] && tok=$(cat ~/.cache/huggingface/token)
@@ -76,7 +80,9 @@ fetch() {
     if [ ! -x "$NL/dlvenv/bin/python" ]; then
         python3 -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
     fi
-    retry 3 fetch_once
+    retry 3 fetch_once || return 1
+    [ -s "$CELL_DIR/weights.json" ] || { log "fetch wrote no weights.json (provenance of the served weights)"; return 1; }
+    log "weights: $(tr -d '\n' < "$CELL_DIR/weights.json" | cut -c1-200)"
 }
 
 # archive_tree <repo> <commit> <dest>: the commit's files, plus every submodule at the commit its gitlink records,
@@ -143,7 +149,10 @@ prepare() {
     if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != true ]; then
         docker rm -f "$CONTAINER" >/dev/null 2>&1
         local render video; render=$(getent group render | cut -d: -f3); video=$(getent group video | cut -d: -f3)
-        docker run -d --name "$CONTAINER" --entrypoint /bin/bash \
+        # user-supplied weights: the hub's snapshots/<rev> is a symlink to them (fetch.py), so they are mounted
+        # read-only at the same absolute path for the link to resolve in the container
+        local wmount=(); [ -n "${WEIGHTS_PATH:-}" ] && wmount=(-v "$WEIGHTS_PATH:$WEIGHTS_PATH:ro")
+        docker run -d --name "$CONTAINER" --entrypoint /bin/bash ${wmount[@]+"${wmount[@]}"} \
             --network host --ipc host --device /dev/kfd --device /dev/dri \
             --group-add "${render:-109}" --group-add "${video:-44}" \
             --cap-add SYS_PTRACE --security-opt seccomp=unconfined --security-opt label=disable \
