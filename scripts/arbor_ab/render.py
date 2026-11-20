@@ -11,7 +11,8 @@ SESSION_MOUNT = "/workspace/sessions"
 INFX_IN_CONTAINER = "/workspace/InferenceX"
 BENCH_ENV_REQUIRED = ("MODEL_PREFIX", "FRAMEWORK")          # packs/agentx/validator/bench_agentx.sh:76-77
 P90_OBJECTIVE = "P90 interactivity"                          # arbor/objective.py:54,71 -> e2e_norm_intvty_p90
-MODES = ("smoke", "full", "campaign_smoke")   # campaign_smoke: fetch, prepare, a short campaign; no measurements
+MODES = ("smoke", "full", "campaign_smoke", "baseline")   # campaign_smoke: short campaign, no measurements;
+                                                          # baseline: fetch, prepare, before (make_baseline.py)
 CAMPAIGN_MODES = ("full", "campaign_smoke")
 
 
@@ -130,4 +131,6 @@ def job_minutes(mode, minutes, record):
         return 60 + 30 + 30 + 30
     if mode == "campaign_smoke":
         return 60 + 30 + minutes + 30
+    if mode == "baseline":
+        return 60 + 30 + meas + 30
     return 60 + 30 + 2 * meas + minutes + 60

@@ -75,7 +75,7 @@ def write(p, text):
     p.write_text(text, encoding="utf-8", newline="\n")
 
 
-def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False, now=None):
+def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False, now=None, records=None):
     """Render runs/<run_id>/ and (unless dry_run) start one job per cell through `backend`. Returns run_config."""
     mode = req.get("mode", "full")
     if mode not in render.MODES:
@@ -90,9 +90,9 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     if mode in render.CAMPAIGN_MODES and gateway_needed and not site.get("gateway_env"):
         sys.exit("full mode needs local.yaml arbor.gateway_env (the LLM gateway for Arbor's agents; setup_remote.py)")
 
-    records, refusals = [], []
-    for t in req["targets"]:
-        r = baseline.load_latest(t["model"], t["target"])
+    given, records, refusals = records, [], []   # records: measure these (e.g. a make_baseline.py draft), not the stored ones
+    for i, t in enumerate(req["targets"]):
+        r = given[i] if given else baseline.load_latest(t["model"], t["target"])
         why = ["no baseline record"] if r is None else render.check_runnable(r)
         if t.get("weights_path") and not str(t["weights_path"]).startswith("/"):
             why.append(f"weights_path {t['weights_path']!r} must be an absolute path on the node")

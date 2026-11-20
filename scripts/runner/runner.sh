@@ -385,6 +385,7 @@ case "$MODE" in
     full)  run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL"
            run_phase campaign campaign; run_phase after measure after "$DUR_FULL" "$NQ_FULL" ;;
     campaign_smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase campaign campaign ;;
+    baseline) run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL" ;;
     *) die "unknown MODE '$MODE'" ;;
 esac
 echo done > "$CELL_DIR/state"; PHASE=end; log "cell $CELL: all phases done"

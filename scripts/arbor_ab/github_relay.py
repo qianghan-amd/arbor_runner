@@ -62,6 +62,23 @@ for r in REQS:
                         if n.endswith(".json") and z.getinfo(n).file_size < 4_000_000:
                             members[n] = json.loads(z.read(n))
             res.append({"http": code, "data": members})
+        elif r["op"] == "artifact_text":
+            # only the named members (matched by base name); a big one returns only its lines matching r["grep"][name]
+            import re
+            out = {}
+            with tempfile.TemporaryDirectory() as d:
+                zp = os.path.join(d, "a.zip")
+                code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
+                if code == 200:
+                    z = zipfile.ZipFile(zp)
+                    for n in z.namelist():
+                        base = os.path.basename(n)
+                        if base not in r["names"]:
+                            continue
+                        text = z.read(n).decode("utf-8", "replace")
+                        pat = (r.get("grep") or {}).get(base)
+                        out[base] = "\n".join(l for l in text.splitlines() if re.search(pat, l))[:200000] if pat else text[:200000]
+            res.append({"http": code, "data": out})
         else:
             res.append({"http": 0, "error": "unknown op"})
     except Exception as e:  # report, never raise: one bad request must not hide the others
@@ -98,3 +115,8 @@ def artifacts(repo, run_id):
 
 def artifact_json(repo, artifact_id):
     return {"op": "artifact_json", "repo": repo, "artifact_id": int(artifact_id)}
+
+
+def artifact_text(repo, artifact_id, names, grep=None):
+    """Text of the named members of an artifact zip; for a member in `grep`, only its lines matching that regex."""
+    return {"op": "artifact_text", "repo": repo, "artifact_id": int(artifact_id), "names": list(names), "grep": grep or {}}

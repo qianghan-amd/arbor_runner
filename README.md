@@ -89,6 +89,15 @@ targets:
   `comparison.json` (`weights_source: downloaded | user_path`, the path, the pinned revision, the two files' sha256).
   If the pinned weights are already on the node, they are used and recorded as `downloaded`, with a note.
 
+New baseline from an InferenceX CI run (vLLM; docs/make_baseline_design.md):
+
+```bash
+.venv/bin/python scripts/make_baseline.py draft --model dsv41flash --target c1_p90 --ci-run 34657748450
+#   read runs/drafts/<...>/review.md: confirm each `copied` (env, launch) and `derived` (corpus rev, digest) row
+.venv/bin/python scripts/make_baseline.py measure --draft runs/drafts/<...> --arbor-commit <sha> [--skip-gsm8k]
+.venv/bin/python scripts/make_baseline.py finalize --draft runs/drafts/<...> --run-dir runs/<run_id>   # stores only on gate pass
+```
+
 Baselines: `scripts/verify_baseline.py` (two-layer gate against the InferenceX CI artifacts) and
 `scripts/check_baseline_health.py` (CI artifact, image digest/tag, mirror). Evidence behind every number:
 [`evidence/README.md`](evidence/README.md).
