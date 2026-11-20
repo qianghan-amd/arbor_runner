@@ -220,7 +220,7 @@ prepare() {
     tail -1 "$LOGS/corpus_check.log" | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' \
         || { log "corpus does not load offline after warm-up (see logs/corpus_check.log)"; return 1; }
 
-    if [ "$MODE" = full ]; then
+    if [ "$MODE" = full ] || [ "$MODE" = campaign_smoke ]; then
         # the stock agentx pack loads the `profiler` skill and requires a profile before any change (pack.yaml);
         # build its vendored ruppell, as the earlier campaigns' prepare.sh did (not fatal: Arbor's check decides)
         in_c '[ -f /ruppell/runtime/build.sh ] || { echo "no vendored ruppell at /ruppell"; exit 0; }
@@ -305,7 +305,9 @@ print(f"[runner] AgentX status={b.get('status')} total_throughput_per_gpu={b.get
 PY
 
     local T2; T2=$(date +%s)
-    if [ "$GSM8K_TOOL" = infx_lm_eval ]; then   # public dataset fetched by lm-eval itself; no token in the container
+    if [ "$nq" = 0 ]; then   # request skip_gsm8k: recorded in phase.json (gsm8k_questions 0); the report says "skipped"
+        log "$TAG: GSM8K skipped (request skip_gsm8k)"
+    elif [ "$GSM8K_TOOL" = infx_lm_eval ]; then   # public dataset fetched by lm-eval itself; no token in the container
         docker exec -e PORT="$PORT" -e MODEL="$MODEL_NAME" -e MODEL_NAME="$MODEL_NAME" -e EVAL_MAX_MODEL_LEN=4096 \
             -e EVAL_CONCURRENT_REQUESTS="$GSM8K_CONC" -e EVAL_RESULT_DIR="$cin/gsm8k" -e EVAL_LIMIT="$nq" -e HF_HUB_OFFLINE=0 \
             "$CONTAINER" bash -c "cd /workspace/InferenceX && timeout 5400 bash -c 'source benchmarks/benchmark_lib.sh && \
@@ -319,7 +321,7 @@ PY
             > "$out/gsm8k.log" 2>&1
         grep -qa '^Accuracy:' "$out/gsm8k.log" || { log "$TAG: GSM8K printed no accuracy"; return 1; }
     fi
-    log "$TAG: GSM8K ($nq) after $(( $(date +%s) - T2 )) s: $(grep -aE '^Accuracy:|^\|.*(flexible-extract|strict-match)' "$out/gsm8k.log" | tr -s ' ' | tr '\n' ' ' | cut -c1-200)"
+    [ "$nq" = 0 ] || log "$TAG: GSM8K ($nq) after $(( $(date +%s) - T2 )) s: $(grep -aE '^Accuracy:|^\|.*(flexible-extract|strict-match)' "$out/gsm8k.log" | tr -s ' ' | tr '\n' ' ' | cut -c1-200)"
     stop_server || return 1
 
     "$PY" - "$out/phase.json" "$TAG" "$t0" "$(date -u +%FT%TZ)" "$(head -1 "$out/tree.txt")" "$out/launch.json" \
@@ -382,6 +384,7 @@ case "$MODE" in
     smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase smoke measure smoke "$DUR_SMOKE" "$NQ_SMOKE" ;;
     full)  run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL"
            run_phase campaign campaign; run_phase after measure after "$DUR_FULL" "$NQ_FULL" ;;
+    campaign_smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase campaign campaign ;;
     *) die "unknown MODE '$MODE'" ;;
 esac
 echo done > "$CELL_DIR/state"; PHASE=end; log "cell $CELL: all phases done"

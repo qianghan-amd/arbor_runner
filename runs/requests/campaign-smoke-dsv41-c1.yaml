@@ -1,0 +1,10 @@
+# Campaign smoke: fetch, prepare, a 20 min Arbor campaign, no measurements. Proves Arbor's campaign start (init,
+# gateway, agents) after P6 job 299696 failed at init (missing bench_script/correctness_script), before a long run.
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: campaign_smoke
+campaign_minutes: 20
+exclude_nodes: [crsuse2-m2m-v3-177]
+backend_options: { qos: amd-agentx-qos, account: amd-agentx }
+targets:
+  # weights: the pinned snapshot in the shared HF hub (verified 2026-11-19), instead of downloading
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }

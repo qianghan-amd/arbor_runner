@@ -68,7 +68,9 @@ def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=
         "deltas": {p: delta(before, after, p) for p in paths},
         "ceiling": {"primary": ceil_v, "source": ceiling["source"] if ceiling else None,
                     "after_vs_ceiling_pct": _pct(after_v, ceil_v)},
-        "gsm8k": gsm8k_check(before, after, max_drop),
+        "gsm8k": ({"max_drop": max_drop, "status": "skipped", "scores": {}, "note": "request skip_gsm8k"}
+                  if all((phases or {}).get(p) and (phases or {})[p].get("gsm8k_questions") == 0 for p in ("before", "after"))
+                  else gsm8k_check(before, after, max_drop)),
         "baseline_flags": {"ci_verified": record["verification"]["ci_verified"],
                            "numeric_gate": record["verification"]["numeric"]["status"],
                            "data_quality_warning": [w["code"] for w in record["data_quality_warning"] or []]},

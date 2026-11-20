@@ -4,7 +4,9 @@ Usage:
   python scripts/submit_ab_test.py --request runs/requests/<name>.yaml [--dry-run]
 Request:
   commit: <Arbor commit SHA>             # identified by commit, not PR number (design.md section 4)
-  mode: smoke | full                     # smoke = fetch + prepare + 600 s AgentX + 200 GSM8K questions, no campaign
+  mode: smoke | full | campaign_smoke    # smoke = fetch + prepare + 600 s AgentX + 200 GSM8K questions, no campaign;
+                                         # campaign_smoke = fetch + prepare + a short campaign, no measurement
+  skip_gsm8k: true                       # optional: no GSM8K in any phase (recorded as skipped)
   campaign_minutes: 180                  # full mode only (Arbor's time_budget_minutes)
   exclude_nodes: [crsuse2-m2m-v3-177]    # optional: hosts not to use (e.g. left dirty by another user)
   backend_options: { qos: amd-burst-qos, account: amd-hyperloom }   # optional, backend-specific (crusoe_slurm)
@@ -78,14 +80,14 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     mode = req.get("mode", "full")
     if mode not in render.MODES:
         sys.exit(f"mode must be one of {render.MODES}")
-    minutes = int(req.get("campaign_minutes", 1440)) if mode == "full" else 0
+    minutes = int(req.get("campaign_minutes", 1440)) if mode in render.CAMPAIGN_MODES else 0
     try:
         commit = subprocess.run(["git", "-C", str(clone), "rev-parse", "--verify", f"{req['commit']}^{{commit}}"],
                                 capture_output=True, text=True, check=True).stdout.strip()
     except subprocess.CalledProcessError:
         sys.exit(f"commit {req['commit']} not found in {clone} (git fetch it first)")
     site = backend.site()
-    if mode == "full" and gateway_needed and not site.get("gateway_env"):
+    if mode in render.CAMPAIGN_MODES and gateway_needed and not site.get("gateway_env"):
         sys.exit("full mode needs local.yaml arbor.gateway_env (the LLM gateway for Arbor's agents; setup_remote.py)")
 
     records, refusals = [], []
@@ -113,7 +115,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         cdir.mkdir(parents=True)
         container = render.container_name(run_id, r["model"], r["target"]["key"])
         env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha,
-                              weights_path=t.get("weights_path"))
+                              weights_path=t.get("weights_path"), skip_gsm8k=bool(req.get("skip_gsm8k")))
         write(cdir / "cell.env", render.env_file(env))
         write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes), indent=2) + "\n")
         wall = render.job_minutes(mode, minutes, r)
@@ -132,6 +134,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
                   "remote_run_dir": remote_run, "site": {k: v for k, v in site.items() if k != "gateway_env"},
                   "gateway_configured": bool(site.get("gateway_env")), "reference": req.get("reference"),
                   "exclude_nodes": list(req.get("exclude_nodes") or []), "backend_options": req.get("backend_options"),
+                  "skip_gsm8k": bool(req.get("skip_gsm8k")),
                   "cells": cells, "submitted": False}
     rc_path = run_dir / "run_config.json"
     write(rc_path, json.dumps(run_config, indent=2) + "\n")

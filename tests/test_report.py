@@ -39,6 +39,18 @@ def test_generate_report_reproduces_known_result(tmp_path):
     assert c["weights"] == {"weights_source": "user_path", "path": "/w"}
 
 
+def test_gsm8k_skipped_when_both_phases_skipped():
+    from arbor_ab import baseline
+    r = baseline.load_latest("dsv41flash", "c1_p90")
+    m = {"total_tput_tps": 1.0, "tput_per_gpu": 1.0, "intvty": {"p50": 1, "p90": 1, "p95": 1},
+         "e2e_norm_intvty": {"p50": 1, "p90": 1, "p95": 1},
+         "gsm8k": {"flexible_extract": None, "strict_match": None, "accuracy": None, "num_questions": None}}
+    c = report.comparison("r", r, m, m, 0.01, "x", phases={"before": {"gsm8k_questions": 0}, "after": {"gsm8k_questions": 0}})
+    assert c["gsm8k"]["status"] == "skipped"
+    c = report.comparison("r", r, m, m, 0.01, "x", phases={"before": {"gsm8k_questions": 1319}, "after": {"gsm8k_questions": 0}})
+    assert c["gsm8k"]["status"] == "missing"
+
+
 def test_incomplete_cell_gets_no_comparison(tmp_path):
     run = make_run(tmp_path)
     (run / "dsv41flash__c1_p90" / "after" / "agg.json").unlink()

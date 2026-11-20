@@ -29,6 +29,8 @@ def test_arbor_config_dsv41_c1():
     assert c["session_root"] == "/w/runs/x/dsv41flash__c1_p90/sessions/full" and c["session_mount"] == "/workspace/sessions"
     assert c["server_env"]["INFMAX_CONTAINER_WORKSPACE"] == "/workspace/InferenceX"
     assert c["server_flags"] == r["host"]["server_flags"]                      # the pristine launch, unchanged
+    assert c["bench_script"] == "/workspace/Arbor/packs/agentx/validator/bench_agentx.sh"   # P6 job 299696 lacked it
+    assert c["correctness_script"] == "/workspace/Arbor/packs/agentx/validator/correctness.sh"
     assert render.opt_objective(r) == "P90 interactivity"
     assert render.opt_objective(baseline.load_latest("kimik3", "c1_p90")) == "P90 interactivity"
 
@@ -41,6 +43,10 @@ def test_cell_env_and_sbatch():
     assert render.env_file({"A": "x y", "B": "it's"}) == "A='x y'\nB='it'\"'\"'s'\n"   # shlex-quoted for bash
     assert render.container_name("20261119-075610_f7abce97_smoke", "dsv41flash", "c1_p90") == "ab_20261119-075610_dsv41flash_c1_p90"
     assert render.job_minutes("smoke", 0, r) == 150
+    assert render.job_minutes("campaign_smoke", 20, r) == 60 + 30 + 20 + 30
+    skip = render.cell_env(r, "20261119-000000_f7abce97_t", "f7abce97", "full", "/w/c", "ab_c", 180, SITE, "/w/a.tar", "ab" * 32,
+                           skip_gsm8k=True)
+    assert skip["NQ_FULL"] == "0" and skip["NQ_SMOKE"] == "0"
     assert render.job_minutes("full", 1440, r) == 60 + 30 + 2 * 150 + 1440 + 60
 
 

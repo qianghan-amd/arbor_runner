@@ -11,7 +11,8 @@ SESSION_MOUNT = "/workspace/sessions"
 INFX_IN_CONTAINER = "/workspace/InferenceX"
 BENCH_ENV_REQUIRED = ("MODEL_PREFIX", "FRAMEWORK")          # packs/agentx/validator/bench_agentx.sh:76-77
 P90_OBJECTIVE = "P90 interactivity"                          # arbor/objective.py:54,71 -> e2e_norm_intvty_p90
-MODES = ("smoke", "full")
+MODES = ("smoke", "full", "campaign_smoke")   # campaign_smoke: fetch, prepare, a short campaign; no measurements
+CAMPAIGN_MODES = ("full", "campaign_smoke")
 
 
 class NotRunnable(ValueError):
@@ -72,6 +73,11 @@ def arbor_config(record, run_id, commit, cell_dir, container, minutes):
         "concurrency": lau["concurrency"],
         "num_prompts": lau.get("num_prompts") or 320,
         "bench_timeout": lau.get("bench_timeout_s") or 7200,
+        # Arbor's docs/reference.md: absolute paths to the pack's validator scripts, as the container sees them.
+        # Without them Arbor's init looks for './validator' in the container and stops (P6 job 299696, 2026-11-20);
+        # `arbor check` did not flag it. The Arbor tree is mounted at /workspace/Arbor (runner.sh).
+        "bench_script": "/workspace/Arbor/packs/agentx/validator/bench_agentx.sh",
+        "correctness_script": "/workspace/Arbor/packs/agentx/validator/correctness.sh",
         "session_root": f"{cell_dir}/sessions/full",
         "session_mount": SESSION_MOUNT,
         "time_budget_minutes": minutes,
@@ -84,7 +90,8 @@ def opt_objective(record):
     return P90_OBJECTIVE if record["target"]["primary_metric_path"] == "metrics.e2e_norm_intvty.p90" else None
 
 
-def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None):
+def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None,
+             skip_gsm8k=False):
     """Shell variables for scripts/runner/runner.sh (written as cell.env). weights_path: optional pre-downloaded weights
     of the served model on the node (request `weights_path`); fetch.py checks them against the pin and links them."""
     h, lau, fp = record["host"], record["launch"], record["fingerprint"]
@@ -103,7 +110,9 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         "ARBOR_SHA": commit, "CONC": str(lau["concurrency"]), "NUM_PROMPTS": str(lau.get("num_prompts") or 320),
         "BENCH_TIMEOUT": str(lau.get("bench_timeout_s") or 7200),
         "GSM8K_TOOL": lau["gsm8k"]["tool"], "GSM8K_CONC": str(lau["gsm8k"].get("concurrency") or 16),
-        "DUR_FULL": "3600", "NQ_FULL": str(lau["gsm8k"].get("num_questions") or 1319), "DUR_SMOKE": "600", "NQ_SMOKE": "200",
+        # skip_gsm8k (request): 0 questions = no GSM8K in any phase; phase.json and the report say "skipped"
+        "DUR_FULL": "3600", "NQ_FULL": "0" if skip_gsm8k else str(lau["gsm8k"].get("num_questions") or 1319),
+        "DUR_SMOKE": "600", "NQ_SMOKE": "0" if skip_gsm8k else "200",
         "CAMPAIGN_MINUTES": str(minutes), "OPT_OBJECTIVE": opt_objective(record) or "",
         "GATEWAY_ENV": site.get("gateway_env") or "",
         "WEIGHTS_PATH": weights_path or "",
@@ -119,4 +128,6 @@ def job_minutes(mode, minutes, record):
     meas = 75 + (75 if record["host"]["framework"] == "vllm" else 10)
     if mode == "smoke":
         return 60 + 30 + 30 + 30
+    if mode == "campaign_smoke":
+        return 60 + 30 + minutes + 30
     return 60 + 30 + 2 * meas + minutes + 60
