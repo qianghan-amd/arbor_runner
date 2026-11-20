@@ -1,4 +1,5 @@
 """Build comparison.json for every cell of a PR-test run that has both phases (docs/design.md section 8).
+A campaign-only run (mode campaign / campaign_smoke) has no before/after: its row shows the campaign's exit instead.
 
 Usage: python scripts/generate_report.py --run-dir runs/<run_id> [--print]
 Reads runs/<run_id>/run_config.json (written by submit_ab_test.py) and each <model>__<target>/{before,after}/ dir.
@@ -39,19 +40,26 @@ def main():
     for cell in rc["cells"]:
         model, target = cell["model"], cell["target"]
         d = args.run_dir / f"{model}__{target}"
+        record = baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json")
+        src = report.baseline_source(record)
+        src_txt = f"from {src['source_type']} run {src['ci_run_id']} ({src['ci_commit_date']})"
+        if rc.get("mode") in ("campaign", "campaign_smoke"):   # no before/after by design: the campaign's own result
+            ex = read_json(d / "campaign_exit.json") or {}
+            rows.append((model, target, "campaign", f"baseline {src_txt}; Arbor exit {ex.get('reason')}, "
+                                                    f"iterations {ex.get('iteration')}, kept {ex.get('keeps')}"))
+            continue
         before, before_meta = read_phase(d / "before")
         after, after_meta = read_phase(d / "after")
         if before is None or after is None:
             rows.append((model, target, "incomplete", f"missing: {[p for p, x in (('before', before), ('after', after)) if x is None]}"))
             continue
-        record = baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json")
         comp = report.comparison(rc["run_id"], record, before, after, config.gsm8k_max_drop(matrix, model, target),
                                  rc["commit"], reference=rc.get("reference"),
                                  phases={"before": before_meta, "after": after_meta}, weights=read_json(d / "weights.json"))
         comp["generated_at"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         (d / "comparison.json").write_text(json.dumps(comp, indent=2) + "\n", encoding="utf-8", newline="\n")
         p = comp["deltas"][record["target"]["primary_metric_path"].split(".", 1)[1]]
-        rows.append((model, target, "ok", f"primary {p['before']} -> {p['after']} ({p['change_pct']}%), "
+        rows.append((model, target, "ok", f"baseline {src_txt}; primary {p['before']} -> {p['after']} ({p['change_pct']}%), "
                                           f"after vs ceiling {comp['ceiling']['after_vs_ceiling_pct']}%, GSM8K {comp['gsm8k']['status']}, "
                                           f"weights {comp['weights']['weights_source']}"))
         if args.print:

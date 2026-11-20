@@ -44,8 +44,9 @@ cat runs/requests/smoke-dsv41-c1.yaml
 .venv/bin/python scripts/generate_report.py --run-dir runs/<run_id>
 ```
 
-Modes: `smoke` (fetch, prepare, 600 s AgentX + 200 GSM8K questions; no campaign) and `full` (before, an Arbor campaign
-of `campaign_minutes`, after). Which cells can run: `render.check_runnable` (see `scripts/check_setup.py` output).
+Modes: `campaign` (the default: fetch, prepare, an Arbor campaign of `campaign_minutes`; no measurement of our own),
+`full` (before, campaign, after: the A/B measurement) and `smoke` (one 600 s AgentX measurement, no campaign). GSM8K
+runs only with `gsm8k: true` in the request. Step by step, in easy English: [`docs/how_to_run_a_campaign.md`](docs/how_to_run_a_campaign.md). Which cells can run: `render.check_runnable` (see `scripts/check_setup.py` output).
 
 ### A node left dirty by someone else (optional `exclude_nodes`)
 
@@ -94,7 +95,7 @@ New baseline from an InferenceX CI run (vLLM; docs/make_baseline_design.md):
 ```bash
 .venv/bin/python scripts/make_baseline.py draft --model dsv41flash --target c1_p90 --ci-run 34657748450
 #   read runs/drafts/<...>/review.md: confirm each `copied` (env, launch) and `derived` (corpus rev, digest) row
-.venv/bin/python scripts/make_baseline.py measure --draft runs/drafts/<...> --arbor-commit <sha> [--skip-gsm8k]
+.venv/bin/python scripts/make_baseline.py measure --draft runs/drafts/<...> --arbor-commit <sha> [--gsm8k]
 .venv/bin/python scripts/make_baseline.py finalize --draft runs/drafts/<...> --run-dir runs/<run_id>   # stores only on gate pass
 ```
 

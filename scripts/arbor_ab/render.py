@@ -11,9 +11,11 @@ SESSION_MOUNT = "/workspace/sessions"
 INFX_IN_CONTAINER = "/workspace/InferenceX"
 BENCH_ENV_REQUIRED = ("MODEL_PREFIX", "FRAMEWORK")          # packs/agentx/validator/bench_agentx.sh:76-77
 P90_OBJECTIVE = "P90 interactivity"                          # arbor/objective.py:54,71 -> e2e_norm_intvty_p90
-MODES = ("smoke", "full", "campaign_smoke", "baseline")   # campaign_smoke: short campaign, no measurements;
-                                                          # baseline: fetch, prepare, before (make_baseline.py)
-CAMPAIGN_MODES = ("full", "campaign_smoke")
+# campaign (the default, user decision 2026-11-20): fetch, prepare, the Arbor campaign; no before/after measurement.
+# full: before, campaign, after (the A/B comparison). campaign_smoke: campaign with a short budget (same steps).
+# smoke: one short measurement, no campaign. baseline: fetch, prepare, before (make_baseline.py).
+MODES = ("campaign", "full", "smoke", "campaign_smoke", "baseline")
+CAMPAIGN_MODES = ("campaign", "full", "campaign_smoke")
 
 
 class NotRunnable(ValueError):
@@ -129,7 +131,7 @@ def job_minutes(mode, minutes, record):
     meas = 75 + (75 if record["host"]["framework"] == "vllm" else 10)
     if mode == "smoke":
         return 60 + 30 + 30 + 30
-    if mode == "campaign_smoke":
+    if mode in ("campaign", "campaign_smoke"):
         return 60 + 30 + minutes + 30
     if mode == "baseline":
         return 60 + 30 + meas + 30

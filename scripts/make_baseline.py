@@ -3,7 +3,7 @@
   python scripts/make_baseline.py draft    --model M --target T --ci-run ID [--tp N]
       -> runs/drafts/<model>__<target>__ci<ID>/{draft.json, review.md, ci_bmk.json, ci_commands.txt}
          A person reads review.md and confirms (or edits draft.json for) every `copied`/`derived` row.
-  python scripts/make_baseline.py measure  --draft DIR --arbor-commit SHA [--skip-gsm8k] [--weights-path P] [--qos Q --account A]
+  python scripts/make_baseline.py measure  --draft DIR --arbor-commit SHA [--gsm8k] [--weights-path P] [--qos Q --account A]
       -> one `baseline` job (fetch, prepare, before) through the execution backend; prints the run dir
   python scripts/make_baseline.py finalize --draft DIR --run-dir runs/<run_id> [--replace]
       -> metrics from the run; gate vs CI (structural + numeric, matrix tolerance); stored in baselines/ only on `pass`
@@ -90,7 +90,7 @@ def cmd_measure(args):
     d = Path(args.draft)
     rec = json.loads((d / "draft.json").read_text(encoding="utf-8"))
     local = config.load_local()
-    req = {"commit": args.arbor_commit, "mode": "baseline", "skip_gsm8k": args.skip_gsm8k,
+    req = {"commit": args.arbor_commit, "mode": "baseline", "gsm8k": args.gsm8k,
            "targets": [{"model": rec["model"], "target": rec["target"]["key"], "weights_path": args.weights_path}]}
     if args.qos:
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
@@ -157,7 +157,7 @@ def main():
     p = sub.add_parser("measure")
     p.add_argument("--draft", required=True)
     p.add_argument("--arbor-commit", required=True, help="the Arbor whose launch code renders the server command")
-    p.add_argument("--skip-gsm8k", action="store_true")
+    p.add_argument("--gsm8k", action="store_true", help="also run GSM8K (off by default)")
     p.add_argument("--weights-path")
     p.add_argument("--qos")
     p.add_argument("--account")

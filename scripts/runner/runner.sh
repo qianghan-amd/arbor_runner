@@ -233,7 +233,7 @@ prepare() {
     tail -1 "$LOGS/corpus_check.log" | tee -a "$LOGS/runner.log" | grep -q 'offline load ok' \
         || { log "corpus does not load offline after warm-up (see logs/corpus_check.log)"; return 1; }
 
-    if [ "$MODE" = full ] || [ "$MODE" = campaign_smoke ]; then
+    if [ "$MODE" = full ] || [ "$MODE" = campaign ] || [ "$MODE" = campaign_smoke ]; then
         # the stock agentx pack loads the `profiler` skill and requires a profile before any change (pack.yaml);
         # build its vendored ruppell, as the earlier campaigns' prepare.sh did (not fatal: Arbor's check decides)
         in_c '[ -f /ruppell/runtime/build.sh ] || { echo "no vendored ruppell at /ruppell"; exit 0; }
@@ -404,7 +404,7 @@ case "$MODE" in
     smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase smoke measure smoke "$DUR_SMOKE" "$NQ_SMOKE" ;;
     full)  run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL"
            run_phase campaign campaign; run_phase after measure after "$DUR_FULL" "$NQ_FULL" ;;
-    campaign_smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase campaign campaign ;;
+    campaign|campaign_smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase campaign campaign ;;
     baseline) run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL" ;;
     *) die "unknown MODE '$MODE'" ;;
 esac

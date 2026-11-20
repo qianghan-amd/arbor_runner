@@ -30,14 +30,17 @@ def check_skills():
 
 
 def check_baselines():
-    from arbor_ab import baseline, config
+    from arbor_ab import baseline, config, render
     cells = config.cells(config.load_matrix())
     recs = {c: baseline.load_latest(*c) for c in cells}
     absent = [f"{a}/{b}" for (a, b), r in recs.items() if r is None]
     invalid = [f"{a}/{b}" for (a, b), r in recs.items() if r is not None and baseline.validation_errors(r)]
     if invalid:
         raise RuntimeError(f"schema-invalid: {invalid}")
-    return f"{len(cells) - len(absent)}/{len(cells)} active cells have a valid record" + (f"; none for {absent}" if absent else "")
+    runnable = [f"{a}/{b} (baseline from {r['fingerprint'].get('source_type')} run {r['fingerprint'].get('ci_run_id')})"
+                for (a, b), r in recs.items() if r is not None and not render.check_runnable(r)]
+    return (f"{len(cells) - len(absent)}/{len(cells)} active cells have a valid record"
+            + (f"; none for {absent}" if absent else "") + f"; runnable now: {', '.join(runnable) or 'none'}")
 
 
 def main():

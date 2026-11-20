@@ -46,6 +46,14 @@ def gsm8k_check(before, after, max_drop):
     return {"max_drop": max_drop, "status": status, "scores": out}
 
 
+def baseline_source(record):
+    """Where the cell's starting point comes from: the baseline's AgentX CI run (or other source) and image."""
+    f = record["fingerprint"]
+    return {"epoch_id": record["epoch_id"], "source_type": f.get("source_type"), "ci_run_id": f.get("ci_run_id"),
+            "ci_commit": f.get("ci_commit"), "ci_commit_date": f.get("ci_commit_date"), "image": f.get("image"),
+            "image_digest": f.get("image_digest")}
+
+
 def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=None, phases=None, weights=None):
     """record: the baseline record of the cell (current epoch). before/after: schema metrics blocks."""
     tgt = record["target"]
@@ -61,6 +69,7 @@ def comparison(run_id, record, before, after, max_drop, arbor_commit, reference=
         "target": tgt,
         "arbor_commit": arbor_commit,
         "epoch_id": record["epoch_id"],
+        "baseline_source": baseline_source(record),
         "reference": reference or {"kind": "baseline", "id": record["epoch_id"],
                                    "note": "before = the baseline's pristine launch, re-measured fresh in this run"},
         "before": before,

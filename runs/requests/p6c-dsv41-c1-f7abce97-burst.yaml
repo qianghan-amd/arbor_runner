@@ -6,7 +6,7 @@ commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
 mode: full
 campaign_minutes: 480
 skip_gsm8k: true
-exclude_nodes: [crsuse2-m2m-v3-177]
+exclude_nodes: [crsuse2-m2m-v3-177, crsuse2-m2m-v3-182]   # 182: another user's devbox container held 86 % VRAM (job 301444)
 targets:
   # weights: the pinned snapshot in the shared HF hub (verified 2026-11-19), instead of downloading
   - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }
