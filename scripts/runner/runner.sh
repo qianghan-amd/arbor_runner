@@ -45,8 +45,17 @@ cleanup() {
     [ "$SERVER_UP" = 1 ] && stop_server
     # our container only (by its unique name); other users' containers are never touched
     docker rm -f "$CONTAINER" >/dev/null 2>&1 && log "container $CONTAINER removed"
+    kill "$BEAT_PID" 2>/dev/null
 }
 trap cleanup EXIT
+
+# Dead-man switch. A Slurm KILL skips the EXIT trap: P6 rerun job 300404 was preempted (burst, PreemptMode cancel),
+# Arbor exited on TERM, then signal 9 came before the trap logged anything, so the container may have outlived the job
+# on a node now in another user's job. This loop is in the job (it dies with it); the container's main process
+# (docker run below) exits once the beat is 120 s old, which stops everything in it, a server included.
+ALIVE=$NL/alive/$CONTAINER; mkdir -p "$ALIVE" && touch "$ALIVE/beat"
+( while :; do touch "$ALIVE/beat"; sleep 20; done ) &
+BEAT_PID=$!
 
 run_phase() {   # run_phase <name> <function> [args...]: skipped when already done
     PHASE=$1; shift
@@ -179,7 +188,9 @@ prepare() {
             -v "$CELL_DIR/sessions":/workspace/sessions -v "$CELL_DIR/mmap":/aiperf_mmap_cache -v "$CELL_DIR":/workspace/exp \
             -v "$ARBOR/.claude/skills/profiler/ruppell":/ruppell:ro -e RUPPELL_BUILD=/root/ruppell-work/build \
             -e HF_HUB_CACHE=/hf-hub -e HF_HOME=/root/.cache/huggingface -e HF_HUB_OFFLINE=1 \
-            "$IMAGE_TAG" -c "sleep infinity" >/dev/null || { log "docker run"; return 1; }
+            -v "$ALIVE":/ab_alive:ro \
+            "$IMAGE_TAG" -c 'while [ $(( $(date +%s) - $(stat -c %Y /ab_alive/beat) )) -lt 120 ]; do sleep 15; done' \
+            >/dev/null || { log "docker run"; return 1; }
     fi
     case "$MODEL_PATH" in
         /*) in_c "find -L '$MODEL_PATH' -maxdepth 1 -name '*.safetensors' -type f | head -1 | grep -q ." \
