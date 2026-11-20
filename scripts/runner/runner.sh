@@ -137,7 +137,9 @@ prepare() {
             && git -C "$ARBOR" -c user.email=ab@local -c user.name=arbor-ab commit -q -m "AMD-AGI/Arbor $ARBOR_SHA (git archive)" || return 1
     fi
     [ "$(cat "$ARBOR/SOURCE_COMMIT")" = "$ARBOR_SHA" ] || { log "$ARBOR is not Arbor $ARBOR_SHA"; return 1; }
-    log "Arbor $ARBOR_SHA at $ARBOR"
+    # Arbor stamps its records with this local commit (arbor/version.py provenance: HEAD of its own checkout), not
+    # with $ARBOR_SHA: the mapping is logged here and kept in SOURCE_COMMIT
+    log "Arbor $ARBOR_SHA at $ARBOR (local commit $(git -C "$ARBOR" rev-parse HEAD) in Arbor's own records)"
 
     if [ ! -f "$INFX/.source_commit" ]; then   # the marker is written last, so a half-built tree is rebuilt on resume
         git -C "$INFX_CLONE" cat-file -e "$INFX_SHA^{commit}" || { log "InferenceX $INFX_SHA not in $INFX_CLONE"; return 1; }
@@ -373,8 +375,15 @@ campaign() {
     campaign_env || return 1
     arbor_check || return 1                     # again, right before the start, with the run's own flags
     arbor_flags
-    (cd "$ARBOR" && "$PY" -m arbor run "${ARBOR_FLAGS[@]}" --cooldown 30) > "$LOGS/campaign.log" 2>&1
-    log "campaign: arbor run rc=$?"
+    # Arbor checks time_budget_minutes only before an iteration starts, and a standalone agent turn may run 240 min
+    # (arbor/component.py STANDALONE_TURN_MINUTES): campaign smoke job 300088 asked for 20 min and was still in its
+    # first iteration's dossier:measure at the 140-min job limit. The hard stop is ours: SIGTERM at the budget (Arbor
+    # stops its own server, records the iteration as not measured, writes exit.json), KILL 15 min later, so the
+    # `after` phase keeps its time.
+    (cd "$ARBOR" && timeout --signal=TERM --kill-after=15m "${CAMPAIGN_MINUTES}m" \
+        "$PY" -m arbor run "${ARBOR_FLAGS[@]}" --cooldown 30) > "$LOGS/campaign.log" 2>&1
+    local rc=$?
+    log "campaign: arbor run rc=$rc$([ $rc = 124 ] && echo " (stopped by the runner at the ${CAMPAIGN_MINUTES}-min budget)")"
     local ex=$CELL_DIR/sessions/full/exit.json
     [ -f "$ex" ] && cp "$ex" "$CELL_DIR/campaign_exit.json" && log "campaign exit: $(tr -d '\n' < "$ex" | cut -c1-300)"
     [ -f "$ex" ] || { log "campaign wrote no exit.json"; return 1; }
