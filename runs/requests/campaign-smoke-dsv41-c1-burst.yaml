@@ -1,0 +1,10 @@
+# Campaign smoke on burst (project QOS since 2026-11-20): fetch, prepare, a 20 min Arbor campaign, no measurements.
+# Proves (1) a burst job runs end to end, (2) the runner's hard stop at the budget (da0aced): job 300088 asked for
+# 20 min and ran until the 140-min job limit. Expect: campaign rc 124, exit.json reason sigterm, job COMPLETED.
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: campaign_smoke
+campaign_minutes: 20
+exclude_nodes: [crsuse2-m2m-v3-177]
+targets:
+  # weights: the pinned snapshot in the shared HF hub (verified 2026-11-19), instead of downloading
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }

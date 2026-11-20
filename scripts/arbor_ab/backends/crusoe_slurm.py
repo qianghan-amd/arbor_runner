@@ -151,6 +151,10 @@ class CrusoeSlurm(Backend):
         if unknown:
             raise ValueError(f"crusoe_slurm backend_options: unknown {sorted(unknown)} (known: qos, account)")
         qos, account = opts.get("qos", self.qos), opts.get("account", self.account)
+        cap = (self.cluster.get("qos_max_wall_minutes") or {}).get(qos)
+        if cap and minutes > cap:   # Spur keeps such a job pending forever (QOSMaxWallDurationPerJobLimit)
+            raise ValueError(f"the job needs {minutes} min but {qos} allows {cap} min: shorten campaign_minutes or use "
+                             "another QOS (backend_options)")
         lines = ["#!/bin/bash", f"#SBATCH --job-name={job_name}", f"#SBATCH --partition={self.partition}",
                  f"#SBATCH --qos={qos}"]
         if account:

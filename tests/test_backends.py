@@ -4,6 +4,8 @@ import shutil
 import subprocess
 import sys
 
+import pytest
+
 from arbor_ab import REPO_ROOT, backends
 from arbor_ab.backends import crusoe_slurm
 
@@ -14,7 +16,7 @@ import submit_ab_test  # noqa: E402
 LOCAL = {"backend": "crusoe_slurm", "ssh": {"login_host": "h", "github_relay_host": "r"},
          "remote": {"work_root": "/w", "infx_clone": "/x/InferenceX", "node_local_root": "/nl", "shared_hf_hub": "/hub"},
          "slurm": {"qos": "amd-agentx-qos", "account": "amd-agentx"}, "arbor": {"clone": "../Arbor", "gateway_env": None}}
-CLUSTER = {"partition": "amd-spur-v2"}
+CLUSTER = {"partition": "amd-spur-v2", "qos_max_wall_minutes": {"amd-burst-qos": 1440, "amd-agentx-qos": 2880}}
 
 
 class FakeBackend(backends.Backend):
@@ -109,8 +111,9 @@ def test_crusoe_job_script():
     assert name == "job.sbatch" and "--exclude" not in text
     assert "#SBATCH --exclude=n1,n2" in b.job_script("/w/c", "ab-c", 150, exclude=("n1", "n2"))[1]
     burst = b.job_script("/w/c", "ab-c", 150, options={"qos": "amd-burst-qos", "account": "amd-hyperloom"})[1]
+    with pytest.raises(ValueError, match="allows 1440 min"):
+        b.job_script("/w/c", "ab-c", 1441, options={"qos": "amd-burst-qos"})
     assert "#SBATCH --qos=amd-burst-qos" in burst and "#SBATCH --account=amd-hyperloom" in burst
-    import pytest
     with pytest.raises(ValueError, match="unknown"):
         b.job_script("/w/c", "ab-c", 150, options={"partition": "x"})
     for line in ("#SBATCH --partition=amd-spur-v2", "#SBATCH --qos=amd-agentx-qos", "#SBATCH --account=amd-agentx",

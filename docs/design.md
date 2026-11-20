@@ -132,7 +132,7 @@ A web UI is an explicit future layer on top of the same entry point, not designe
 
 ## 5. Scheduling
 
-**Reuses the cluster's scheduler directly — no custom scheduler.** Every selected `(model, target)` cell becomes its own job; the scheduler's own QOS/queueing handles contention. Node count is an open parameter, decided later. On Crusoe the scheduler is Spur, a Slurm-compatible implementation (verified 2026-11-19); QOS `amd-agentx-qos` (user decision 2026-11-19).
+**Reuses the cluster's scheduler directly — no custom scheduler.** Every selected `(model, target)` cell becomes its own job; the scheduler's own QOS/queueing handles contention. Node count is an open parameter, decided later. On Crusoe the scheduler is Spur, a Slurm-compatible implementation (verified 2026-11-19); QOS `amd-burst-qos`, account `amd-hyperloom` (user decision 2026-11-20; it was `amd-agentx-qos` until then): 24 h wall, preempt mode cancel, so a cancelled A/B run is rerun whole, never resumed on another node.
 
 ### 5.1 Execution backend boundary (extensibility point, added 2026-11-19)
 

@@ -14,10 +14,11 @@ remote:
   # Shared HF hub: corpora with a matching revision are copied from here (classic layout, loads offline).
   shared_hf_hub: /shared_nfs/huggingface/hub
 slurm:
-  # amd-agentx-qos: 2 jobs / 2 nodes per user, 48 h wall (sacctmgr, 2026-11-19). amd-hyperloom-qos allows 1 job per
-  # user and is often taken by other work. amd-burst-qos (24 h wall, preempt mode cancel) is the fallback.
-  qos: amd-agentx-qos
-  account: amd-agentx
+  # amd-burst-qos (project default, user decision 2026-11-20): 24 h wall, 4 submitted / 8 running per user, preempt
+  # mode cancel. amd-agentx-qos (account amd-agentx): 2 jobs / 2 nodes per user, 48 h wall, not preempted.
+  # amd-hyperloom-qos allows 1 job per user and is often taken by other work.
+  qos: amd-burst-qos
+  account: amd-hyperloom
 arbor:
   clone: ../Arbor                 # local clone of AMD-AGI/Arbor; submit_ab_test.py runs `git archive <commit>` in it
   # LLM gateway env file on the cluster, written by `scripts/setup_remote.py --key-file <file>` (mode 600).
