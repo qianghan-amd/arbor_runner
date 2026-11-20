@@ -1,0 +1,12 @@
+# P6 rerun (first real PR test). Arbor f7abce97, DSv4.1 Flash C1 P90 (D3), on burst (project QOS since 2026-11-20).
+# Campaign 8 h (DECISION 2026-11-20: the map phase alone ran >2 h 10 min in job 300088; 3 h leaves no optimization
+# iteration). GSM8K skipped (user, 2026-11-20). The runner stops the campaign at 480 min (proven in job 300364).
+# Job ~930 min < burst 1440. A cancelled (preempted) run is rerun whole, never resumed on another node.
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: full
+campaign_minutes: 480
+skip_gsm8k: true
+exclude_nodes: [crsuse2-m2m-v3-177]
+targets:
+  # weights: the pinned snapshot in the shared HF hub (verified 2026-11-19), instead of downloading
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }
