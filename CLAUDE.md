@@ -5,7 +5,8 @@ new class of problem in the repo (script, config, check, doc), never as a one-of
 
 ## Repo
 
-- Remote: `origin` = `qianghan-amd/arbor_runner`, branch `main`. Never force-push, never add a remote, never `git init`
+- Team repo: `AMD-BRAIN-Internal/arbor-ci`, branch `main` (the shared home since 2026-11-21). The first author's clone
+  has `origin` = `qianghan-amd/arbor_runner` (personal mirror). Never force-push, never add a remote, never `git init`
   (denied in `.claude/settings.json`).
 - `.claude/settings.json` (checked in) allows the routine commands (git status/diff/log/add/commit/pull --rebase/push
   origin main, pytest, the repo venv). Add a rule there, with a reason in the commit, instead of re-approving the same

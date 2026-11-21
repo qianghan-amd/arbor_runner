@@ -117,5 +117,5 @@ Baselines: `scripts/verify_baseline.py` (two-layer gate against the InferenceX C
 
 ## Contributing
 
-`CLAUDE.md` holds the rules for agents and people. Run `python -m pytest -q tests` before you commit. Push to
-`origin main` only.
+`CLAUDE.md` holds the rules for agents and people. Run `python -m pytest -q tests` before you commit. The team repo is
+`AMD-BRAIN-Internal/arbor-ci` (branch `main`); never force-push.
