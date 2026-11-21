@@ -1,6 +1,8 @@
 # meta64: AMD Meta MI350X Slurm cluster (login nodes ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com, ruby-slurmlogin02.rckg.g03.cpe.ice.amd.com).
 # Facts verified 2026-11-21 (sinfo, scontrol, sacctmgr on the login node; probe job 146738 on cv350-rck-g03-e15-08).
 name: meta64
+# A runner only (user decision 2026-11-21): experiments run here, baselines never (make_baseline.py measure refuses).
+baselines: false
 scheduler: slurm                # Slurm 25.05.1
 login_shell: bash
 partition: meta64               # 68 nodes cv350-rck-g03-*, MaxTime 5-00:00:00, OverSubscribe=EXCLUSIVE, no GPU gres

@@ -1,4 +1,6 @@
-"""Build a new baseline from an InferenceX CI run (docs/make_baseline_design.md, simplified MVP, vLLM only).
+"""Build a new baseline from an InferenceX CI run (docs/make_baseline_design.md, simplified MVP; vLLM and SGLang).
+Baselines are measured on a baseline site only (config/cluster/<name>.yaml `baselines: true`: Crusoe); `measure` refuses
+any other site.
 
   python scripts/make_baseline.py draft    --model M --target T --ci-run ID [--tp N]
       -> runs/drafts/<model>__<target>__ci<ID>/{draft.json, review.md, ci_bmk.json, ci_commands.txt}
@@ -22,7 +24,8 @@ from arbor_ab import REPO_ROOT, agentx, backends, baseline, ci_baseline, config,
 INFX = "SemiAnalysisAI/InferenceX"
 HF_COMMITS = r'''
 import urllib.request
-c = json.load(urllib.request.urlopen(f"https://huggingface.co/api/datasets/{PAYLOAD['name']}/commits/main", timeout=60))
+c = json.load(urllib.request.urlopen(f"https://huggingface.co/api/{PAYLOAD.get('kind', 'datasets')}/{PAYLOAD['name']}/commits/main",
+                                     timeout=60))
 print(json.dumps([{"id": x["id"], "date": x["date"]} for x in c]))
 '''
 
@@ -65,7 +68,7 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     texts = github_relay.call(relay, [github_relay.artifact_text(
         INFX, agentic_art["id"], ["vllm_command.txt", "benchmark_command.txt", "server.log"], grep={"server.log": "snapshots/"})])[0]
     files = texts.get("data") or {}
-    server_env, source = None, "agentic_*/vllm_command.txt + server.log"
+    server_env, source, draft_rev, draft_from_log = None, "agentic_*/vllm_command.txt + server.log", None, True
     if "vllm_command.txt" in files:   # direct-launch CI format
         cmd = ci_baseline.parse_vllm_command(files["vllm_command.txt"])
         model_rev = ci_baseline.model_rev_from_log(files.get("server.log", ""), cmd["model"])
@@ -84,7 +87,15 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
         if not recipe:
             sys.exit(f"{srv_name}: no logs/config.yaml in {tar}")
         cmd, server_env, _ = ci_baseline.parse_srt_recipe(recipe)   # the image comes from the bmk JSON, as for direct runs
-        model_rev = ci_baseline.model_rev_from_log("\n".join(((rl.get("data") or {}).get("text") or {}).values()), cmd["model"])
+        log = "\n".join(((rl.get("data") or {}).get("text") or {}).values())
+        model_rev = ci_baseline.model_rev_from_log(log, cmd["model"])
+        if cmd.get("draft"):              # the draft model's revision: the server log, else its HF main at the CI run
+            try:
+                draft_rev = ci_baseline.model_rev_from_log(log, cmd["draft"])
+            except ValueError:
+                draft_rev = ci_baseline.corpus_rev_at(
+                    remote.run_python(relay, HF_COMMITS, {"name": cmd["draft"], "kind": "models"}), run["created_at"])
+                draft_from_log = False
         source, launch_text = f"{srv_name[:60]}.../{tar}: logs/config.yaml + server log", recipe
     ds = bmk.get("dataset") or {}
     commits = remote.run_python(relay, HF_COMMITS, {"name": ds["hf_dataset_name"]})
@@ -95,7 +106,10 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
         digest = reg.get("tag_digest")
     tpl = ci_baseline.template_record(model, target)
     rec, rows = ci_baseline.build_draft(model, tgt, run, bmk_art["name"], bmk, cmd, model_rev, ds["hf_dataset_name"],
-                                        corpus_rev, digest, tpl, server_env=server_env, source=source)
+                                        corpus_rev, digest, tpl, server_env=server_env, source=source, draft_rev=draft_rev)
+    if not draft_from_log:   # review.md: the draft revision was not in the log, so it is derived like the corpus's
+        rows = [(f, v, "HF commit history at the CI run (not in the server log)", "derived") if f.startswith("launch.draft")
+                else (f, v, s, k) for f, v, s, k in rows]
     errs = baseline.validation_errors(rec)
     if errs:
         sys.exit("draft is not schema-valid:\n  " + "\n  ".join(errs))
@@ -116,11 +130,15 @@ def cmd_measure(args):
     d = Path(args.draft)
     rec = json.loads((d / "draft.json").read_text(encoding="utf-8"))
     local = config.load_local()
+    backend = backends.for_site(local, args.site)
+    if not config.load_cluster(config.local_view(args.site).get("cluster", backend.site_name)).get("baselines"):
+        sys.exit(f"site {backend.site_name} is a runner only: baselines are measured on a baseline site "
+                 "(config/cluster/<name>.yaml `baselines: true`; today crusoe)")
     req = {"commit": args.arbor_commit, "mode": "baseline", "gsm8k": args.gsm8k,
            "targets": [{"model": rec["model"], "target": rec["target"]["key"], "weights_path": args.weights_path}]}
     if args.qos:
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
-    rc = submit_ab_test.submit(req, f"baseline-{d.name}", backends.for_site(local, args.site),
+    rc = submit_ab_test.submit(req, f"baseline-{d.name}", backend,
                                (REPO_ROOT / local["arbor"]["clone"]).resolve(), records=[rec])
     if rc["submitted"]:
         print(f"then: python scripts/poll_status.py --run-dir runs/{rc['run_id']}; "

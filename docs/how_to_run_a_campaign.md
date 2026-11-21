@@ -35,7 +35,7 @@ unless you set `gsm8k: true`.
 
 You pick 1 and 2 together, by picking a cell (`model` + `target`). Each cell has a stored baseline, and the baseline
 holds the image. To start from a different CI run or a different image, first make a new baseline from that CI run
-(`make_baseline.py draft`, `measure`, `finalize`; vLLM CI runs only for now). After that, every request for that cell uses the new baseline.
+(`make_baseline.py draft`, `measure`, `finalize`; vLLM or SGLang; measured on Crusoe only). After that, every request for that cell uses the new baseline.
 
 The baseline also pins these inputs. They come from the same CI run, and you do not set them in a request:
 
@@ -231,8 +231,10 @@ You do not choose it again later. The run records its site, and `poll_status.py`
 Before the first run on a site, do setup steps 5 and 6 for it: `setup_remote.py --site <site> ...` and
 `check_setup.py --site <site>`.
 
-Compare numbers only within one site. MI350X and MI355X give different numbers, and the stored baselines were
-measured on Crusoe.
+Crusoe is the baseline site: every stored baseline and ceiling is measured there, and only there
+(`make_baseline.py measure` refuses another site). meta64 is a runner: run campaigns and experiments on it, but its
+numbers are MI350X numbers. A `full` run on meta64 still compares before with after (same node); its report does not
+compare with the Crusoe ceiling.
 
 ## QOS
 

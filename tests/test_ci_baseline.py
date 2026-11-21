@@ -56,6 +56,34 @@ def test_parse_srt_recipe():
         ci_baseline.parse_srt_recipe(SRT.replace("  agg:", "  prefill:"))
 
 
+# Shape of SGLang run 38877885539's recipe (Muse Spark, trimmed): `engine` is a plain string, TP stays a flag, a draft
+SRT_SGLANG = """model:
+  path: hf:amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4
+engine: sglang
+roles:
+  agg:
+    args:
+      served-model-name: amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4
+      attention-backend: aiter
+      speculative-draft-model-path: RadixArk/Muse-Spark-Open-DFlash2
+      enable-metrics: true
+      tensor-parallel-size: 4
+      expert-parallel-size: 4
+    env:
+      SGLANG_SIMULATE_ACC_LEN: '4.05'
+"""
+
+
+def test_parse_srt_recipe_sglang():
+    c, env, _ = ci_baseline.parse_srt_recipe(SRT_SGLANG)
+    assert c["framework"] == "sglang" and c["tp"] == 4 and c["draft"] == "RadixArk/Muse-Spark-Open-DFlash2"
+    assert c["flags"] == ("--attention-backend aiter --speculative-draft-model-path RadixArk/Muse-Spark-Open-DFlash2 "
+                          "--enable-metrics --tensor-parallel-size 4 --expert-parallel-size 4")   # TP kept for SGLang
+    assert env == {"SGLANG_SIMULATE_ACC_LEN": "4.05"}
+    with pytest.raises(ValueError, match="only"):
+        ci_baseline.parse_srt_recipe(SRT_SGLANG.replace("engine: sglang", "engine: trtllm"))
+
+
 def test_model_rev_from_log():
     rev = "dba1be0a40aa45a94ad051997016db3960a90277"
     log = f"loading /root/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/{rev}/config.json\n" * 3
@@ -84,6 +112,15 @@ def test_ci_points_and_choose_cell():
         ci_baseline.choose_cell(pts, MATRIX, target="c32_tput")
     with pytest.raises(ValueError, match="no matrix cell"):
         ci_baseline.choose_cell([("glm99", 8, 1)], MATRIX)
+
+
+def test_choose_cell_by_infmax_prefix():
+    m = {"models": {"muse_spark": {"infmax_prefix": "musespark", "targets": {"c1_p90": {"conc": 1, "expected_host": {"tp": 4}}}},
+                    "glm52": {"infmax_prefix": "glm5.2", "targets": {"c1_p90": {"conc": 1, "expected_host": {"tp": 4}}}}}}
+    pts = ci_baseline.ci_points([{"name": "bmk_agentic_musespark_tp4_conc1_x"}, {"name": "bmk_agentic_musespark_tp8_conc1_x"}])
+    assert ci_baseline.choose_cell(pts, m) == ("muse_spark", "c1_p90", 4)
+    assert ci_baseline.ci_points([{"name": "bmk_agentic_glm5.2_tp4_conc1_x"}]) == [("glm5.2", 4, 1)]
+    assert ci_baseline.choose_cell([("glm5.2", 4, 1)], m) == ("glm52", "c1_p90", 4)
 
 
 def test_corpus_rev_at_ci_time():

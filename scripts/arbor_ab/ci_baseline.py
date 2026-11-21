@@ -1,11 +1,12 @@
 """A baseline draft from an InferenceX CI run (docs/make_baseline_design.md, simplified MVP). Pure functions.
 
-Two CI artifact formats (both vLLM only for now; the SGLang command is not verified):
-- direct launch (e.g. run 34657748450): agentic_*/vllm_command.txt (server flags) and agentic_*/server.log (model
-  revision). The server env is not recorded: it is copied from the same model's stored baseline (review.md).
-- srtctl launch (e.g. run 44689368479, 2026-11-20): server_logs_*/srt-single-node-logs.tar.gz holds the resolved
-  recipe logs/config.yaml (roles.agg.args = server flags, roles.agg.env = server env, model.container = image@digest)
-  and the server log logs/<host>_agg_w0.out (model revision). Flags and server env are both exact.
+Two CI artifact formats:
+- direct launch, vLLM only (e.g. run 34657748450): agentic_*/vllm_command.txt (server flags) and agentic_*/server.log
+  (model revision). The server env is not recorded: it is copied from the same model's stored baseline (review.md).
+- srtctl launch, vLLM and SGLang (e.g. vLLM run 44689368479, SGLang run 38877885539):
+  server_logs_*/srt-single-node-logs.tar.gz holds the resolved recipe logs/config.yaml (roles.agg.args = server
+  flags, roles.agg.env = server env, model.container = image@digest, `engine` = the framework) and the server log
+  logs/<host>_agg_w0.out (model and draft revisions). Flags and server env are both exact. One aggregated server only.
 Always exact: commit/date (Actions API), topology + corpus name (bmk_* JSON), corpus revision (the dataset's last HF
 commit before the run). Copied from the template (the same model's stored baseline): the bench-side env (AgentX
 loader, workspace paths) and the node-side launch fields.
@@ -19,30 +20,40 @@ import yaml
 from . import agentx, baseline
 
 ARBOR_ADDS = {"--host": 1, "--port": 1, "--tensor-parallel-size": 1}   # arbor/frameworks/vllm.py serve_cmd adds these
+# arbor/frameworks/sglang.py serve_cmd adds --model-path, --served-model-name, --host, --port; TP stays in the flags
+SGLANG_ARBOR_ADDS = {"--host", "--port", "--model-path"}
+FRAMEWORKS = ("vllm", "sglang")
 # server-side env keys; with an exact server env from the CI recipe, the template's own values of these are dropped
 SERVER_ENV_PREFIXES = ("VLLM_", "AITER_", "SGLANG_", "HIP_", "NCCL_", "RCCL_", "TORCH_", "OMP_", "MIOPEN_")
 KEEP_FROM_TEMPLATE = ("VLLM_ENGINE_READY_TIMEOUT_S",)   # a harness wait, not a tuning knob (srtctl sets it outside the recipe)
 
 
 def parse_srt_recipe(text):
-    """srtctl recipe (logs/config.yaml) -> ({model, served_name, tp, flags}, server_env, image_ref).
+    """srtctl recipe (logs/config.yaml) -> ({framework, model, served_name, tp, draft, flags}, server_env, image_ref).
     Flags: roles.agg.args as `--key value` in recipe order (true -> `--key`; false/empty -> left out), minus what
-    Arbor adds itself (served name, TP, host, port)."""
+    Arbor adds itself: vLLM: served name, TP, host, port; SGLang: served name, model path, host, port (TP stays).
+    draft: the speculative draft model's repo id (SGLang `speculative-draft-model-path`), when it is one."""
     cfg = yaml.safe_load(text)
     roles = cfg.get("roles") or {}
     if set(roles) != {"agg"}:
         raise ValueError(f"srtctl recipe roles {sorted(roles)}: only one aggregated server (agg) is supported")
-    if (cfg.get("engine") or {}).get("type") != "vllm":
-        raise ValueError(f"srtctl engine {(cfg.get('engine') or {}).get('type')!r}: only vLLM is supported")
-    args, toks, out = roles["agg"].get("args") or {}, [], {"tp": None, "served_name": None}
+    engine = cfg.get("engine")
+    fw = (engine.get("type") if isinstance(engine, dict) else engine) or (cfg.get("frontend") or {}).get("type")
+    if fw not in FRAMEWORKS:
+        raise ValueError(f"srtctl engine {fw!r}: only {FRAMEWORKS} are supported")
+    args, toks = roles["agg"].get("args") or {}, []
+    out = {"framework": fw, "tp": None, "served_name": None, "draft": None}
     for k, v in args.items():
         if k == "served-model-name":
             out["served_name"] = v[0] if isinstance(v, list) else v
             continue
-        if k == "tensor-parallel-size":
+        if k in ("tensor-parallel-size", "tp", "tp-size"):
             out["tp"] = int(v)
-            continue
-        if f"--{k}" in ARBOR_ADDS or v is None or v is False or v == "":
+            if fw == "vllm":
+                continue                       # vLLM: Arbor adds --tensor-parallel-size; SGLang: it stays a flag
+        if k == "speculative-draft-model-path" and isinstance(v, str) and "/" in v and not v.startswith("/"):
+            out["draft"] = v                   # a repo id: pinned and fetched like the model (launch.draft_id/rev)
+        if (f"--{k}" in (ARBOR_ADDS if fw == "vllm" else SGLANG_ARBOR_ADDS)) or v is None or v is False or v == "":
             continue
         toks += [f"--{k}"] if v is True else [f"--{k}", v if isinstance(v, str) else str(v)]
     model = str((cfg.get("model") or {}).get("path", "")).removeprefix("hf:")
@@ -97,7 +108,7 @@ def corpus_rev_at(commits, ci_created_at):
     return max(before, key=lambda c: c["date"])["id"]
 
 
-BMK_NAME = re.compile(r"^bmk_agentic_([a-z0-9]+)_tp(\d+)_conc(\d+)_")
+BMK_NAME = re.compile(r"^bmk_agentic_([a-z0-9.]+)_tp(\d+)_conc(\d+)_")   # glm5.2 has a dot
 
 
 def ci_points(artifacts):
@@ -112,13 +123,15 @@ def ci_points(artifacts):
 
 def choose_cell(points, matrix, model=None, target=None, tp=None):
     """(model, target, tp) for a CI run's points; raises ValueError listing the choices when it is not one.
-    A model is a matrix key equal to the CI's model prefix (or `model`); a target matches the point's concurrency.
+    A model is the matrix key whose `infmax_prefix` (default: the key) is the CI's model prefix, or `model`; a target
+    matches the point's concurrency.
     With several TPs at that concurrency, the matrix's expected_host.tp decides, else `tp` must."""
     models = matrix["models"]
+    by_prefix = {spec.get("infmax_prefix", k): k for k, spec in models.items()}
     opts = []
     for prefix, p_tp, conc in points:
-        key = model or prefix
-        if key not in models or (model and prefix != model and len({p for p, _, _ in points}) > 1):
+        key = model or by_prefix.get(prefix)
+        if key not in models or (model and by_prefix.get(prefix) not in (None, model)):
             continue
         for tkey, t in models[key]["targets"].items():
             if t["conc"] == conc and (target in (None, tkey)) and (tp in (None, p_tp)):
@@ -153,11 +166,15 @@ def template_record(model, target):
 
 
 def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpus_rev, image_digest, template,
-                server_env=None, source="agentic_*/vllm_command.txt + server.log"):
+                server_env=None, source="agentic_*/vllm_command.txt + server.log", draft_rev=None):
     """A schema-v2 record (metrics empty) and review rows [(field, value, source, kind)]; kind: exact|copied|derived.
-    server_env: the CI's exact server env (srtctl recipe); None = the template's env (direct-launch CI runs)."""
-    if bmk.get("framework") != "vllm":
-        raise ValueError(f"framework {bmk.get('framework')!r}: only vLLM CI runs are supported in this MVP")
+    server_env: the CI's exact server env (srtctl recipe); None = the template's env (direct-launch CI runs).
+    cmd["draft"] / draft_rev: the speculative draft model (SGLang), pinned like the model."""
+    if bmk.get("framework") not in FRAMEWORKS:
+        raise ValueError(f"framework {bmk.get('framework')!r}: only {FRAMEWORKS} CI runs are supported")
+    if template["host"]["framework"] != bmk["framework"]:
+        raise ValueError(f"the stored baseline {template['epoch_id']} is {template['host']['framework']}, the CI run is "
+                         f"{bmk['framework']}: its container layout (workspace_root, editable_packages) cannot be copied")
     tpl = template
     image, digest_in_ref = split_image(bmk.get("image"))
     digest = digest_in_ref or image_digest
@@ -179,6 +196,8 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
     model_path = (f"/hf-hub/models--{cmd['model'].replace('/', '--')}/snapshots/{model_rev}" if tpl_path.startswith("/hf-hub/")
                   else cmd["model"])
     lau = copy.deepcopy(tpl["launch"])
+    draft = cmd.get("draft")
+    lau.update(draft_id=draft, draft_rev=draft_rev if draft else None)
     lau.update(model_id=cmd["model"], model_rev=model_rev, corpus_id=corpus_id, corpus_rev=corpus_rev,
                served_model_name=cmd["served_name"] or cmd["model"], gpu_ids=",".join(str(i) for i in range(num_gpus)),
                concurrency=tgt["conc"], missing=[],
@@ -215,6 +234,8 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
         ("host.dcp", rec["host"]["dcp"], "server flags (--decode-context-parallel-size)", "exact"),
         ("host.server_flags", flags, f"{src}: {source}", "exact"),
         ("launch.model_id/model_rev", f"{cmd['model']} @ {model_rev}", f"{src}: {source} (server log snapshot path)", "exact"),
+        *([("launch.draft_id/draft_rev", f"{draft} @ {draft_rev}", f"{src}: {source} (server log snapshot path)", "exact")]
+          if draft else []),
         ("launch.corpus_id/corpus_rev", f"{corpus_id} @ {corpus_rev}", "bmk dataset name + HF commit history at the CI run",
          "derived"),
         ("host.server_env", "; ".join(f"{k}={v}" for k, v in sorted(env.items())),

@@ -58,6 +58,11 @@ def main():
         comp = report.comparison(rc["run_id"], record, before, after, config.gsm8k_max_drop(matrix, model, target),
                                  rc["commit"], reference=rc.get("reference"),
                                  phases={"before": before_meta, "after": after_meta}, weights=read_json(d / "weights.json"))
+        site = rc.get("site_name") or "crusoe"
+        if not config.load_cluster(config.local_view(site).get("cluster", site)).get("baselines"):
+            comp["ceiling"]["after_vs_ceiling_pct"] = None
+            comp["ceiling"]["note"] = (f"run on {site} ({rc.get('gpu_type')}), a runner-only site: the ceiling is a baseline "
+                                       "site's number and is not compared; before vs after (same node) still holds")
         comp["generated_at"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         (d / "comparison.json").write_text(json.dumps(comp, indent=2) + "\n", encoding="utf-8", newline="\n")
         p = comp["deltas"][record["target"]["primary_metric_path"].split(".", 1)[1]]

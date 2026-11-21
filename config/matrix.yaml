@@ -25,31 +25,37 @@ default_gsm8k_max_drop: 0.01
 
 models:
   muse_spark:
+    infmax_prefix: musespark   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c16_tput: { kind: tput, conc: 16, expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
   kimik3:
+    infmax_prefix: kimik3   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
   kimik31pro:
+    infmax_prefix: kimik31pro   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
   dsv41flash:
+    infmax_prefix: dsv41flash   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }
   glm52:
+    infmax_prefix: glm5.2   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c16_tput: { kind: tput, conc: 16, expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: sglang, tp: 4, ep: 4, dcp: 1 } }
   minimax_m31_flash:
+    infmax_prefix: minimaxm31flash   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
     status: active
     targets:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 4, ep: 1, dcp: 1 } }

@@ -90,7 +90,7 @@ targets:
   `comparison.json` (`weights_source: downloaded | user_path`, the path, the pinned revision, the two files' sha256).
   If the pinned weights are already on the node, they are used and recorded as `downloaded`, with a note.
 
-New baseline from an InferenceX CI run (vLLM; docs/make_baseline_design.md):
+New baseline from an InferenceX CI run (vLLM or SGLang; measured on the baseline site, Crusoe; docs/make_baseline_design.md):
 
 ```bash
 .venv/bin/python scripts/make_baseline.py draft --model dsv41flash --target c1_p90 --ci-run 34657748450
