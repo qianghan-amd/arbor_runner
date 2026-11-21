@@ -386,12 +386,11 @@ campaign_env() {   # what Arbor's driver and agents run with (the crusoe-arbor-r
     # <config dir>/packs/agentx and refuses the start (arbor/cli/iterate.py _find_arbor_root; seen in a P6 preview)
     export ARBOR_ROOT=$ARBOR
     # One process (standalone), not Arbor's launcher. Since arbor.host 2.59 (Arbor bdd3bc6, 2026-11-19) `arbor run`
-    # starts a launcher that runs the campaign in component mode, and component mode stops "its own" server with
-    # os.killpg on the HOST, by the PID the server's PID file holds (arbor/execute/preflight.py signal_own_server).
-    # Our server runs in a container, so that PID is a container PID: on a fresh node it can name an unrelated host
-    # process group. Job 302466 (Arbor 020767ac): everything of the job died at once 25 min in, mid root-baseline
-    # bench, without a log line. Standalone stops servers with `docker exec pkill` in the container (all 0.10 runs).
-    # ARBOR_STANDALONE=1 is kept "for one release" (bdd3bc6); the runner's own timeout bounds the time either way.
+    # starts a launcher that runs the campaign in component mode. Job 302466 (Arbor 020767ac, the first run under it):
+    # every process of the job died at once 25 min in, mid root-baseline bench, with no log line and no exit record;
+    # cause not found (no OOM; not the PID-file stop, which is a no-op with a named container). Reported:
+    # boards/ArborDevelopment#74. All our runs that worked were in one process. ARBOR_STANDALONE=1 is kept "for one
+    # release" (bdd3bc6); the runner's own timeout bounds the time either way.
     export ARBOR_STANDALONE=1
     mkdir -p "$HOME/.claude" && printf '{"env": {"BASH_DEFAULT_TIMEOUT_MS": "7200000", "BASH_MAX_TIMEOUT_MS": "7200000"}}\n' > "$HOME/.claude/settings.json"
     export BASH_DEFAULT_TIMEOUT_MS=7200000 BASH_MAX_TIMEOUT_MS=7200000
