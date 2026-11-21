@@ -1,0 +1,22 @@
+{
+  "total_throughput": 2944.03989,
+  "output_throughput": 23.94083,
+  "total_throughput_per_gpu": 2944.03989,
+  "conc": 1,
+  "tp": 4,
+  "ep": 1,
+  "scenario_type": "agentic-coding",
+  "spec_decoding": "mtp",
+  "kv_offloading": "none",
+  "num_requests_successful": 204,
+  "num_requests_total": 215,
+  "kv_cache_hit_rate": 0.93223,
+  "agg_json_path": "/workspace/exp/after/agg_dsv41flash_vllm_agentx_conc1.json",
+  "status": "ok",
+  "p90_tpot_s": 0.00733,
+  "p90_ttft_s": 3.31033,
+  "e2e_norm_intvty_p50": 122.69594,
+  "e2e_norm_intvty_p90": 52.43651,
+  "num_requests_measured": 204,
+  "num_requests_warmup": 11
+}

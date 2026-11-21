@@ -1,0 +1,32 @@
+{
+  "run_id": "20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst",
+  "backend": "slurm",
+  "polled_at": "2026-11-21T10:22:37.533220+00:00",
+  "cells": [
+    {
+      "state": "SUCCEEDED",
+      "raw": "COMPLETED",
+      "node": "crsuse2-m2m-v3-232",
+      "elapsed": "07:37:03",
+      "time_limit": "15:30:00",
+      "reason": "",
+      "runner_state": "done",
+      "phases_done": [
+        "after",
+        "before",
+        "campaign",
+        "fetch",
+        "prepare"
+      ],
+      "log_tail": [
+        "[runner] 2026-11-21T10:16:37Z after: GSM8K skipped (request skip_gsm8k)",
+        "[runner] 2026-11-21T10:16:52Z after: server stopped, GPUs free",
+        "[runner] 2026-11-21T10:16:52Z after: done",
+        "[runner] 2026-11-21T10:16:52Z cell dsv41flash__c1_p90: all phases done",
+        "[runner] 2026-11-21T10:16:58Z container ab_20261121-023936_dsv41flash_c1_p90 removed"
+      ],
+      "cell": "dsv41flash__c1_p90",
+      "files_fetched": 27
+    }
+  ]
+}

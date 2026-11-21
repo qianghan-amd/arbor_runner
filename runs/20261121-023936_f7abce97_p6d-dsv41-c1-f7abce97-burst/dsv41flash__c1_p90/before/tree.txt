@@ -1,0 +1,1 @@
+4d2f37fa33c27f926079ce8137df8e2a88d5b653 baseline: framework as shipped in vllm/vllm-openai-rocm:deepseekv41-flash-0909

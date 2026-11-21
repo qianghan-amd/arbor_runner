@@ -1,0 +1,17 @@
+{
+  "weights_source": "user_path",
+  "path": "/shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+  "indexed_shards": 48,
+  "files": {
+    "model.safetensors.index.json": {
+      "sha256": "74b0686a3d2891980d5e303251b075a3bccae2c2ff650747db2620a649b98fa8",
+      "matches_pinned": true
+    },
+    "config.json": {
+      "sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
+      "matches_pinned": true
+    }
+  },
+  "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "model_rev": "dba1be0a40aa45a94ad051997016db3960a90277"
+}

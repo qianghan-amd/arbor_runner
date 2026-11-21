@@ -1,0 +1,29 @@
+{
+ "schema": "arbor.exit/1",
+ "reason": "done",
+ "code": 0,
+ "outcome": "finished",
+ "resumable": false,
+ "iteration": 3,
+ "keeps": 1,
+ "map": {
+  "open": 12,
+  "closed": 22,
+  "exhausted": false,
+  "round": 1,
+  "phase": "active"
+ },
+ "deadline": null,
+ "ts": "2026-11-21T09:10:06Z",
+ "revisit": [
+  {
+   "iteration": 2,
+   "change": "m-mhc-tilelang \u2014 the ROCm DeepSeek V4.1 decoder's mHC pre/post now use the TileLang kernels instead of the torch reference, which launches ~150 small kernels per sublayer and is 70 % of traced decode ",
+   "why": "not_measured"
+  }
+ ],
+ "arbor": {
+  "version": "0.10.0.dev0",
+  "commit": "94698e08fff6a5ab4a762b76447ecdf65ee117dd"
+ }
+}

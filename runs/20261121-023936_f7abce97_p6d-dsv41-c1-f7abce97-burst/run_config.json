@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst",
+  "created_at": "2026-11-21T02:39:37.760813+00:00",
+  "request": {
+    "commit": "f7abce978dc2d3f98f3efc6102cf4bb37983b537",
+    "mode": "full",
+    "campaign_minutes": 480,
+    "exclude_nodes": [
+      "crsuse2-m2m-v3-177",
+      "crsuse2-m2m-v3-182"
+    ],
+    "targets": [
+      {
+        "model": "dsv41flash",
+        "target": "c1_p90",
+        "weights_path": "/shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277"
+      }
+    ]
+  },
+  "request_file": "runs/requests/p6d-dsv41-c1-f7abce97-burst.yaml",
+  "commit": "f7abce978dc2d3f98f3efc6102cf4bb37983b537",
+  "arbor_repo": "AMD-AGI/Arbor",
+  "arbor_tar_sha256": "5d2697f8b2e2076b413b09f7b24cf564ee9cc5bb533dcbb931f7c3e652f3e9bc",
+  "mode": "full",
+  "campaign_minutes": 480,
+  "backend": "crusoe_slurm",
+  "remote_run_dir": "/shared_nfs/qiangh/arbor_ab/runs/20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst",
+  "site": {
+    "node_local_root": "/mnt/m2m_nobackup/qiangh/arbor_ab",
+    "shared_hf_hub": "/shared_nfs/huggingface/hub",
+    "infx_clone": "/shared_nfs/qiangh/mywork/arbor_dsv41flash/codebases/InferenceX"
+  },
+  "gateway_configured": true,
+  "reference": null,
+  "exclude_nodes": [
+    "crsuse2-m2m-v3-177",
+    "crsuse2-m2m-v3-182"
+  ],
+  "backend_options": null,
+  "skip_gsm8k": true,
+  "cells": [
+    {
+      "model": "dsv41flash",
+      "target": "c1_p90",
+      "epoch_id": "dsv41flash__c1_p90__86699be610_55915fb0",
+      "cell": "dsv41flash__c1_p90",
+      "remote_dir": "/shared_nfs/qiangh/arbor_ab/runs/20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst/dsv41flash__c1_p90",
+      "container": "ab_20261121-023936_dsv41flash_c1_p90",
+      "job_minutes": 930,
+      "job_id": "302311",
+      "weights_path": "/shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277"
+    }
+  ],
+  "submitted": true,
+  "submit_stderr": null
+}

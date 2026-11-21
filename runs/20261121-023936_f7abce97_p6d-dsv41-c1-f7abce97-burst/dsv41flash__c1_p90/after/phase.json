@@ -1,0 +1,11 @@
+{
+  "phase": "after",
+  "started_at": "2026-11-21T09:11:18Z",
+  "ended_at": "2026-11-21T10:16:52Z",
+  "tree": "15c975c47a83e6a66c48ad83a3e375454cf72b45 iter-3: m-mhc-tilelang \u2014 the iter-2 TileLang mHC pre/post change (commit 6918c1b) is back in the tree unchanged for a proper gated measurement. Iter 2's own run, scored offline, gave p90 43.8 vs 13.875 baseline, but one NUL-corrupted line in the NFS results file stopped bench_output.json from being written.",
+  "launch_from": "kept",
+  "node": "crsuse2-m2m-v3-232",
+  "job": "302311",
+  "duration_s": 3600,
+  "gsm8k_questions": 0
+}

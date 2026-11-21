@@ -1,0 +1,1 @@
+15c975c47a83e6a66c48ad83a3e375454cf72b45 iter-3: m-mhc-tilelang — the iter-2 TileLang mHC pre/post change (commit 6918c1b) is back in the tree unchanged for a proper gated measurement. Iter 2's own run, scored offline, gave p90 43.8 vs 13.875 baseline, but one NUL-corrupted line in the NFS results file stopped bench_output.json from being written.

@@ -1,0 +1,37 @@
+[runner] 2026-11-21T02:39:57Z fetch: start on crsuse2-m2m-v3-232 job=302311
+[runner] 2026-11-21T02:40:09Z weights: {  "weights_source": "user_path",  "path": "/shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",  "indexed_shards": 48,  "files": {
+[runner] 2026-11-21T02:40:09Z fetch: done
+[runner] 2026-11-21T02:40:09Z prepare: start on crsuse2-m2m-v3-232 job=302311
+[runner] 2026-11-21T02:40:10Z highest GPU VRAM% before start: 0
+[runner] 2026-11-21T02:41:22Z image vllm/vllm-openai-rocm:deepseekv41-flash-0909 @ sha256:2a1ade1954e64230fcd63d9f840bdfca68e357c550cdb48bd2e56d52e55a3430
+[runner] 2026-11-21T02:41:56Z Arbor f7abce978dc2d3f98f3efc6102cf4bb37983b537 at /shared_nfs/qiangh/arbor_ab/runs/20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst/dsv41flash__c1_p90/arbor (local commit 94698e08fff6a5ab4a762b76447ecdf65ee117dd in Arbor's own records)
+[runner] 2026-11-21T02:42:12Z submodule utils/aiperf @ 754356e9a3 extracted
+[runner] 2026-11-21T02:42:12Z InferenceX client 86699be610d5e6916eb6eb5b0c4a74676e8fb53d at /shared_nfs/qiangh/arbor_ab/runs/20261121-023936_f7abce97_p6d-dsv41-c1-f7abce97-burst/dsv41flash__c1_p90/infx
+corpus offline load ok: 393
+[runner] 2026-11-21T02:43:55Z ruppell build: rc=0 (RUPPELL_BUILD=/root/ruppell-work/build)
+[runner] arbor check rc=0 ok=True refused=[] waits=[] lacks=[] warnings=0
+[runner] 2026-11-21T02:43:56Z prepare: done
+[runner] 2026-11-21T02:43:56Z before: start on crsuse2-m2m-v3-232 job=302311
+[serve_cmd] pristine (no workspace config) launch: vllm, 23 flag words, 27 env vars
+[runner] 2026-11-21T03:03:05Z before: healthy after 1148 s
+[runner] 2026-11-21T04:07:26Z before: AgentX rc=0 after 3861 s
+[runner] AgentX status=ok total_throughput_per_gpu=1545.71737 e2e_norm_intvty_p90=13.87534 requests=130/141
+[runner] 2026-11-21T04:07:26Z before: GSM8K skipped (request skip_gsm8k)
+[runner] 2026-11-21T04:07:41Z before: server stopped, GPUs free
+[runner] 2026-11-21T04:07:41Z before: done
+[runner] 2026-11-21T04:07:41Z campaign: start on crsuse2-m2m-v3-232 job=302311
+[runner] arbor check rc=0 ok=True refused=[] waits=[] lacks=[] warnings=0
+[runner] 2026-11-21T09:10:07Z campaign: arbor run rc=0
+[runner] 2026-11-21T09:10:07Z campaign exit: { "schema": "arbor.exit/1", "reason": "done", "code": 0, "outcome": "finished", "resumable": false, "iteration": 3, "keeps": 1, "map": {  "open": 12,  "closed": 22,  "exhausted": false,  "round": 1,  "phase": "active" }, "deadline": null, "ts": "2026-11-21T09:10:06Z", "revisit": [  {   "iteration": 
+[runner] 2026-11-21T09:11:18Z campaign: container restarted (Arbor's processes ended), GPUs free
+[runner] 2026-11-21T09:11:18Z campaign: done
+[runner] 2026-11-21T09:11:18Z after: start on crsuse2-m2m-v3-232 job=302311
+[serve_cmd] kept (workspace arbor/config.json) launch: vllm, 23 flag words, 27 env vars
+[runner] 2026-11-21T09:14:35Z after: healthy after 197 s
+[runner] 2026-11-21T10:16:37Z after: AgentX rc=0 after 3722 s
+[runner] AgentX status=ok total_throughput_per_gpu=2944.03989 e2e_norm_intvty_p90=52.43651 requests=204/215
+[runner] 2026-11-21T10:16:37Z after: GSM8K skipped (request skip_gsm8k)
+[runner] 2026-11-21T10:16:52Z after: server stopped, GPUs free
+[runner] 2026-11-21T10:16:52Z after: done
+[runner] 2026-11-21T10:16:52Z cell dsv41flash__c1_p90: all phases done
+[runner] 2026-11-21T10:16:58Z container ab_20261121-023936_dsv41flash_c1_p90 removed
