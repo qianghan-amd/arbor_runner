@@ -209,9 +209,35 @@ Choose a campaign that is long enough. Arbor's first round studies the model (th
 anything. For DSv4.1 Flash, that phase alone took more than 3 hours. A 3-hour campaign can end with no change at all.
 We use 8 hours.
 
+## Choose the cluster (site)
+
+Two clusters work today. Each is a "site" in your `local.yaml` (see `local.yaml.example`):
+
+| Site | Cluster | GPUs | Login |
+|---|---|---|---|
+| `crusoe` | Crusoe (Spur scheduler) | 8 x MI355X | `crusoe2_006` |
+| `meta64` | meta64 (Slurm 25) | 8 x MI350X | `slurmlogin01` |
+
+Pick one in any of these ways. The first one found wins:
+
+1. On the command line: `--site meta64` (on `run_from_ci.py`, `submit_ab_test.py`, `run_pr_test.py`,
+   `make_baseline.py measure`, `setup_remote.py`, `check_setup.py`).
+2. In the request file: `site: meta64`.
+3. `default_site` in `local.yaml` (now `crusoe`).
+
+You do not choose it again later. The run records its site, and `poll_status.py`, `cancel_run.py` and
+`run_pr_test.py --run-dir` go to that cluster by themselves.
+
+Before the first run on a site, do setup steps 5 and 6 for it: `setup_remote.py --site <site> ...` and
+`check_setup.py --site <site>`.
+
+Compare numbers only within one site. MI350X and MI355X give different numbers, and the stored baselines were
+measured on Crusoe.
+
 ## QOS
 
-This project uses `amd-burst-qos` (account `amd-hyperloom`) by default. A burst job can be cancelled at any time when
+This project uses `amd-burst-qos` (account `amd-hyperloom`) by default on Crusoe. meta64 needs no QOS: its partition
+`meta64` allows 5 days, and `interactive` allows 1 day (`backend_options: { partition: interactive }`). A burst job can be cancelled at any time when
 other work needs the node ("preempted"). If that happens, run the whole request again. Do not resume it: a new job can
 land on another node, and then before and after would not be on the same node.
 

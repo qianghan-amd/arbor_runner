@@ -55,7 +55,7 @@ def main():
     ap.add_argument("--model", help="matrix model key, when the CI run measured several models")
     ap.add_argument("--target", help="matrix target, e.g. c1_p90, when several match")
     ap.add_argument("--tp", type=int, help="TP of the CI point, when several match")
-    ap.add_argument("--mode", default="campaign", choices=("campaign", "full", "campaign_smoke"))
+    ap.add_argument("--mode", default="campaign", choices=("campaign", "full", "campaign_smoke", "smoke"))
     ap.add_argument("--campaign-minutes", type=int, default=480)
     ap.add_argument("--gsm8k", action="store_true", help="GSM8K in the measured phases (full mode)")
     ap.add_argument("--weights-path", default="auto", help="auto (shared hub when present), none (download), or a path")
