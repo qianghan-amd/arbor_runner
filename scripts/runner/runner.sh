@@ -398,6 +398,18 @@ campaign() {
     local ex=$CELL_DIR/sessions/full/exit.json
     [ -f "$ex" ] && cp "$ex" "$CELL_DIR/campaign_exit.json" && log "campaign exit: $(tr -d '\n' < "$ex" | cut -c1-300)"
     [ -f "$ex" ] || { log "campaign wrote no exit.json"; return 1; }
+    # A standalone run that ends on its own leaves its last iteration's server up (P6 job 301447: exit reason done,
+    # then `after` found a server on $PORT and failed). Restart our container: every process in it ends (Arbor's
+    # server too), its files stay (the kept framework tree, JIT caches). Then the GPUs must be free, as after
+    # stop_server.
+    docker restart -t 60 "$CONTAINER" >/dev/null || { log "campaign: docker restart $CONTAINER failed"; return 1; }
+    local vram i
+    for i in $(seq 1 24); do
+        vram=$(rocm-smi --showmemuse 2>/dev/null | awk '/VRAM%/ {print $NF}' | sort -n | tail -1)
+        [ "${vram:-0}" -le 1 ] && { log "campaign: container restarted (Arbor's processes ended), GPUs free"; return 0; }
+        sleep 5
+    done
+    log "campaign: container restarted but a GPU still holds memory (VRAM ${vram}%)"; return 1
 }
 
 case "$MODE" in

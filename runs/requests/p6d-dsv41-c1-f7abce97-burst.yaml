@@ -1,0 +1,10 @@
+# P6 rerun 4: same as p6c, plus the runner fix for `after` (job 301447: Arbor ended on its own, reason done, 2 keeps,
+# and left its last server up; `after` refused a server already on the port). Checks Arbor's own claim of that run
+# (e2e_norm P90 14.48 -> 52.84 with the TileLang mHC kernels) with our independent before/after on one node.
+commit: f7abce978dc2d3f98f3efc6102cf4bb37983b537
+mode: full                 # explicit: the default is campaign only (2026-11-20)
+campaign_minutes: 480
+exclude_nodes: [crsuse2-m2m-v3-177, crsuse2-m2m-v3-182]
+targets:
+  # weights: the pinned snapshot in the shared HF hub (verified 2026-11-19), instead of downloading
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }
