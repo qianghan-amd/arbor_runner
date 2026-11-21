@@ -1,19 +1,54 @@
 """A baseline draft from an InferenceX CI run (docs/make_baseline_design.md, simplified MVP). Pure functions.
 
-Exact from the CI run: commit/date (Actions API), topology + image + model prefix + corpus name (bmk_* JSON), server
-flags (agentic_*/vllm_command.txt), model revision (agentic_*/server.log snapshot path), corpus revision (the dataset's
-last HF commit before the run, checked against the bmk entry count by the caller).
-Copied, for a person to confirm (review.md): server env and the node-side launch fields, from the latest baseline of
-the same model (the "template"). Recipe parsing is not done (user decision 2026-11-20).
-vLLM only for now: the SGLang CI command file is not verified.
+Two CI artifact formats (both vLLM only for now; the SGLang command is not verified):
+- direct launch (e.g. run 34657748450): agentic_*/vllm_command.txt (server flags) and agentic_*/server.log (model
+  revision). The server env is not recorded: it is copied from the same model's stored baseline (review.md).
+- srtctl launch (e.g. run 44689368479, 2026-11-20): server_logs_*/srt-single-node-logs.tar.gz holds the resolved
+  recipe logs/config.yaml (roles.agg.args = server flags, roles.agg.env = server env, model.container = image@digest)
+  and the server log logs/<host>_agg_w0.out (model revision). Flags and server env are both exact.
+Always exact: commit/date (Actions API), topology + corpus name (bmk_* JSON), corpus revision (the dataset's last HF
+commit before the run). Copied from the template (the same model's stored baseline): the bench-side env (AgentX
+loader, workspace paths) and the node-side launch fields.
 """
 import copy
 import re
 import shlex
 
+import yaml
+
 from . import agentx, baseline
 
 ARBOR_ADDS = {"--host": 1, "--port": 1, "--tensor-parallel-size": 1}   # arbor/frameworks/vllm.py serve_cmd adds these
+# server-side env keys; with an exact server env from the CI recipe, the template's own values of these are dropped
+SERVER_ENV_PREFIXES = ("VLLM_", "AITER_", "SGLANG_", "HIP_", "NCCL_", "RCCL_", "TORCH_", "OMP_", "MIOPEN_")
+KEEP_FROM_TEMPLATE = ("VLLM_ENGINE_READY_TIMEOUT_S",)   # a harness wait, not a tuning knob (srtctl sets it outside the recipe)
+
+
+def parse_srt_recipe(text):
+    """srtctl recipe (logs/config.yaml) -> ({model, served_name, tp, flags}, server_env, image_ref).
+    Flags: roles.agg.args as `--key value` in recipe order (true -> `--key`; false/empty -> left out), minus what
+    Arbor adds itself (served name, TP, host, port)."""
+    cfg = yaml.safe_load(text)
+    roles = cfg.get("roles") or {}
+    if set(roles) != {"agg"}:
+        raise ValueError(f"srtctl recipe roles {sorted(roles)}: only one aggregated server (agg) is supported")
+    if (cfg.get("engine") or {}).get("type") != "vllm":
+        raise ValueError(f"srtctl engine {(cfg.get('engine') or {}).get('type')!r}: only vLLM is supported")
+    args, toks, out = roles["agg"].get("args") or {}, [], {"tp": None, "served_name": None}
+    for k, v in args.items():
+        if k == "served-model-name":
+            out["served_name"] = v[0] if isinstance(v, list) else v
+            continue
+        if k == "tensor-parallel-size":
+            out["tp"] = int(v)
+            continue
+        if f"--{k}" in ARBOR_ADDS or v is None or v is False or v == "":
+            continue
+        toks += [f"--{k}"] if v is True else [f"--{k}", v if isinstance(v, str) else str(v)]
+    model = str((cfg.get("model") or {}).get("path", "")).removeprefix("hf:")
+    env = {k: str(v) for k, v in (roles["agg"].get("env") or {}).items()}
+    out.update(model=model, flags=shlex.join(toks))
+    return out, env, str((cfg.get("model") or {}).get("container") or "").strip()
 
 
 def parse_vllm_command(text):
@@ -62,6 +97,45 @@ def corpus_rev_at(commits, ci_created_at):
     return max(before, key=lambda c: c["date"])["id"]
 
 
+BMK_NAME = re.compile(r"^bmk_agentic_([a-z0-9]+)_tp(\d+)_conc(\d+)_")
+
+
+def ci_points(artifacts):
+    """The AgentX points a CI run measured: sorted unique (model_prefix, tp, conc) of its live bmk_agentic_* artifacts."""
+    pts = set()
+    for a in artifacts:
+        m = BMK_NAME.match(a["name"])
+        if m and not a.get("expired"):
+            pts.add((m.group(1), int(m.group(2)), int(m.group(3))))
+    return sorted(pts)
+
+
+def choose_cell(points, matrix, model=None, target=None, tp=None):
+    """(model, target, tp) for a CI run's points; raises ValueError listing the choices when it is not one.
+    A model is a matrix key equal to the CI's model prefix (or `model`); a target matches the point's concurrency.
+    With several TPs at that concurrency, the matrix's expected_host.tp decides, else `tp` must."""
+    models = matrix["models"]
+    opts = []
+    for prefix, p_tp, conc in points:
+        key = model or prefix
+        if key not in models or (model and prefix != model and len({p for p, _, _ in points}) > 1):
+            continue
+        for tkey, t in models[key]["targets"].items():
+            if t["conc"] == conc and (target in (None, tkey)) and (tp in (None, p_tp)):
+                opts.append((key, tkey, p_tp))
+    opts = sorted(set(opts))
+    if len(opts) > 1:
+        preferred = [o for o in opts if (models[o[0]]["targets"][o[1]].get("expected_host") or {}).get("tp") == o[2]]
+        if len(preferred) == 1:
+            return preferred[0]
+    if len(opts) == 1:
+        return opts[0]
+    have = ", ".join(f"{p} tp{t} conc{c}" for p, t, c in points) or "none"
+    raise ValueError(("no matrix cell matches" if not opts else "several cells match: "
+                      + ", ".join(f"{m}/{t} tp{x}" for m, t, x in opts) + "; choose with --target/--tp")
+                     + f" (CI points: {have})")
+
+
 def split_image(ref):
     return (ref.split("@", 1) + [None])[:2] if ref and "@" in ref else (ref, None)
 
@@ -78,8 +152,10 @@ def template_record(model, target):
     raise ValueError(f"no baseline of {model} with a launch block to copy the env from")
 
 
-def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpus_rev, image_digest, template):
-    """A schema-v2 record (metrics empty) and review rows [(field, value, source, kind)]; kind: exact|copied|derived."""
+def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpus_rev, image_digest, template,
+                server_env=None, source="agentic_*/vllm_command.txt + server.log"):
+    """A schema-v2 record (metrics empty) and review rows [(field, value, source, kind)]; kind: exact|copied|derived.
+    server_env: the CI's exact server env (srtctl recipe); None = the template's env (direct-launch CI runs)."""
     if bmk.get("framework") != "vllm":
         raise ValueError(f"framework {bmk.get('framework')!r}: only vLLM CI runs are supported in this MVP")
     tpl = template
@@ -87,7 +163,15 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
     digest = digest_in_ref or image_digest
     flags = cmd["flags"]
     env = dict(tpl["host"].get("server_env") or {})
+    if server_env is not None:   # exact from the CI: the template keeps only its bench-side keys
+        env = {k: v for k, v in env.items() if not k.startswith(SERVER_ENV_PREFIXES) or k in KEEP_FROM_TEMPLATE}
+        env.update(server_env)
     env.update(MODEL_PREFIX=bmk.get("infmax_model_prefix") or env.get("MODEL_PREFIX"), FRAMEWORK=bmk["framework"])
+    # bench-side keys that describe the CI point: from the bmk JSON, never the template's older point
+    point = {"IMAGE": image, "TP": cmd["tp"] or bmk.get("tp"), "EP_SIZE": bmk.get("ep"), "PRECISION": bmk.get("precision"),
+             "DP_ATTENTION": bmk.get("dp_attention"), "KV_OFFLOADING": bmk.get("kv_offloading"),
+             "SPEC_DECODING": bmk.get("spec_decoding")}
+    env.update({k: str(v) for k, v in point.items() if k in env and v is not None})
     tp = cmd["tp"] or bmk.get("tp")
     num_gpus = bmk.get("num_gpus") or tp
     # model path: the template's convention (snapshot path in the node hub, or the repo id)
@@ -129,12 +213,14 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
          "exact" if digest_in_ref else "derived"),
         ("host.framework/tp/ep/num_gpus", f"{bmk['framework']}/{tp}/{rec['host']['ep']}/{num_gpus}", f"{src}: {bmk_name}", "exact"),
         ("host.dcp", rec["host"]["dcp"], "server flags (--decode-context-parallel-size)", "exact"),
-        ("host.server_flags", flags, f"{src}: agentic_*/vllm_command.txt", "exact"),
-        ("launch.model_id/model_rev", f"{cmd['model']} @ {model_rev}", f"{src}: vllm_command.txt + server.log snapshot path", "exact"),
+        ("host.server_flags", flags, f"{src}: {source}", "exact"),
+        ("launch.model_id/model_rev", f"{cmd['model']} @ {model_rev}", f"{src}: {source} (server log snapshot path)", "exact"),
         ("launch.corpus_id/corpus_rev", f"{corpus_id} @ {corpus_rev}", "bmk dataset name + HF commit history at the CI run",
          "derived"),
-        ("host.server_env", "; ".join(f"{k}={v}" for k, v in sorted(env.items())), f"copied from {tpl['epoch_id']} "
-         "(MODEL_PREFIX, FRAMEWORK from the bmk JSON)", "copied"),
+        ("host.server_env", "; ".join(f"{k}={v}" for k, v in sorted(env.items())),
+         (f"server keys exact from {src} ({source}); bench keys copied from {tpl['epoch_id']}" if server_env is not None
+          else f"copied from {tpl['epoch_id']} (MODEL_PREFIX, FRAMEWORK from the bmk JSON)"),
+         "exact+copied" if server_env is not None else "copied"),
         ("launch.workspace_root/editable_packages/gsm8k", f"{lau['workspace_root']} / {lau.get('editable_packages')} / {lau['gsm8k']}",
          f"copied from {tpl['epoch_id']}", "copied"),
         ("host.model_path", model_path, f"the template's convention ({'node hub snapshot' if model_path.startswith('/') else 'repo id'})",

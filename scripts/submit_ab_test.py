@@ -120,6 +120,8 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha,
                               weights_path=t.get("weights_path"), skip_gsm8k=skip_gsm8k)
         write(cdir / "cell.env", render.env_file(env))
+        # the exact record this cell runs from (a stored baseline, or a CI draft not stored anywhere): the report reads it
+        write(cdir / "baseline_record.json", json.dumps(r, indent=2) + "\n")
         write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes), indent=2) + "\n")
         wall = render.job_minutes(mode, minutes, r)
         jname, jtext = backend.job_script(rcdir, f"ab-{cell}"[:40], wall, exclude=tuple(req.get("exclude_nodes") or ()),
@@ -137,7 +139,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
                   "remote_run_dir": remote_run, "site": {k: v for k, v in site.items() if k != "gateway_env"},
                   "gateway_configured": bool(site.get("gateway_env")), "reference": req.get("reference"),
                   "exclude_nodes": list(req.get("exclude_nodes") or []), "backend_options": req.get("backend_options"),
-                  "skip_gsm8k": skip_gsm8k,
+                  "skip_gsm8k": skip_gsm8k, "ci_run": req.get("ci_run"),
                   "cells": cells, "submitted": False}
     rc_path = run_dir / "run_config.json"
     write(rc_path, json.dumps(run_config, indent=2) + "\n")

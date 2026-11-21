@@ -96,14 +96,21 @@ fetch() {
 
 # archive_tree <repo> <commit> <dest>: the commit's files, plus every submodule at the commit its gitlink records,
 # recursively. `git archive` alone leaves submodules empty: InferenceX's utils/aiperf is one, and aiperf's install then
-# fails ("does not appear to be a Python project"; smoke job 299333, 2026-11-19).
+# fails ("does not appear to be a Python project"; smoke job 299333, 2026-11-19). REQUIRED_SUBMODULES must be there;
+# any other one (newer InferenceX adds inferencex-e2e/utils/srt-slurm, the CI's own launcher, and
+# pretraining/torchtitan; CI run 44689368479) is extracted when the clone has it and skipped otherwise.
+REQUIRED_SUBMODULES=" utils/aiperf "
 archive_tree() {
     local repo=$1 sha=$2 dest=$3 mode type gsha path
     mkdir -p "$dest" && git -C "$repo" archive "$sha" | tar -x -C "$dest" || return 1
     while read -r mode type gsha path; do
         [ "$type" = commit ] || continue
-        git -C "$repo/$path" cat-file -e "$gsha^{commit}" 2>/dev/null \
-            || { log "submodule $path @ $gsha is not available in $repo/$path (git submodule update there)"; return 1; }
+        if ! git -C "$repo/$path" cat-file -e "$gsha^{commit}" 2>/dev/null; then
+            case "$REQUIRED_SUBMODULES" in *" $path "*)
+                log "submodule $path @ $gsha is not available in $repo/$path (git submodule update there)"; return 1 ;;
+            esac
+            log "submodule $path @ ${gsha:0:10} not in the clone: skipped (not needed to run AgentX)"; continue
+        fi
         archive_tree "$repo/$path" "$gsha" "$dest/$path" || return 1
         log "submodule $path @ ${gsha:0:10} extracted"
     done < <(git -C "$repo" ls-tree -r "$sha")

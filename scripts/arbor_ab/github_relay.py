@@ -79,6 +79,33 @@ for r in REQS:
                         pat = (r.get("grep") or {}).get(base)
                         out[base] = "\n".join(l for l in text.splitlines() if re.search(pat, l))[:200000] if pat else text[:200000]
             res.append({"http": code, "data": out})
+        elif r["op"] == "artifact_tar":
+            # a .tar.gz member of the zip (srtctl CI runs: srt-single-node-logs.tar.gz): its member list, and the text
+            # of members whose path matches r["pattern"] (only lines matching r["grep"] when given)
+            import re, tarfile
+            out = {"members": [], "text": {}}
+            with tempfile.TemporaryDirectory() as d:
+                zp = os.path.join(d, "a.zip")
+                code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
+                if code == 200:
+                    z = zipfile.ZipFile(zp)
+                    n = next((x for x in z.namelist() if os.path.basename(x) == r["member"]), None)
+                    if n:
+                        t = tarfile.open(fileobj=io.BytesIO(z.read(n)), mode="r:*")
+                        for m in t.getmembers():
+                            out["members"].append([m.name, m.size])
+                            if m.isfile() and r.get("pattern") and re.search(r["pattern"], m.name):
+                                text = t.extractfile(m).read().decode("utf-8", "replace")
+                                if r.get("grep"):
+                                    text = "\n".join(l for l in text.splitlines() if re.search(r["grep"], l))
+                                out["text"][m.name] = text[:200000]
+            res.append({"http": code, "data": out})
+        elif r["op"] == "artifact_names":
+            with tempfile.TemporaryDirectory() as d:
+                zp = os.path.join(d, "a.zip")
+                code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
+                names = [[i.filename, i.file_size] for i in zipfile.ZipFile(zp).infolist()] if code == 200 else []
+            res.append({"http": code, "data": names})
         else:
             res.append({"http": 0, "error": "unknown op"})
     except Exception as e:  # report, never raise: one bad request must not hide the others
@@ -115,6 +142,17 @@ def artifacts(repo, run_id):
 
 def artifact_json(repo, artifact_id):
     return {"op": "artifact_json", "repo": repo, "artifact_id": int(artifact_id)}
+
+
+def artifact_tar(repo, artifact_id, member, pattern=None, grep=None):
+    """Member list of a .tar.gz inside an artifact zip, plus the text of its members matching `pattern`."""
+    return {"op": "artifact_tar", "repo": repo, "artifact_id": int(artifact_id), "member": member, "pattern": pattern,
+            "grep": grep}
+
+
+def artifact_names(repo, artifact_id):
+    """[[member name, size]] of an artifact zip."""
+    return {"op": "artifact_names", "repo": repo, "artifact_id": int(artifact_id)}
 
 
 def artifact_text(repo, artifact_id, names, grep=None):

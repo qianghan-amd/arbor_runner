@@ -94,6 +94,30 @@ print(json.dumps({s: subprocess.run(["git", "-C", PAYLOAD["clone"], "cat-file", 
                   for s in PAYLOAD["shas"]}))
 '''
 
+# Fetch missing InferenceX commits (and the commits of their submodules, e.g. utils/aiperf: the runner extracts each
+# gitlink at its commit) into the clone. `git fetch origin <sha>` only adds objects: no checkout, no branch moves.
+INFX_FETCH_PROGRAM = r'''
+import subprocess
+def has(repo, s):
+    return subprocess.run(["git", "-C", repo, "cat-file", "-e", s + "^{commit}"], capture_output=True).returncode == 0
+def fetch(repo, s):
+    if not has(repo, s):
+        subprocess.run(["git", "-C", repo, "fetch", "-q", "origin", s], capture_output=True, timeout=900)
+    return has(repo, s)
+out = {}
+for s in PAYLOAD["shas"]:
+    ok, subs = fetch(PAYLOAD["clone"], s), {}
+    if ok:
+        tree = subprocess.run(["git", "-C", PAYLOAD["clone"], "ls-tree", "-r", s], capture_output=True, text=True).stdout
+        for line in tree.splitlines():
+            mode, kind, gsha, path = line.split(None, 3)
+            if kind == "commit":
+                subs[path] = fetch(PAYLOAD["clone"] + "/" + path, gsha)
+    # only the submodules the runner requires decide (runner.sh REQUIRED_SUBMODULES); others are reported
+    out[s] = {"ok": ok and all(subs.get(p, False) for p in PAYLOAD["required"] if p in subs), "submodules": subs}
+print(json.dumps(out))
+'''
+
 
 def to_minutes(limit):
     """Slurm 'D-HH:MM:SS' / 'HH:MM:SS' / 'MM:SS' -> minutes."""
@@ -143,6 +167,16 @@ class CrusoeSlurm(Backend):
 
     def run_dir(self, run_id):
         return f"{self.work_root}/runs/{run_id}"
+
+    def ensure_bench_commits(self, shas):
+        return remote.run_python(self.host, INFX_FETCH_PROGRAM, {"clone": self.local["remote"]["infx_clone"],
+                                                                 "shas": list(shas), "required": ["utils/aiperf"]},
+                                 timeout=1800)
+
+    def files_exist(self, paths):
+        """Shared storage looks the same from the login node and the compute nodes (/shared_nfs)."""
+        return remote.run_python(self.host, "import os\nprint(json.dumps({p: os.path.exists(p) for p in PAYLOAD}))",
+                                 list(paths), timeout=120)
 
     def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
         """options (request backend_options): {qos, account} override local.yaml slurm.qos/account for this run."""

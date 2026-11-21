@@ -32,33 +32,60 @@ def write(p, text):
 
 
 def cmd_draft(args):
+    d, rec = draft(args.model, args.target, args.ci_run, args.tp)
+    print(f"draft: {d.relative_to(REPO_ROOT).as_posix()} (epoch {rec['epoch_id']}); read review.md next")
+    return 0
+
+
+def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
+    """Write runs/drafts/<model>__<target>__ci<ID>/ and return (dir, record). run_info/arts: already fetched."""
     local, matrix = config.load_local(), config.load_matrix()
     relay = local["ssh"]["github_relay_host"]
-    tgt = config.target_spec(matrix, args.model, args.target)
-    tp = args.tp or (matrix["models"][args.model]["targets"][args.target].get("expected_host") or {}).get("tp")
-    run, arts = github_relay.call(relay, [github_relay.get(f"/repos/{INFX}/actions/runs/{args.ci_run}"),
-                                          github_relay.artifacts(INFX, args.ci_run)])
-    if run.get("http") != 200 or not arts.get("data"):
-        sys.exit(f"CI run {args.ci_run}: run http {run.get('http')}, {len(arts.get('data') or [])} artifacts (expired?)")
-    run = run["data"]
-    cands = [a for a in gate.bmk_candidates(arts["data"], tp, tgt["conc"]) if not a["expired"]]
+    tgt = config.target_spec(matrix, model, target)
+    tp = tp or (matrix["models"][model]["targets"][target].get("expected_host") or {}).get("tp")
+    if run_info is None or arts is None:
+        run, arts = github_relay.call(relay, [github_relay.get(f"/repos/{INFX}/actions/runs/{ci_run}"),
+                                              github_relay.artifacts(INFX, ci_run)])
+        if run.get("http") != 200 or not arts.get("data"):
+            sys.exit(f"CI run {ci_run}: run http {run.get('http')}, {len(arts.get('data') or [])} artifacts (expired?)")
+        run, arts = run["data"], arts["data"]
+    else:
+        run = run_info
+    cands = [a for a in gate.bmk_candidates(arts, tp, tgt["conc"]) if not a["expired"]]
     if not cands:
-        sys.exit(f"no live bmk_* artifact for tp{tp} conc{tgt['conc']} in run {args.ci_run}")
+        sys.exit(f"no live bmk_* artifact for tp{tp} conc{tgt['conc']} in run {ci_run}")
     got = github_relay.call(relay, [github_relay.artifact_json(INFX, a["id"]) for a in cands])
     best = max(((a, next(iter((g.get("data") or {}).values()), {})) for a, g in zip(cands, got)),
                key=lambda x: x[1].get("num_requests_successful") or 0)
     bmk_art, bmk = best
     agentic = "agentic_" + bmk_art["name"][len("bmk_agentic_"):]
-    agentic_art = next((a for a in arts["data"] if a["name"] == agentic and not a["expired"]), None)
+    agentic_art = next((a for a in arts if a["name"] == agentic and not a["expired"]), None)
     if not agentic_art:
         sys.exit(f"no live {agentic} artifact (needed for the server command)")
     texts = github_relay.call(relay, [github_relay.artifact_text(
         INFX, agentic_art["id"], ["vllm_command.txt", "benchmark_command.txt", "server.log"], grep={"server.log": "snapshots/"})])[0]
     files = texts.get("data") or {}
-    if "vllm_command.txt" not in files:
-        sys.exit(f"{agentic} has no vllm_command.txt (SGLang CI runs are not supported in this MVP)")
-    cmd = ci_baseline.parse_vllm_command(files["vllm_command.txt"])
-    model_rev = ci_baseline.model_rev_from_log(files.get("server.log", ""), cmd["model"])
+    server_env, source = None, "agentic_*/vllm_command.txt + server.log"
+    if "vllm_command.txt" in files:   # direct-launch CI format
+        cmd = ci_baseline.parse_vllm_command(files["vllm_command.txt"])
+        model_rev = ci_baseline.model_rev_from_log(files.get("server.log", ""), cmd["model"])
+        launch_text = files["vllm_command.txt"]
+    else:                             # srtctl CI format: the resolved recipe and the server log in server_logs_*
+        srv_name = "server_logs_" + bmk_art["name"][len("bmk_agentic_"):]
+        srv = next((a for a in arts if a["name"] == srv_name and not a["expired"]), None)
+        if not srv:
+            sys.exit(f"{agentic} has no vllm_command.txt and there is no live {srv_name} (srtctl recipe): "
+                     "an unsupported CI artifact format (SGLang CI runs are not supported yet)")
+        tar = "srt-single-node-logs.tar.gz"
+        rc, rl = github_relay.call(relay, [github_relay.artifact_tar(INFX, srv["id"], tar, pattern=r"^\./logs/config\.yaml$"),
+                                           github_relay.artifact_tar(INFX, srv["id"], tar, pattern=r"_agg_w0\.out$",
+                                                                     grep="snapshots/")])
+        recipe = next(iter(((rc.get("data") or {}).get("text") or {}).values()), None)
+        if not recipe:
+            sys.exit(f"{srv_name}: no logs/config.yaml in {tar}")
+        cmd, server_env, _ = ci_baseline.parse_srt_recipe(recipe)   # the image comes from the bmk JSON, as for direct runs
+        model_rev = ci_baseline.model_rev_from_log("\n".join(((rl.get("data") or {}).get("text") or {}).values()), cmd["model"])
+        source, launch_text = f"{srv_name[:60]}.../{tar}: logs/config.yaml + server log", recipe
     ds = bmk.get("dataset") or {}
     commits = remote.run_python(relay, HF_COMMITS, {"name": ds["hf_dataset_name"]})
     corpus_rev = ci_baseline.corpus_rev_at(commits, run["created_at"])
@@ -66,22 +93,21 @@ def cmd_draft(args):
     if not digest:   # the tag's digest now; review.md marks it `derived`
         reg = registry.check(relay, [(bmk["image"], None)])[0]
         digest = reg.get("tag_digest")
-    tpl = ci_baseline.template_record(args.model, args.target)
-    rec, rows = ci_baseline.build_draft(args.model, tgt, run, bmk_art["name"], bmk, cmd, model_rev, ds["hf_dataset_name"],
-                                        corpus_rev, digest, tpl)
+    tpl = ci_baseline.template_record(model, target)
+    rec, rows = ci_baseline.build_draft(model, tgt, run, bmk_art["name"], bmk, cmd, model_rev, ds["hf_dataset_name"],
+                                        corpus_rev, digest, tpl, server_env=server_env, source=source)
     errs = baseline.validation_errors(rec)
     if errs:
         sys.exit("draft is not schema-valid:\n  " + "\n  ".join(errs))
     notes = [f"bmk dataset entries: {ds.get('num_dataset_entries')} (the runner's offline corpus load must print the same "
              "number in prepare)", f"CI aiperf command: {files.get('benchmark_command.txt', '')[:300]}"]
-    d = REPO_ROOT / "runs" / "drafts" / f"{args.model}__{args.target}__ci{args.ci_run}"
+    d = REPO_ROOT / "runs" / "drafts" / f"{model}__{target}__ci{ci_run}"
     d.mkdir(parents=True, exist_ok=True)
     write(d / "draft.json", json.dumps(rec, indent=2) + "\n")
     write(d / "ci_bmk.json", json.dumps({"artifact": bmk_art, "json": bmk}, indent=1) + "\n")
-    write(d / "ci_commands.txt", files["vllm_command.txt"] + "\n\n" + files.get("benchmark_command.txt", "") + "\n")
+    write(d / "ci_commands.txt", launch_text + "\n\n" + files.get("benchmark_command.txt", "") + "\n")
     write(d / "review.md", ci_baseline.review_md(rec, rows, run, bmk_art["name"], notes))
-    print(f"draft: {d.relative_to(REPO_ROOT).as_posix()} (epoch {rec['epoch_id']}); read review.md next")
-    return 0
+    return d, rec
 
 
 def cmd_measure(args):

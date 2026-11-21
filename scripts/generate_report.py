@@ -40,7 +40,9 @@ def main():
     for cell in rc["cells"]:
         model, target = cell["model"], cell["target"]
         d = args.run_dir / f"{model}__{target}"
-        record = baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json")
+        # the record the cell ran from (written by submit since 2026-11-21; a CI draft is not in baselines/)
+        record = (read_json(d / "baseline_record.json")
+                  or baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json"))
         src = report.baseline_source(record)
         src_txt = f"from {src['source_type']} run {src['ci_run_id']} ({src['ci_commit_date']})"
         if rc.get("mode") in ("campaign", "campaign_smoke"):   # no before/after by design: the campaign's own result

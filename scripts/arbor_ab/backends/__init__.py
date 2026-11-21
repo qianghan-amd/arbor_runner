@@ -66,6 +66,15 @@ class Backend:
         """Setup checks for check_setup.py: [(name, ok, message)]."""
         return []
 
+    def ensure_bench_commits(self, shas):
+        """Optional: make the InferenceX clone the jobs read hold these commits (and their submodules' commits):
+        {sha: {"ok": bool, "submodules": {path: bool}}}; {} = not supported (the job then checks and fails)."""
+        return {}
+
+    def files_exist(self, paths):
+        """Optional: which of these paths exist as the job sees them ({path: bool}); {} = cannot tell."""
+        return {}
+
     def setup(self, key=None, test_gateway=False, infx_shas=()):
         """Idempotent one-time setup (dirs, the LLM gateway env from `key`, the InferenceX clone holds `infx_shas`,
         optionally one gateway call): [(name, ok, message)]."""
