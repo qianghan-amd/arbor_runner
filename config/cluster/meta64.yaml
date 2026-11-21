@@ -10,8 +10,12 @@ qos_default: null               # association: account default, QOS normal (the 
 account_default: null
 gpu_type: mi350x                # 8 x AMD Instinct MI350X (gfx950) a node; 384 CPUs; ~3 TB RAM
 gpus_per_node: 8
-# Node-local storage: /scratch (md RAID of NVMe, 6.8 TB). Shared: /apps (NFS, 46 TB, 97 % used). $HOME is 100 GB and
-# nearly full for some users: nothing of a run may go there (the runner sets its own HOME, pip and uv caches).
+# Node-local storage (probe job 146744): /scratch (NVMe md RAID, 6.8 TB) is root-owned; /scratch/<user> exists only
+# where an admin made it (meta64 job 146743 failed: mkdir Permission denied). A job's /tmp is a private per-job mount
+# of that RAID (/scratch/slurm/<job>/...), deleted at the job's end and invisible to dockerd: unusable for the cache.
+# So node_local_root is /var/tmp/<user>/... (root disk, ext4, 1.9 TB free, persistent between jobs, same path for
+# Docker). Shared: /apps (NFS, 46 TB, 97 % used). $HOME is 100 GB and nearly full for some users: nothing of a run
+# may go there (the runner sets its own HOME, pip and uv caches).
 # Compute nodes: Docker 29.4, Python 3.9 on the host (the runner brings its own >= 3.10 with uv), internet (HF, PyPI,
 # GitHub) reachable.
 # LLM gateway for Arbor's agents: the same service as on Crusoe.

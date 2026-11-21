@@ -36,7 +36,7 @@ sites:
     remote:
       work_root: /apps/<user>/arbor_ab
       infx_clone: /apps/<user>/arbor_ab/InferenceX   # git clone https://github.com/SemiAnalysisAI/InferenceX
-      node_local_root: /scratch/<user>/arbor_ab      # /scratch is node-local NVMe; never $HOME (100 GB)
+      node_local_root: /var/tmp/<user>/arbor_ab      # see config/cluster/meta64.yaml; never $HOME (100 GB)
       shared_hf_hub: null
     arbor:
       gateway_env: null               # e.g. /apps/<user>/arbor_ab/secrets/gateway.env (setup_remote.py --site meta64)

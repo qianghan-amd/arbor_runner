@@ -1,0 +1,10 @@
+# run_from_ci.py: InferenceX CI run 44689368479 (Run Sweep - [AMD][AgentX] DeepSeek-V4.1-Flash MI355X vLLM: rerun the whole curve on the 11-19 nightl)
+# start point: runs/drafts/dsv41flash__c1_p90__ci44689368479/draft.json (rebuild it with make_baseline.py draft --model dsv41flash --target c1_p90 --ci-run 44689368479 --tp 4)
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 30
+ci_run: '44689368479'
+targets:
+- model: dsv41flash
+  target: c1_p90
+site: meta64
