@@ -40,7 +40,7 @@ def cmd_draft(args):
 def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     """Write runs/drafts/<model>__<target>__ci<ID>/ and return (dir, record). run_info/arts: already fetched."""
     local, matrix = config.load_local(), config.load_matrix()
-    relay = local["ssh"]["github_relay_host"]
+    relay = config.local_view()["ssh"]["github_relay_host"]
     tgt = config.target_spec(matrix, model, target)
     tp = tp or (matrix["models"][model]["targets"][target].get("expected_host") or {}).get("tp")
     if run_info is None or arts is None:
@@ -120,7 +120,7 @@ def cmd_measure(args):
            "targets": [{"model": rec["model"], "target": rec["target"]["key"], "weights_path": args.weights_path}]}
     if args.qos:
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
-    rc = submit_ab_test.submit(req, f"baseline-{d.name}", backends.get(local, config.load_cluster()),
+    rc = submit_ab_test.submit(req, f"baseline-{d.name}", backends.for_site(local, args.site),
                                (REPO_ROOT / local["arbor"]["clone"]).resolve(), records=[rec])
     if rc["submitted"]:
         print(f"then: python scripts/poll_status.py --run-dir runs/{rc['run_id']}; "
@@ -185,6 +185,7 @@ def main():
     p.add_argument("--arbor-commit", required=True, help="the Arbor whose launch code renders the server command")
     p.add_argument("--gsm8k", action="store_true", help="also run GSM8K (off by default)")
     p.add_argument("--weights-path")
+    p.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     p.add_argument("--qos")
     p.add_argument("--account")
     p = sub.add_parser("finalize")

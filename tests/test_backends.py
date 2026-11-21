@@ -115,11 +115,33 @@ def test_crusoe_job_script():
         b.job_script("/w/c", "ab-c", 1441, options={"qos": "amd-burst-qos"})
     assert "#SBATCH --qos=amd-burst-qos" in burst and "#SBATCH --account=amd-hyperloom" in burst
     with pytest.raises(ValueError, match="unknown"):
-        b.job_script("/w/c", "ab-c", 150, options={"partition": "x"})
+        b.job_script("/w/c", "ab-c", 150, options={"nodes": 2})
     for line in ("#SBATCH --partition=amd-spur-v2", "#SBATCH --qos=amd-agentx-qos", "#SBATCH --account=amd-agentx",
                  "#SBATCH --exclusive", "#SBATCH --time=1-07:30:00", "#SBATCH --error=/w/runs/r1/c/logs/slurm-%j.err",
                  "exec bash /w/runs/r1/c/runner.sh /w/runs/r1/c 2>&1"):
         assert line in text
+
+
+SITES = {"backend": "slurm", "arbor": {"clone": "../Arbor", "gateway_env": None}, "default_site": "crusoe",
+         "sites": {"crusoe": {"ssh": {"login_host": "c", "github_relay_host": "r"}, "remote": {"work_root": "/c/w"},
+                              "slurm": {"qos": "q1", "account": "a1"}, "arbor": {"gateway_env": "/c/w/gw.env"}},
+                   "meta64": {"ssh": {"login_host": "m", "github_relay_host": "r"}, "remote": {"work_root": "/m/w"}}}}
+
+
+def test_sites_and_a_cluster_without_qos():
+    name, view = backends.site_local(SITES)
+    assert name == "crusoe" and view["cluster"] == "crusoe" and view["arbor"] == {"clone": "../Arbor", "gateway_env": "/c/w/gw.env"}
+    name, view = backends.site_local(SITES, "meta64")
+    assert view["ssh"]["login_host"] == "m" and view["arbor"]["clone"] == "../Arbor" and "sites" not in view
+    with pytest.raises(KeyError, match="not in local.yaml sites"):
+        backends.site_local(SITES, "nowhere")
+    assert backends.site_local(LOCAL) == ("crusoe", LOCAL)                       # the older flat local.yaml: one site
+    meta = backends.for_site(SITES, "meta64")                                   # config/cluster/meta64.yaml
+    assert meta.site_name == "meta64" and meta.gpu_type == "mi350x" and meta.run_dir("r1") == "/m/w/runs/r1"
+    text = meta.job_script("/m/w/runs/r1/c", "ab-c", 600)[1]
+    assert "#SBATCH --partition=meta64" in text and "--qos" not in text and "--account" not in text
+    with pytest.raises(ValueError, match="partition meta64 allows 7200 min"):
+        meta.job_script("/m/w/c", "ab-c", 7201)
 
 
 def test_crusoe_time_conversions():

@@ -1,10 +1,11 @@
 """Day-1 smoke test (docs/design.md section 10): connectivity and setup only. Not a permission or quota check.
 
-Usage: python scripts/check_setup.py
-Checks: local.yaml, Python deps, the execution backend's own checks (crusoe_slurm: ssh to the login node, work-dir
+Usage: python scripts/check_setup.py [--site NAME]
+Checks: local.yaml, Python deps, the execution backend's own checks for the site (slurm: ssh to the login node, work-dir
 modes, gateway env mode, scheduler commands), GitHub API through the relay host (token present there, never printed),
 vendored skills, stored baselines valid. Exit code 1 if any check fails.
 """
+import argparse
 import sys
 
 from arbor_ab import REPO_ROOT
@@ -44,6 +45,9 @@ def check_baselines():
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
+    site = ap.parse_args().site
     results = []
 
     def step(name, fn):
@@ -58,7 +62,7 @@ def main():
     local = {}
 
     def load_local():
-        local.update(config.load_local())
+        local.update(config.local_view(site))
         return (f"backend={local.get('backend', 'crusoe_slurm')}, "
                 f"github_relay_host={local['ssh']['github_relay_host']}")
 
@@ -69,7 +73,7 @@ def main():
     if step("local.yaml", load_local):
         step("python deps", deps)
         try:
-            backend = backends.get(local, config.load_cluster())
+            backend = backends.for_site(local, site)
             for name, ok, msg in backend.check():
                 results.append(("PASS" if ok else "FAIL", f"{backend.name}: {name}", msg))
         except Exception as e:

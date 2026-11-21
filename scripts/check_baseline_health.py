@@ -23,7 +23,7 @@ def main():
     ap.add_argument("--target")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    local = config.load_local()
+    local = config.local_view()   # the default site: its login node checks the image mirrors
     relay, login = local["ssh"]["github_relay_host"], local["ssh"]["login_host"]
 
     matrix = config.load_matrix()

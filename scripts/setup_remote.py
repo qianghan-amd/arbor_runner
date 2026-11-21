@@ -16,6 +16,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--key-file", type=Path)
     ap.add_argument("--test-gateway", action="store_true")
+    ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     args = ap.parse_args()
     key = None
     if args.key_file:
@@ -24,7 +25,7 @@ def main():
             sys.exit(f"{args.key_file}: expected one key with no whitespace")
     shas = sorted({r["measured"]["bench_client_commit"] for m, t in config.cells(config.load_matrix())
                    for r in [baseline.load_latest(m, t)] if r and r.get("launch") and r["measured"]["bench_client_commit"]})
-    backend = backends.get(config.load_local(), config.load_cluster())
+    backend = backends.for_site(config.load_local(), args.site)
     results = backend.setup(key=key, test_gateway=args.test_gateway, infx_shas=shas)
     for name, ok, msg in results:
         print(f"[{'ok' if ok else 'FAIL'}] {name}: {msg}")

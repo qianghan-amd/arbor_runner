@@ -67,3 +67,9 @@ def load_local(path=None):
     if not p.exists():
         raise FileNotFoundError(f"{p} not found: copy local.yaml.example to local.yaml and fill it in")
     return _load_yaml(p)
+
+
+def local_view(site=None, path=None):
+    """local.yaml as one site sees it (its `ssh`, `remote`, ... over the shared keys); see backends.site_local."""
+    from .backends import site_local
+    return site_local(load_local(path), site)[1]

@@ -15,10 +15,10 @@ from pathlib import Path
 from arbor_ab import backends, config
 
 
-def poll(run_dir, backend, fetch=True, extend=False):
+def poll(run_dir, backend=None, fetch=True, extend=False):
+    """backend: None = the site the run was submitted to (run_config.json `site_name`)."""
     rc = json.loads((run_dir / "run_config.json").read_text(encoding="utf-8"))
-    if rc.get("backend", "crusoe_slurm") != backend.name:
-        sys.exit(f"{rc['run_id']} ran on backend {rc.get('backend')}, local.yaml selects {backend.name}")
+    backend = backend or backends.for_run(config.load_local(), rc)
     if not rc.get("submitted"):
         sys.exit(f"{rc['run_id']} was not submitted (dry run or failed submit)")
     status = backend.status(rc["cells"])
@@ -42,7 +42,7 @@ def main():
     ap.add_argument("--no-fetch", action="store_true")
     ap.add_argument("--extend", action="store_true")
     args = ap.parse_args()
-    poll(args.run_dir, backends.get(config.load_local(), config.load_cluster()), not args.no_fetch, args.extend)
+    poll(args.run_dir, None, not args.no_fetch, args.extend)
     return 0
 
 

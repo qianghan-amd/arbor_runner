@@ -1,0 +1,22 @@
+# meta64: AMD Meta MI350X Slurm cluster (login ruby-slurmlogin01 / 02.rckg.g03.cpe.ice.amd.com, ssh alias slurmlogin01).
+# Facts verified 2026-11-21 (sinfo, scontrol, sacctmgr on the login node; probe job 146738 on cv350-rck-g03-e15-08).
+name: meta64
+scheduler: slurm                # Slurm 25.05.1
+login_shell: bash
+partition: meta64               # 68 nodes cv350-rck-g03-*, MaxTime 5-00:00:00, OverSubscribe=EXCLUSIVE, no GPU gres
+# `interactive` has the same nodes with a 1-day limit; choose it per run with backend_options {partition: interactive}
+partition_max_wall_minutes: { meta64: 7200, interactive: 1440 }
+qos_default: null               # association: account default, QOS normal (the partition's default; MaxSubmitPU 10)
+account_default: null
+gpu_type: mi350x                # 8 x AMD Instinct MI350X (gfx950) a node; 384 CPUs; ~3 TB RAM
+gpus_per_node: 8
+# Node-local storage: /scratch (md RAID of NVMe, 6.8 TB). Shared: /apps (NFS, 46 TB, 97 % used). $HOME is 100 GB and
+# nearly full for some users: nothing of a run may go there (the runner sets its own HOME, pip and uv caches).
+# Compute nodes: Docker 29.4, Python 3.9 on the host (the runner brings its own >= 3.10 with uv), internet (HF, PyPI,
+# GitHub) reachable.
+# LLM gateway for Arbor's agents: the same service as on Crusoe.
+llm_gateway:
+  base_url: https://llm-api.amd.com/Anthropic
+  key_header: Ocp-Apim-Subscription-Key
+  api_key_placeholder: dummy
+  models: { default: Claude-Opus-5.5, opus: Claude-Opus-5.5, sonnet: Claude-Sonnet-4.6, haiku: Claude-Haiku-4.5 }

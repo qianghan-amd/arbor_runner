@@ -17,9 +17,7 @@ def main():
     ap.add_argument("--cell")
     args = ap.parse_args()
     rc = json.loads((args.run_dir / "run_config.json").read_text(encoding="utf-8"))
-    backend = backends.get(config.load_local(), config.load_cluster())
-    if rc.get("backend", "crusoe_slurm") != backend.name:
-        sys.exit(f"{rc['run_id']} ran on backend {rc.get('backend')}, local.yaml selects {backend.name}")
+    backend = backends.for_run(config.load_local(), rc)   # the site the run was submitted to
     for c in rc["cells"]:
         if not args.cell or c["cell"] == args.cell:
             print(f"{c['cell']} job {c['job_id']}: {backend.cancel(c)}")

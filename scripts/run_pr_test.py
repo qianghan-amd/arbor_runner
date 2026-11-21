@@ -8,6 +8,7 @@ A convenience over the stateless tools (submit_ab_test.submit, poll_status.poll,
 runs on a workstation, keeps nothing but runs/<run_id>/ on disk, and can be stopped and started again at any time.
 """
 import argparse
+import json
 import subprocess
 import sys
 import time
@@ -40,11 +41,12 @@ def main():
     src.add_argument("--run-dir", type=Path)
     ap.add_argument("--every", type=float, default=10.0, help="minutes between polls")
     ap.add_argument("--no-wait", action="store_true")
+    ap.add_argument("--site", help="local.yaml site for --request (default: the request's `site`, else default_site)")
     args = ap.parse_args()
     local = config.load_local()
-    backend = backends.get(local, config.load_cluster())
     if args.request:
         req = yaml.safe_load(args.request.read_text(encoding="utf-8"))
+        backend = backends.for_site(local, args.site or req.get("site"))
         rc = submit_ab_test.submit(req, args.request, backend, (REPO_ROOT / local["arbor"]["clone"]).resolve())
         if not rc["submitted"]:
             return 1
@@ -54,6 +56,7 @@ def main():
             return 0
     else:
         run_dir = args.run_dir
+        backend = backends.for_run(local, json.loads((run_dir / "run_config.json").read_text(encoding="utf-8")))
     doc = follow(run_dir, backend, args.every)
     rep = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "generate_report.py"), "--run-dir", str(run_dir)])
     failed = [c["cell"] for c in doc["cells"] if c["state"] != "SUCCEEDED"]

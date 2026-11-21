@@ -101,7 +101,7 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
     return {
         "ARBOR_TAR": arbor_tar, "ARBOR_TAR_SHA256": arbor_tar_sha256,
         "RUN_ID": run_id, "CELL": cell_name(record["model"], record["target"]["key"]), "MODE": mode,
-        "CELL_DIR": cell_dir, "NL_ROOT": site["node_local_root"], "SHARED_HUB": site["shared_hf_hub"],
+        "CELL_DIR": cell_dir, "NL_ROOT": site["node_local_root"], "SHARED_HUB": site.get("shared_hf_hub") or "",
         "IMAGE_TAG": fp["image"], "IMAGE_DIGEST": fp["image_digest"] or "",
         "CONTAINER": container, "PORT": str(PORT), "GPUS": lau["gpu_ids"], "FRAMEWORK": h["framework"],
         "MODEL_ID": lau["model_id"], "MODEL_REV": lau["model_rev"],

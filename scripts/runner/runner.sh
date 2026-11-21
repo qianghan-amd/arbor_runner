@@ -27,6 +27,8 @@ exec 2>&1
 NL=$NL_ROOT; HUB=$NL/hf-hub
 ARBOR=$CELL_DIR/arbor; INFX=$CELL_DIR/infx; VENV=$CELL_DIR/.venv; PY=$VENV/bin/python
 PHASE=start; SERVER_UP=0
+# caches on node-local disk, never in $HOME (meta64's homes are 100 GB and some are full; 2026-11-21)
+export PIP_CACHE_DIR=$NL/pip-cache UV_CACHE_DIR=$NL/uv-cache UV_PYTHON_INSTALL_DIR=$NL/uv-python
 
 log() { echo "[runner] $(date -u +%FT%TZ) $*" | tee -a "$LOGS/runner.log"; }
 die() { log "FATAL ($PHASE): $*"; echo "failed:$PHASE" > "$CELL_DIR/state"; exit 1; }
@@ -84,10 +86,26 @@ fetch_once() {   # one attempt; fetch.py skips what is already pinned and comple
     return "${PIPESTATUS[0]}"
 }
 
+# host_python: prints a python >= 3.10 for the host-side venvs (Arbor and claude-agent-sdk, fetch.py). Crusoe's nodes
+# have one; meta64's have 3.9 (probe job 146738, 2026-11-21): then uv brings 3.12 onto node-local disk.
+host_python() {
+    if python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then command -v python3; return 0; fi
+    mkdir -p "$NL" || return 1
+    if [ ! -x "$NL/uv/uv" ]; then
+        retry 3 bash -c "curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR='$NL/uv' UV_NO_MODIFY_PATH=1 sh" \
+            >> "$LOGS/uv_install.log" 2>&1 || { log "uv install failed (see logs/uv_install.log)"; return 1; }
+    fi
+    retry 3 "$NL/uv/uv" python install 3.12 >> "$LOGS/uv_install.log" 2>&1 \
+        || { log "uv python install 3.12 failed (see logs/uv_install.log)"; return 1; }
+    "$NL/uv/uv" python find 3.12
+}
+
 fetch() {
     mkdir -p "$NL" || return 1
     if [ ! -x "$NL/dlvenv/bin/python" ]; then
-        python3 -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
+        local hp; hp=$(host_python) || return 1
+        rm -rf "$NL/dlvenv"
+        "$hp" -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
     fi
     retry 3 fetch_once || return 1
     [ -s "$CELL_DIR/weights.json" ] || { log "fetch wrote no weights.json (provenance of the served weights)"; return 1; }
@@ -179,8 +197,10 @@ prepare() {
     fi
     log "InferenceX client $INFX_SHA at $INFX (layout $INFX_LAYOUT${INFX_HOME_C:+, $INFX_HOME_C})"
 
-    if [ ! -x "$PY" ]; then
-        python3 -m venv "$VENV" && retry 3 "$PY" -m pip install -q --upgrade pip \
+    if [ ! -x "$PY" ]; then   # also when a venv made on another node points at that node's uv python
+        local hp; hp=$(host_python) || return 1
+        rm -rf "$VENV"
+        "$hp" -m venv "$VENV" && retry 3 "$PY" -m pip install -q --upgrade pip \
             && retry 3 "$PY" -m pip install -q pyyaml claude-agent-sdk || return 1
     fi
     "$PY" -c 'import importlib.metadata as m; print("[runner] venv: pyyaml", m.version("pyyaml"), "claude-agent-sdk", m.version("claude-agent-sdk"))'

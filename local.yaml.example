@@ -1,29 +1,42 @@
 # Copy to local.yaml (gitignored) and fill in. Never put a token or password in this file.
-# Execution backend (docs/design.md 5.1): crusoe_slurm is the only one. The ssh/remote/slurm keys below are its settings.
-backend: crusoe_slurm
-ssh:
-  login_host: crs5                # ~/.ssh/config alias of the Crusoe login node (submit, squeue, file reads)
-  github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves that host)
-remote:
-  # Per-user work root on /shared_nfs. Keep it OUTSIDE any repo: agents load every CLAUDE.md above their cwd.
-  work_root: /shared_nfs/<user>/arbor_ab
-  # A git clone of SemiAnalysisAI/InferenceX that contains each baseline's bench-client commit (read with git archive).
-  infx_clone: /shared_nfs/<user>/codebases/InferenceX
-  # Node-local NVMe cache for models and corpora (per user; reused across runs on the same node).
-  node_local_root: /mnt/m2m_nobackup/<user>/arbor_ab
-  # Shared HF hub: corpora with a matching revision are copied from here (classic layout, loads offline).
-  shared_hf_hub: /shared_nfs/huggingface/hub
-slurm:
-  # amd-burst-qos (project default, user decision 2026-11-20): 24 h wall, 4 submitted / 8 running per user, preempt
-  # mode cancel. amd-agentx-qos (account amd-agentx): 2 jobs / 2 nodes per user, 48 h wall, not preempted.
-  # amd-hyperloom-qos allows 1 job per user and is often taken by other work.
-  qos: amd-burst-qos
-  account: amd-hyperloom
+# Shared keys first; each site under `sites:` overrides them (scripts/arbor_ab/backends/__init__.py site_local).
+# A site is one cluster (config/cluster/<cluster>.yaml, default: the site's name) plus your paths and credentials
+# there. Choose it per run: request `site:`, or --site on the scripts; default_site otherwise.
+backend: slurm                    # the execution backend (docs/design.md 5.1); slurm covers Crusoe's Spur and meta64
+default_site: crusoe
 arbor:
   clone: ../Arbor                 # local clone of AMD-AGI/Arbor; submit_ab_test.py runs `git archive <commit>` in it
-  # LLM gateway env file on the cluster, written by `scripts/setup_remote.py --key-file <file>` (mode 600).
-  # Only the campaign phase needs it; a smoke run does not.
-  gateway_env: null               # e.g. /shared_nfs/<user>/arbor_ab/secrets/gateway.env
 github:
   # relay_gh_hosts: on github_relay_host, read the token from ~/.config/gh/hosts.yml into a shell variable (never echoed)
   token_source: relay_gh_hosts
+sites:
+  crusoe:                         # Crusoe MI355X (Spur)
+    ssh:
+      login_host: crs5                # ~/.ssh/config alias of the login node (submit, squeue, file reads)
+      github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves it)
+    remote:
+      # Per-user work root on shared storage. Keep it OUTSIDE any repo: agents load every CLAUDE.md above their cwd.
+      work_root: /shared_nfs/<user>/arbor_ab
+      # A git clone of SemiAnalysisAI/InferenceX; run_from_ci.py fetches the commits it needs into it.
+      infx_clone: /shared_nfs/<user>/codebases/InferenceX
+      node_local_root: /mnt/m2m_nobackup/<user>/arbor_ab   # node-local NVMe cache for models and corpora
+      shared_hf_hub: /shared_nfs/huggingface/hub           # pinned weights/corpora used from here when present; or null
+    slurm:
+      # amd-burst-qos (project default, user decision 2026-11-20): 24 h wall, preempt mode cancel.
+      # amd-agentx-qos (account amd-agentx): 2 jobs / 2 nodes per user, 48 h wall, not preempted.
+      qos: amd-burst-qos
+      account: amd-hyperloom
+    arbor:
+      # LLM gateway env file on the cluster, written by `scripts/setup_remote.py --site crusoe --key-file <file>`.
+      gateway_env: null               # e.g. /shared_nfs/<user>/arbor_ab/secrets/gateway.env
+  meta64:                         # meta64 MI350X (Slurm 25): partition meta64 (5 days) or interactive (1 day)
+    ssh:
+      login_host: slurmlogin01        # alias of ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com
+      github_relay_host: crusoe2_006  # no gh credentials needed on meta64
+    remote:
+      work_root: /apps/<user>/arbor_ab
+      infx_clone: /apps/<user>/arbor_ab/InferenceX   # git clone https://github.com/SemiAnalysisAI/InferenceX
+      node_local_root: /scratch/<user>/arbor_ab      # /scratch is node-local NVMe; never $HOME (100 GB)
+      shared_hf_hub: null
+    arbor:
+      gateway_env: null               # e.g. /apps/<user>/arbor_ab/secrets/gateway.env (setup_remote.py --site meta64)

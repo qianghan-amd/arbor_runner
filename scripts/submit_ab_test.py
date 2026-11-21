@@ -10,7 +10,8 @@ Request:
   gsm8k: true                            # optional, default false: GSM8K in the measured phases (else "skipped")
   campaign_minutes: 480                  # campaign modes (Arbor's time_budget_minutes; the runner stops Arbor then)
   exclude_nodes: [crsuse2-m2m-v3-177]    # optional: hosts not to use (e.g. left dirty by another user)
-  backend_options: { qos: amd-burst-qos, account: amd-hyperloom }   # optional, backend-specific (crusoe_slurm)
+  site: meta64                           # optional: a local.yaml site (default: local.yaml default_site)
+  backend_options: { qos: amd-burst-qos, account: amd-hyperloom }   # optional, backend-specific (slurm: partition/qos/account)
   targets:
     - { model: dsv41flash, target: c1_p90 }
     - { model: glm52, target: c1_p90, weights_path: /shared_nfs/<...>/snapshots/<rev> }   # optional, see README
@@ -140,6 +141,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
                   "gateway_configured": bool(site.get("gateway_env")), "reference": req.get("reference"),
                   "exclude_nodes": list(req.get("exclude_nodes") or []), "backend_options": req.get("backend_options"),
                   "skip_gsm8k": skip_gsm8k, "ci_run": req.get("ci_run"),
+                  "site_name": getattr(backend, "site_name", None), "gpu_type": getattr(backend, "gpu_type", None),
                   "cells": cells, "submitted": False}
     rc_path = run_dir / "run_config.json"
     write(rc_path, json.dumps(run_config, indent=2) + "\n")
@@ -166,10 +168,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--request", type=Path, required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--site", help="local.yaml site (default: the request's `site`, else local.yaml default_site)")
     args = ap.parse_args()
     local = config.load_local()
-    backend = backends.get(local, config.load_cluster())
     req = yaml.safe_load(args.request.read_text(encoding="utf-8"))
+    backend = backends.for_site(local, args.site or req.get("site"))
     rc = submit(req, args.request, backend, (REPO_ROOT / local["arbor"]["clone"]).resolve(), dry_run=args.dry_run)
     return 0 if args.dry_run or rc["submitted"] else 1
 

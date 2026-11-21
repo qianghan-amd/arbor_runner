@@ -60,6 +60,7 @@ def main():
     ap.add_argument("--gsm8k", action="store_true", help="GSM8K in the measured phases (full mode)")
     ap.add_argument("--weights-path", default="auto", help="auto (shared hub when present), none (download), or a path")
     ap.add_argument("--exclude-nodes", nargs="*", default=[])
+    ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     ap.add_argument("--qos")
     ap.add_argument("--account")
     ap.add_argument("--name", help="request name (default ci<ID>-<model>-<target>-<sha8>)")
@@ -68,12 +69,12 @@ def main():
     args = ap.parse_args()
 
     local, matrix = config.load_local(), config.load_matrix()
-    backend = backends.get(local, config.load_cluster())
+    backend = backends.for_site(local, args.site)
     clone = (REPO_ROOT / local["arbor"]["clone"]).resolve()
     sha = arbor_sha(clone, args.arbor_commit)
 
     # 1. the cell, from the CI run's own points
-    relay = local["ssh"]["github_relay_host"]
+    relay = config.local_view(args.site)["ssh"]["github_relay_host"]
     run, arts = github_relay.call(relay, [github_relay.get(f"/repos/{make_baseline.INFX}/actions/runs/{args.ci_run}"),
                                           github_relay.artifacts(make_baseline.INFX, args.ci_run)])
     if run.get("http") != 200:
@@ -98,6 +99,8 @@ def main():
 
     # 3. weights
     weights = None if args.weights_path == "none" else args.weights_path
+    if weights == "auto" and not backend.site().get("shared_hf_hub"):
+        weights = None                     # this site has no shared hub: the job downloads at the pin
     if weights == "auto":
         org_name = rec["launch"]["model_id"].replace("/", "--")
         snap = f"{backend.site()['shared_hf_hub']}/models--{org_name}/snapshots/{rec['launch']['model_rev']}"
@@ -117,6 +120,8 @@ def main():
            "targets": [{"model": model, "target": target, **({"weights_path": weights} if weights else {})}]}
     if args.gsm8k:
         req["gsm8k"] = True
+    if args.site:
+        req["site"] = args.site
     if args.exclude_nodes:
         req["exclude_nodes"] = args.exclude_nodes
     if args.qos:

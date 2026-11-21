@@ -40,7 +40,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="evaluate and print; do not write records")
     args = ap.parse_args()
 
-    relay = config.load_local()["ssh"]["github_relay_host"]
+    relay = config.local_view()["ssh"]["github_relay_host"]
     matrix, records = load_records(args.model, args.target)
     agentx_ci = [r for r in records if r["fingerprint"]["source_type"] == "agentx_ci"]
     runs = sorted({r["fingerprint"]["ci_run_id"] for r in agentx_ci})

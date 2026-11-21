@@ -5,9 +5,11 @@ the `Backend` contract below; baselines, the gate and the report never see a bac
 scripts/runner/runner.sh, is backend-neutral: it needs bash, docker and the GPUs of one node, and the run's files
 at `run_dir(run_id)`. A backend decides how those files get there and how the payload is started and watched.
 
-Backends: `crusoe_slurm` (Crusoe MI355X via its Slurm-compatible scheduler over short ssh calls; the only one now).
-To add one (another cluster's scheduler, or "run on this host, no scheduler" for dev use): write
-backends/<name>.py with a `Backend` subclass named `BACKEND`, set `backend: <name>` in local.yaml. Nothing else changes.
+Backends: `slurm` (any Slurm(-compatible) cluster over short ssh calls; Crusoe's Spur and meta64's Slurm 25), with
+`crusoe_slurm` as its older name. A cluster is config/cluster/<name>.yaml; a site (local.yaml `sites:`) is one
+cluster plus its own paths and credentials (`for_site`). To add a scheduler of another kind (or "run on this host, no
+scheduler" for dev use): write backends/<name>.py with a `Backend` subclass named `BACKEND`, and name it as a site's
+`backend`. Nothing else changes.
 """
 import importlib
 
@@ -86,3 +88,40 @@ def get(local, cluster):
     name = local.get("backend", "crusoe_slurm")
     mod = importlib.import_module(f"{__name__}.{name}")
     return mod.BACKEND(local, cluster)
+
+
+def site_local(local, site=None):
+    """(site name, the local.yaml view for that site). local.yaml may hold `sites: {<name>: {...}}` and
+    `default_site`: a site's keys override the shared ones (one level deep for dicts, e.g. its own `arbor.gateway_env`
+    beside the shared `arbor.clone`); `cluster` names config/cluster/<cluster>.yaml (default: the site's name).
+    Without `sites`, the file is one site, named by its `cluster` key (default crusoe)."""
+    sites = local.get("sites")
+    if not sites:
+        name = local.get("cluster", "crusoe")
+        if site not in (None, name):
+            raise KeyError(f"site {site!r}: local.yaml has no `sites:` (only {name})")
+        return name, local
+    name = site or local.get("default_site") or next(iter(sites))
+    if name not in sites:
+        raise KeyError(f"site {name!r} is not in local.yaml sites ({', '.join(sites)})")
+    merged = {k: v for k, v in local.items() if k not in ("sites", "default_site")}
+    for k, v in sites[name].items():
+        merged[k] = {**merged[k], **v} if isinstance(v, dict) and isinstance(merged.get(k), dict) else v
+    merged.setdefault("cluster", name)
+    return name, merged
+
+
+def for_run(local, run_config):
+    """The backend of the site a run was submitted to (run_config.json `site_name`; runs before 2026-11-21: crusoe).
+    (run_config.json `site` is the node paths the run was rendered with.)"""
+    return for_site(local, run_config.get("site_name") or "crusoe")
+
+
+def for_site(local, site=None):
+    """The backend of a site (local.yaml `sites`, see site_local); its `site_name` and `gpu_type` are set."""
+    from .. import config
+    name, view = site_local(local, site)
+    cluster = config.load_cluster(view.get("cluster", name))
+    b = get(view, cluster)
+    b.site_name, b.gpu_type = name, cluster.get("gpu_type")
+    return b
