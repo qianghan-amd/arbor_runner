@@ -1,6 +1,6 @@
 # Crusoe MI355X Slurm cluster facts (from .claude/skills/crusoe-arbor-run). Isolated here so a later cluster gets its own file.
 name: crusoe
-login_host_alias: crs5          # ssh alias; login shell is tcsh -> wrap multi-step commands in `bash -c` or a script
+login_hosts: [crsuse2-slog-006.crusoe.amd.com, crsuse2-slog-005.crusoe.amd.com]   # 005 stopped answering 2026-11-20; login shell is tcsh -> wrap multi-step commands in `bash -c` or a script
 login_shell: tcsh
 partition: amd-spur-v2
 qos: amd-hyperloom-qos

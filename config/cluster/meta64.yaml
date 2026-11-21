@@ -1,4 +1,4 @@
-# meta64: AMD Meta MI350X Slurm cluster (login ruby-slurmlogin01 / 02.rckg.g03.cpe.ice.amd.com, ssh alias slurmlogin01).
+# meta64: AMD Meta MI350X Slurm cluster (login nodes ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com, ruby-slurmlogin02.rckg.g03.cpe.ice.amd.com).
 # Facts verified 2026-11-21 (sinfo, scontrol, sacctmgr on the login node; probe job 146738 on cv350-rck-g03-e15-08).
 name: meta64
 scheduler: slurm                # Slurm 25.05.1

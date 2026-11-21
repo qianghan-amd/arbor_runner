@@ -100,7 +100,7 @@ Run `ab.sh` again (tag `after`) for the after-measurement. Report the iterative 
 
 ## Pitfalls appendix
 
-Cluster-general pitfalls (silent-Monitor 10-min timeout, `CLAUDE.md`/`AGENTS.md` leak if the Arbor tree sits inside the operator's own repo, non-atomic `ctrl/` drop, tcsh quoting on `crs5`, `/tmp` not writable on `crs5`, hold-job wall-time submission limits) are **`crusoe-arbor-run`'s** — don't duplicate, cross-reference. This skill's own additions, specific to setting up a CI-matched campaign, are the ones called out inline above in Steps 1, 7, 8, and 10:
+Cluster-general pitfalls (silent-Monitor 10-min timeout, `CLAUDE.md`/`AGENTS.md` leak if the Arbor tree sits inside the operator's own repo, non-atomic `ctrl/` drop, tcsh quoting on `crsuse2-slog-005.crusoe.amd.com`, `/tmp` not writable on `crsuse2-slog-005.crusoe.amd.com`, hold-job wall-time submission limits) are **`crusoe-arbor-run`'s** — don't duplicate, cross-reference. This skill's own additions, specific to setting up a CI-matched campaign, are the ones called out inline above in Steps 1, 7, 8, and 10:
 - `ls-remote` tips-only blind spot when resolving a pinned commit (Step 1)
 - bench-client InferenceX commit may need to predate the CI pin (Step 1)
 - iterative-baseline vs. full-before/after divergence — always report both (Step 7)

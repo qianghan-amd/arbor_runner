@@ -12,8 +12,9 @@ github:
 sites:
   crusoe:                         # Crusoe MI355X (Spur)
     ssh:
-      login_host: crs5                # ~/.ssh/config alias of the login node (submit, squeue, file reads)
-      github_relay_host: crusoe2_006  # host whose gh credentials make the GitHub API calls (token never leaves it)
+      # user@hostname, as ssh reaches it with your key (no ~/.ssh/config alias: those differ per person)
+      login_host: <user>@crsuse2-slog-006.crusoe.amd.com
+      github_relay_host: <user>@crsuse2-slog-006.crusoe.amd.com  # a host where you ran `gh auth login`; the token never leaves it
     remote:
       # Per-user work root on shared storage. Keep it OUTSIDE any repo: agents load every CLAUDE.md above their cwd.
       work_root: /shared_nfs/<user>/arbor_ab
@@ -31,8 +32,8 @@ sites:
       gateway_env: null               # e.g. /shared_nfs/<user>/arbor_ab/secrets/gateway.env
   meta64:                         # meta64 MI350X (Slurm 25): partition meta64 (5 days) or interactive (1 day)
     ssh:
-      login_host: slurmlogin01        # alias of ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com
-      github_relay_host: crusoe2_006  # no gh credentials needed on meta64
+      login_host: <user>@ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com
+      github_relay_host: <user>@crsuse2-slog-006.crusoe.amd.com  # no gh credentials needed on meta64
     remote:
       work_root: /apps/<user>/arbor_ab
       infx_clone: /apps/<user>/arbor_ab/InferenceX   # git clone https://github.com/SemiAnalysisAI/InferenceX

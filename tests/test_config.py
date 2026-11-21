@@ -28,6 +28,6 @@ def test_default_tolerance():
 
 
 def test_cluster_and_local_example():
-    assert config.load_cluster()["login_host_alias"] == "crs5"
+    assert "crsuse2-slog-006.crusoe.amd.com" in config.load_cluster()["login_hosts"]
     ex = config.load_local(config.REPO_ROOT / "local.yaml.example")
     assert ex["github"]["token_source"] == "relay_gh_hosts"

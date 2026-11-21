@@ -5,15 +5,15 @@ description: Crusoe cluster only. How to run and watch an Arbor campaign (standa
 
 # Running Arbor on the Crusoe cluster (Crusoe only)
 
-Scope: the Crusoe MI355X Slurm cluster (login node crs5, partition amd-spur-v2, QOS amd-hyperloom-qos, `/shared_nfs`, node NVMe `/mnt/m2m_nobackup`). Other clusters (e.g. Ruby) differ in login node, shells, storage and docker policy; do not apply this as is.
+Scope: the Crusoe MI355X Slurm cluster (login node crsuse2-slog-005.crusoe.amd.com, partition amd-spur-v2, QOS amd-hyperloom-qos, `/shared_nfs`, node NVMe `/mnt/m2m_nobackup`). Other clusters (e.g. Ruby) differ in login node, shells, storage and docker policy; do not apply this as is.
 
 No ssh to the compute node, no tmux. Every process on the node is a child of one Slurm hold job.
 
 ## 1. Launch chain
 
-1. From the workstation, `ssh crs5` (the login node; `crusoe2_006` hangs). Its login shell is **tcsh**: put any multi-step command in a bash script and run it with `bash`.
+1. From the workstation, `ssh <user>@crsuse2-slog-005.crusoe.amd.com` (the login node; `crsuse2-slog-006.crusoe.amd.com` hangs). Its login shell is **tcsh**: put any multi-step command in a bash script and run it with `bash`.
 2. A **hold job** (`templates/hold_node.sbatch`) holds one MI355X node, exclusive, on `amd-spur-v2` / QOS `amd-hyperloom-qos`. Its only work is a **node agent**: every 20 s it looks in `<experiment>/ctrl/` for `*.sh`, renames each to `*.sh.started`, and runs it once in the background on the node; output goes to `<experiment>/logs/<name>.<jobid>.log`.
-3. To run anything on the node, write a bash script, put it in `ctrl/` **atomically** (`templates/ctrlput.sh`: scp to a hidden tmp name, then `mv`), and read its log. `/shared_nfs/...` (= `/home/qiangh/arbor_dsv41flash` on crs5) is the same directory on crs5 and on the node.
+3. To run anything on the node, write a bash script, put it in `ctrl/` **atomically** (`templates/ctrlput.sh`: scp to a hidden tmp name, then `mv`), and read its log. `/shared_nfs/...` (= `/home/qiangh/arbor_dsv41flash` on crsuse2-slog-005.crusoe.amd.com) is the same directory on crsuse2-slog-005.crusoe.amd.com and on the node.
 4. The campaign script (e.g. `campaign.sh`) starts the **Arbor driver** on the node: `python -m arbor run --config <config> --no-review-gate`, from the experiment's own venv (`<experiment>/.venv`: pyyaml, claude-agent-sdk), with `cwd` = the Arbor tree.
 
 ## 2. Where the agents run
@@ -39,7 +39,7 @@ No ssh to the compute node, no tmux. Every process on the node is a child of one
 
 ## 5. Reading progress
 
-- `ssh crs5` and read the shared logs and session files (`logs/<name>.<jobid>.log`, `<session>/...`).
+- `ssh <user>@crsuse2-slog-005.crusoe.amd.com` and read the shared logs and session files (`logs/<name>.<jobid>.log`, `<session>/...`).
 - Node-local paths (`/mnt/m2m_nobackup/...`) and `ps`/`docker`/`rocm-smi` exist only on the node: query them through a ctrl script.
 - Files owned by root or a sandbox user: read them through a short-lived own container (`docker run --rm --name qh_<x>_rd -v <dir>:<dir>:ro <image> bash -c '...'`). `--pid=host` is denied on this cluster.
 
@@ -52,8 +52,8 @@ No ssh to the compute node, no tmux. Every process on the node is a child of one
 - **Non-atomic drop:** scp straight into `ctrl/` lets the agent run a half-written script; it exits silently with an empty log. Always use `ctrlput.sh`.
 - **Never pipe a long run through `head`:** it closes the pipe and kills the run mid-way (left a stale `.git/index.lock`).
 - **Never overwrite a script while it runs:** bash reads scripts lazily. Run a frozen copy per run (`cp x.sh logs/x.$TAG.sh; exec bash logs/x.$TAG.sh`).
-- **tcsh on crs5:** `2>/dev/null`, `$(...)` with quotes, and `'...'` inside `"..."` break; wrap in `bash -c '...'` or a script.
-- **`/tmp` on crs5 is not writable** for scp; use the experiment dir.
+- **tcsh on crsuse2-slog-005.crusoe.amd.com:** `2>/dev/null`, `$(...)` with quotes, and `'...'` inside `"..."` break; wrap in `bash -c '...'` or a script.
+- **`/tmp` on crsuse2-slog-005.crusoe.amd.com is not writable** for scp; use the experiment dir.
 - **Hold jobs:** submit at `--time=1-00:00:00` (a pending 3-day job is blocked by the QOS max wall); once RUNNING, `scontrol update JobId=<id> TimeLimit=3-00:00:00`.
 - **Other users' containers on the node** (e.g. an idle leftover): never touch them; list them in `prepare.sh` and report.
 - **No `curl` / `gh` on the workstation:** read GitHub through `git` (partial clone; a CI commit may live only on `refs/pull/*`).

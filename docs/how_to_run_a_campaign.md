@@ -215,8 +215,8 @@ Two clusters work today. Each is a "site" in your `local.yaml` (see `local.yaml.
 
 | Site | Cluster | GPUs | Login |
 |---|---|---|---|
-| `crusoe` | Crusoe (Spur scheduler) | 8 x MI355X | `crusoe2_006` |
-| `meta64` | meta64 (Slurm 25) | 8 x MI350X | `slurmlogin01` |
+| `crusoe` | Crusoe (Spur scheduler) | 8 x MI355X | `crsuse2-slog-006.crusoe.amd.com` |
+| `meta64` | meta64 (Slurm 25) | 8 x MI350X | `ruby-slurmlogin01.rckg.g03.cpe.ice.amd.com` |
 
 Pick one in any of these ways. The first one found wins:
 

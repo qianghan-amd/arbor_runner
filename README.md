@@ -6,7 +6,7 @@ its ceiling. Design: [`docs/design.md`](docs/design.md). Crusoe only.
 
 ## Setup (a fresh clone; nothing else is needed)
 
-Prerequisites: Python 3.10+, git, ssh access to the Crusoe login node (an alias in `~/.ssh/config`, e.g. `crs5`), a
+Prerequisites: Python 3.10+, git, ssh access (key login) to each cluster's login node, by its hostname (`local.yaml.example`), a
 node/QOS allocation, gh credentials on a cluster host (for the GitHub API relay), and an LLM gateway key for Arbor's
 agents (only for full runs with a campaign).
 
