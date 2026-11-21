@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "run_id": "20261121-103508_020767ac_ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke",
+  "created_at": "2026-11-21T10:35:09.502842+00:00",
+  "request": {
+    "commit": "020767ac02a7bfad05a37f8ad7fb09419e529584",
+    "mode": "smoke",
+    "campaign_minutes": 480,
+    "ci_run": "44689368479",
+    "targets": [
+      {
+        "model": "dsv41flash",
+        "target": "c1_p90"
+      }
+    ],
+    "site": "meta64"
+  },
+  "request_file": "C:/Users/qiangh/mywork/agents/arbor_runner/codebases/arbor-ab-system/runs/requests/ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke.yaml",
+  "commit": "020767ac02a7bfad05a37f8ad7fb09419e529584",
+  "arbor_repo": "AMD-AGI/Arbor",
+  "arbor_tar_sha256": "c877f16a127ad18614eb2d37cddd4660313056070d2e96c330ba5bb1fb15b102",
+  "mode": "smoke",
+  "campaign_minutes": 0,
+  "backend": "slurm",
+  "remote_run_dir": "/apps/qiangh/arbor_ab/runs/20261121-103508_020767ac_ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke",
+  "site": {
+    "node_local_root": "/var/tmp/qiangh/arbor_ab",
+    "shared_hf_hub": null,
+    "infx_clone": "/apps/qiangh/arbor_ab/InferenceX"
+  },
+  "gateway_configured": true,
+  "reference": null,
+  "exclude_nodes": [],
+  "backend_options": null,
+  "skip_gsm8k": true,
+  "ci_run": "44689368479",
+  "site_name": "meta64",
+  "gpu_type": "mi350x",
+  "cells": [
+    {
+      "model": "dsv41flash",
+      "target": "c1_p90",
+      "epoch_id": "dsv41flash__c1_p90__8f15ac7136_a95c2c30",
+      "cell": "dsv41flash__c1_p90",
+      "remote_dir": "/apps/qiangh/arbor_ab/runs/20261121-103508_020767ac_ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke/dsv41flash__c1_p90",
+      "container": "ab_20261121-103508_dsv41flash_c1_p90",
+      "job_minutes": 150,
+      "job_id": "146751",
+      "weights_path": null
+    }
+  ],
+  "submitted": true,
+  "submit_stderr": null
+}

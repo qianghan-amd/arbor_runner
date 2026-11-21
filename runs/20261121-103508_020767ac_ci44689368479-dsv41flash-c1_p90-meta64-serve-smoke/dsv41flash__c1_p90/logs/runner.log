@@ -1,0 +1,22 @@
+[runner] 2026-11-21T10:35:25Z fetch: start on cv350-rck-g03-c17-08 job=146751
+[runner] 2026-11-21T10:39:44Z weights: {  "weights_source": "downloaded",  "path": "/var/tmp/qiangh/arbor_ab/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6",  "model_id": "deepseek-ai/Dee
+[runner] 2026-11-21T10:39:44Z fetch: done
+[runner] 2026-11-21T10:39:44Z prepare: start on cv350-rck-g03-c17-08 job=146751
+[runner] 2026-11-21T10:39:44Z highest GPU VRAM% before start: 0
+[runner] 2026-11-21T10:39:44Z image vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47 @ sha256:694108707f333787b1041caa0e948dd18b86f2450365a94e38819f026275ee32
+[runner] 2026-11-21T10:40:10Z Arbor 020767ac02a7bfad05a37f8ad7fb09419e529584 at /apps/qiangh/arbor_ab/runs/20261121-103508_020767ac_ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke/dsv41flash__c1_p90/arbor (local commit 3346b56ba47e45e6bdcbbd9bee3bf72276fa1ec6 in Arbor's own records)
+[runner] 2026-11-21T10:40:16Z submodule inferencex-e2e/utils/srt-slurm @ 2d9079c678 not in the clone: skipped (not needed to run AgentX)
+[runner] 2026-11-21T10:40:16Z submodule pretraining/torchtitan @ 847fabbca0 not in the clone: skipped (not needed to run AgentX)
+[runner] 2026-11-21T10:40:16Z InferenceX client 8f15ac7136382ee56734348269fd8980abc17528 at /apps/qiangh/arbor_ab/runs/20261121-103508_020767ac_ci44689368479-dsv41flash-c1_p90-meta64-serve-smoke/dsv41flash__c1_p90/infx (layout infx, /workspace/InferenceX/inferencex-e2e)
+corpus offline load ok: 393
+[runner] 2026-11-21T10:41:33Z prepare: done
+[runner] 2026-11-21T10:41:33Z smoke: start on cv350-rck-g03-c17-08 job=146751
+[serve_cmd] pristine (no workspace config) launch: vllm, 41 flag words, 30 env vars
+[runner] 2026-11-21T10:47:52Z smoke: healthy after 378 s
+[runner] 2026-11-21T11:02:11Z smoke: AgentX rc=0 after 859 s
+[runner] AgentX status=ok total_throughput_per_gpu=7519.2286 e2e_norm_intvty_p90=256.95594 requests=91/102
+[runner] 2026-11-21T11:02:11Z smoke: GSM8K skipped (request skip_gsm8k)
+[runner] 2026-11-21T11:02:27Z smoke: server stopped, GPUs free
+[runner] 2026-11-21T11:02:27Z smoke: done
+[runner] 2026-11-21T11:02:27Z cell dsv41flash__c1_p90: all phases done
+[runner] 2026-11-21T11:02:28Z container ab_20261121-103508_dsv41flash_c1_p90 removed

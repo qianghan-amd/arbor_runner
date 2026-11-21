@@ -1,0 +1,11 @@
+{
+  "phase": "smoke",
+  "started_at": "2026-11-21T10:41:34Z",
+  "ended_at": "2026-11-21T11:02:27Z",
+  "tree": "c329f75dc8e61c6e665b54ae90f4e8e7a89a5c01 baseline: framework as shipped in vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47",
+  "launch_from": "pristine",
+  "node": "cv350-rck-g03-c17-08",
+  "job": "146751",
+  "duration_s": 600,
+  "gsm8k_questions": 0
+}
