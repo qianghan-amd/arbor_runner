@@ -385,6 +385,14 @@ campaign_env() {   # what Arbor's driver and agents run with (the crusoe-arbor-r
     # the config lives in the cell dir, outside the Arbor tree: without ARBOR_ROOT, Arbor looks for
     # <config dir>/packs/agentx and refuses the start (arbor/cli/iterate.py _find_arbor_root; seen in a P6 preview)
     export ARBOR_ROOT=$ARBOR
+    # One process (standalone), not Arbor's launcher. Since arbor.host 2.59 (Arbor bdd3bc6, 2026-11-19) `arbor run`
+    # starts a launcher that runs the campaign in component mode, and component mode stops "its own" server with
+    # os.killpg on the HOST, by the PID the server's PID file holds (arbor/execute/preflight.py signal_own_server).
+    # Our server runs in a container, so that PID is a container PID: on a fresh node it can name an unrelated host
+    # process group. Job 302466 (Arbor 020767ac): everything of the job died at once 25 min in, mid root-baseline
+    # bench, without a log line. Standalone stops servers with `docker exec pkill` in the container (all 0.10 runs).
+    # ARBOR_STANDALONE=1 is kept "for one release" (bdd3bc6); the runner's own timeout bounds the time either way.
+    export ARBOR_STANDALONE=1
     mkdir -p "$HOME/.claude" && printf '{"env": {"BASH_DEFAULT_TIMEOUT_MS": "7200000", "BASH_MAX_TIMEOUT_MS": "7200000"}}\n' > "$HOME/.claude/settings.json"
     export BASH_DEFAULT_TIMEOUT_MS=7200000 BASH_MAX_TIMEOUT_MS=7200000
     set -a; . "$GATEWAY_ENV"; set +a             # variables only; never echoed, never written into a container
@@ -405,10 +413,14 @@ arbor_check() {   # Arbor's AGENTS.md: check first; exit 2 refuses; nothing may 
 import json, sys
 doc = json.load(open(sys.argv[1])); rc = int(sys.argv[2]); allow_lacks = sys.argv[3] == "1"
 lacks = (doc.get("makeup") or {}).get("lacks") or []
+ru = doc.get("runs_under") or (doc.get("bounds") or {}).get("runs_under")   # arbor.host 2.59+; absent before
 print(f"[runner] arbor check rc={rc} ok={doc.get('ok')} refused={doc.get('refused')} waits={doc.get('waits')} "
-      f"lacks={lacks} warnings={len(doc.get('warnings') or [])}")
+      f"lacks={lacks} warnings={len(doc.get('warnings') or [])} runs_under={ru}")
 for w in doc.get("warnings") or []:
     print(f"[runner] arbor check warning: {w}")
+if ru not in (None, "process"):   # the launcher / a host would stop servers by host PID (campaign_env, ARBOR_STANDALONE)
+    print(f"[runner] arbor would run under {ru!r}, not in one process: refused")
+    sys.exit(1)
 sys.exit(0 if rc == 0 and doc.get("ok") and not doc.get("waits") and (allow_lacks or not lacks) else 1)
 PY
 }
