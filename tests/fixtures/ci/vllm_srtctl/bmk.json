@@ -1,0 +1,28 @@
+{
+ "artifact": "bmk_agentic_dsv41flash_tp4_conc1_kvnone_spec-mtp_fp4_vllm_tp4-pp1-dcp1-pcp1-ep1-dpafalse_disagg-false_spec-mtp_-beb57efdd0b1fa7c6e6b",
+ "json": {
+  "hw": "cluster:mi355x-amds",
+  "conc": 1,
+  "image": "vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47@sha256:694108707f333787b1041caa0e948dd18b86f2450365a94e38819f026275ee32",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "infmax_model_prefix": "dsv41flash",
+  "framework": "vllm",
+  "precision": "fp4",
+  "spec_decoding": "mtp",
+  "tp": 4,
+  "ep": 1,
+  "num_gpus": 4,
+  "dp_attention": "false",
+  "kv_offloading": "none",
+  "num_requests_total": 416,
+  "num_requests_successful": 405,
+  "recipe_fingerprint": "bde176ccf7ff2af02fb51db5b558d5d308e507acafa76583dfba322a6a8ad926",
+  "dataset": {
+   "source_type": "public_dataset",
+   "loader": "semianalysis_cc_traces_weka_062126",
+   "hf_dataset_name": "semianalysisai/cc-traces-weka-062126",
+   "hf_split": "train",
+   "num_dataset_entries": 393
+  }
+ }
+}

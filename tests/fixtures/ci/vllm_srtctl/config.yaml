@@ -1,0 +1,129 @@
+schema: 2
+name: dsv41flash-fp4-mi355x-vllm-agentic_tp4_c1
+model:
+  path: hf:deepseek-ai/DeepSeek-V4.1-Flash
+  container: 
+    vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47@sha256:694108707f333787b1041caa0e948dd18b86f2450365a94e38819f026275ee32
+  precision: fp4
+resources:
+  gpu_type: mi355x
+  gpus_per_node: 8
+frontend:
+  type: vllm
+  enable_multiple_frontends: false
+observability:
+  enabled: false
+  tachometer:
+    enabled: false
+engine:
+  type: vllm
+  connector:
+health_check:
+  interval_seconds: 10
+  max_attempts: 360
+roles:
+  agg:
+    nodes: 1
+    workers: 1
+    args:
+      served-model-name: deepseek-ai/DeepSeek-V4.1-Flash
+      language-model-only: true
+      tokenizer-mode: deepseek_v41
+      tool-call-parser: deepseek_v41
+      enable-auto-tool-choice: true
+      reasoning-parser: deepseek_v41
+      moe-backend: aiter
+      gpu-memory-utilization: 0.9
+      attention-config: '{"indexer_kv_dtype":"mxfp4","indexer_sparse_logits":true}'
+      block-size: 128
+      speculative-config: '{"method": "dspark", "num_speculative_tokens": 5, "draft_sample_method": "probabilistic", "rejection_sample_method":
+        "synthetic", "enable_adaptive_verification": false, "synthetic_acceptance_length": 3.51}'
+      max-model-len: 1048576
+      monokernel: true
+      disable-uvicorn-access-log: true
+      tensor-parallel-size: 4
+      engram-config: '{"cpu_offload":false}'
+      max-cudagraph-capture-size: 8
+      max-num-batched-tokens: 32768
+      max-num-seqs: 1
+    env:
+      VLLM_ROCM_USE_AITER: '1'
+      VLLM_ROCM_USE_AITER_MOE: '1'
+      VLLM_ROCM_QUICK_REDUCE_QUANTIZATION: NONE
+      AITER_TRITON_LOG_LEVEL: ERROR
+      VLLM_ROCM_USE_AITER_TRITON_SPARSE_MLA: 'True'
+      VLLM_USE_BREAKABLE_CUDAGRAPH: '1'
+      OMP_NUM_THREADS: '1'
+      VLLM_USE_RUST_FRONTEND: '1'
+      PYTHONUNBUFFERED: '1'
+    gpus: 4
+benchmark:
+  env:
+    AIPERF_REQUIRED_SERVER_METRIC_PREFIX: 'vllm:'
+    CONC: '1'
+    MODEL: deepseek-ai/DeepSeek-V4.1-Flash
+    REQUIRE_POWER: '0'
+    ENABLE_AGENTX_POWER: '1'
+    SPEC_ALGORITHM: dspark
+    SPEC_DRAFT_MODEL: native
+    RESULT_FILENAME: 
+      dsv41flash_tp4_conc1_kvnone_spec-mtp_fp4_vllm_tp4-pp1-dcp1-pcp1-ep1-dpafalse_disagg-false_spec-mtp_-beb57efdd0b1fa7c6e6b
+    RUN_EVAL: 'false'
+    EVAL_ONLY: 'false'
+    FRAMEWORK: vllm
+    MODEL_PREFIX: dsv41flash
+    PRECISION: fp4
+    DURATION: '3600'
+    TP: '4'
+    PP_SIZE: '1'
+    PCP_SIZE: '1'
+    AGENTIC_OUTPUT_DIR: /logs
+    RESULT_DIR: /logs/agentic
+  type: custom
+  command: bash /infmax-workspace/benchmarks/srt_agentic.sh
+  concurrencies:
+    - 1
+  stream_output: true
+telemetry:
+  cpu_power_exporter:
+    source: rapl
+  enabled: true
+  storage_subdir: power
+  startup_timeout_seconds: 300
+  required: false
+srun_options:
+  container-workdir: /infmax-workspace
+  gpus-per-node: '4'
+  container-remap-root: ''
+  container-writable: ''
+post_eval:
+  command:
+    - bash
+    - '{infmax_workspace}/benchmarks/single_node/srt_eval.sh'
+    - '{endpoint}'
+    - /logs/infx-eval-exit-code
+  passthrough_env:
+    - AIPERF_DYNAMO_SESSION_TIMEOUT_SECONDS
+    - AIPERF_EXPERIMENTAL_FAST
+    - AIPERF_FAILED_REQUEST_THRESHOLD
+    - AIPERF_HTTP_X_DYNAMO_SESSION_ID_FROM_CORRELATION_ID
+    - AIPERF_USE_DYNAMO_CONV_AWARE_ROUTING
+    - CONC
+    - DCP_SIZE
+    - DP_ATTENTION
+    - ENABLE_AGENTX_POWER
+    - EP_SIZE
+    - EVAL_ENDPOINT_READY_TIMEOUT_SECONDS
+    - EVAL_FRAMEWORK
+    - EVAL_MODEL_STABILIZATION_SECONDS
+    - EVAL_ONLY
+    - IS_AGENTIC
+    - OPENAI_API_KEY
+    - PCP_SIZE
+    - PP_SIZE
+    - REQUIRE_POWER
+    - SCENARIO_TYPE
+    - SGLANG_TORCH_PROFILER_DIR
+    - TP
+    - VLLM_ENGINE_READY_TIMEOUT_S
+    - VLLM_TORCH_PROFILER_DIR

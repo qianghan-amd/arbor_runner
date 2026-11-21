@@ -62,6 +62,116 @@ def parse_srt_recipe(text):
     return out, env, str((cfg.get("model") or {}).get("container") or "").strip()
 
 
+# ---- the launch we parsed, checked against what the CI's server says it ran -------------------------------------------
+# Whatever the CI's artifact format (it has changed: direct launch -> srtctl, 2026-11), the server logs its own resolved
+# arguments: vLLM `non-default args: {...}` (the arguments it was given), SGLang `server_args={...}` (all of them).
+# A flag our parser dropped, renamed or mangled shows up here, so a format change cannot pass silently.
+# vLLM: keys the harness, not the recipe, sets (Arbor's serve_cmd adds model/served name/host/port/TP; srtctl adds
+# api_server_count and device_ids).
+VLLM_HARNESS_KEYS = {"model_tag", "model", "served_model_name", "host", "port", "tensor_parallel_size", "api_server_count",
+                     "device_ids"}
+SGLANG_KEY_ALIASES = {"tensor_parallel_size": "tp_size", "expert_parallel_size": "ep_size", "pipeline_parallel_size": "pp_size",
+                      "data_parallel_size": "dp_size"}
+SGLANG_ADJUSTED = {"mem_fraction_static"}   # SGLang rescales it at start (0.85 -> 0.7225, run 38877885539)
+
+
+def _top_level_items(text):
+    """'{'a': 1, 'b': X(c=2), 'd': {...}}' -> [('a', '1'), ('b', 'X(c=2)'), ('d', '{...}')]: split at depth 1, quotes kept."""
+    items, depth, quote, start = [], 0, None, 1
+    for i, ch in enumerate(text):
+        if quote:
+            if ch == quote and text[i - 1] != "\\":
+                quote = None
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+            if depth == 0:
+                items.append(text[start:i])
+                break
+        elif ch == "," and depth == 1:
+            items.append(text[start:i])
+            start = i + 1
+    out = []
+    for it in items:
+        k, sep, v = it.strip().partition(":")
+        if sep:
+            out.append((k.strip().strip("'\""), v.strip()))
+    return out
+
+
+def server_logged_args(log_text):
+    """('vllm'|'sglang', {key: value text}) from the server log's own argument dump; (None, {}) when it has none."""
+    for kind, pat in (("vllm", r"non-default args: (\{.*\})\s*$"), ("sglang", r"server_args=(\{.*\})\s*$")):
+        m = re.search(pat, log_text, re.M)
+        if m:
+            return kind, dict(_top_level_items(m.group(1)))
+    return None, {}
+
+
+def _flag_dict(flags):
+    toks, out, i = shlex.split(flags), {}, 0
+    while i < len(toks):
+        name = toks[i].lstrip("-").replace("-", "_")
+        if i + 1 < len(toks) and not toks[i + 1].startswith("--"):
+            out[name], i = toks[i + 1], i + 2
+        else:
+            out[name], i = True, i + 1
+    return out
+
+
+def _same(ours, logged_text):
+    """Whether our flag value equals the logged one; None when the logged value is an object we cannot read."""
+    import ast
+    import json
+    try:
+        theirs = ast.literal_eval(logged_text)
+    except (ValueError, SyntaxError):
+        return None                                   # e.g. AttentionConfig(...): only the key is checked
+    if ours is True:
+        return theirs is True
+    if isinstance(theirs, dict):
+        try:
+            mine = json.loads(ours)
+        except (TypeError, ValueError):
+            return False
+        return all(theirs.get(k) == v for k, v in mine.items())
+    if isinstance(theirs, list):
+        theirs = theirs[0] if len(theirs) == 1 else theirs
+    if isinstance(theirs, (int, float)) and not isinstance(theirs, bool):
+        try:
+            return float(ours) == float(theirs)
+        except ValueError:
+            return False
+    return str(ours) == str(theirs)
+
+
+def check_against_server(framework, flags, log_text):
+    """Problems (empty = the parsed flags are what the CI's server ran). Every flag of ours must be among the server's
+    logged arguments with the same value (objects: by key only); for vLLM, whose log lists only the arguments it was
+    given, every logged argument but the harness's must also be among ours. Raises ValueError without a dump."""
+    kind, logged = server_logged_args(log_text)
+    if kind is None:
+        raise ValueError("the server log has no argument dump (vLLM `non-default args`, SGLang `server_args=`): "
+                         "cannot check the parsed launch")
+    if kind != framework:
+        return [f"the server log is {kind}'s, the launch is {framework}"]
+    ours, problems = _flag_dict(flags), []
+    for k, v in ours.items():
+        key = SGLANG_KEY_ALIASES.get(k, k) if framework == "sglang" else k
+        if key not in logged:
+            problems.append(f"--{k.replace('_', '-')} is in the parsed flags but not among the server's arguments")
+        elif not (framework == "sglang" and key in SGLANG_ADJUSTED) and _same(v, logged[key]) is False:
+            problems.append(f"--{k.replace('_', '-')}: parsed {v!r}, the server ran {logged[key][:80]}")
+    if framework == "vllm":
+        for key, val in logged.items():
+            if key not in ours and key not in VLLM_HARNESS_KEYS:
+                problems.append(f"the server ran {key}={val[:80]}, which the parsed flags lack")
+    return problems
+
+
 def parse_vllm_command(text):
     """'vllm serve <model> --served-model-name N [path] --host H --port P --tensor-parallel-size T <flags>' ->
     {model, served_name, tp, flags}; flags = everything Arbor does not add itself, shell-quoted."""

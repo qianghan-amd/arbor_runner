@@ -22,6 +22,8 @@ import yaml
 from arbor_ab import REPO_ROOT, agentx, backends, baseline, ci_baseline, config, gate, github_relay, registry, remote, report
 
 INFX = "SemiAnalysisAI/InferenceX"
+# server log lines read: the model/draft snapshot paths and the server's own argument dump (ci_baseline.check_against_server)
+LOG_GREP = r"snapshots/|non-default args|server_args="
 HF_COMMITS = r'''
 import urllib.request
 c = json.load(urllib.request.urlopen(f"https://huggingface.co/api/{PAYLOAD.get('kind', 'datasets')}/{PAYLOAD['name']}/commits/main",
@@ -66,23 +68,24 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     if not agentic_art:
         sys.exit(f"no live {agentic} artifact (needed for the server command)")
     texts = github_relay.call(relay, [github_relay.artifact_text(
-        INFX, agentic_art["id"], ["vllm_command.txt", "benchmark_command.txt", "server.log"], grep={"server.log": "snapshots/"})])[0]
+        INFX, agentic_art["id"], ["vllm_command.txt", "benchmark_command.txt", "server.log"], grep={"server.log": LOG_GREP})])[0]
     files = texts.get("data") or {}
     server_env, source, draft_rev, draft_from_log = None, "agentic_*/vllm_command.txt + server.log", None, True
     if "vllm_command.txt" in files:   # direct-launch CI format
         cmd = ci_baseline.parse_vllm_command(files["vllm_command.txt"])
-        model_rev = ci_baseline.model_rev_from_log(files.get("server.log", ""), cmd["model"])
+        log = files.get("server.log", "")
+        model_rev = ci_baseline.model_rev_from_log(log, cmd["model"])
         launch_text = files["vllm_command.txt"]
     else:                             # srtctl CI format: the resolved recipe and the server log in server_logs_*
         srv_name = "server_logs_" + bmk_art["name"][len("bmk_agentic_"):]
         srv = next((a for a in arts if a["name"] == srv_name and not a["expired"]), None)
         if not srv:
             sys.exit(f"{agentic} has no vllm_command.txt and there is no live {srv_name} (srtctl recipe): "
-                     "an unsupported CI artifact format (SGLang CI runs are not supported yet)")
+                     "an unknown CI artifact format; add its parser and a fixture (tests/test_ci_formats.py)")
         tar = "srt-single-node-logs.tar.gz"
         rc, rl = github_relay.call(relay, [github_relay.artifact_tar(INFX, srv["id"], tar, pattern=r"^\./logs/config\.yaml$"),
                                            github_relay.artifact_tar(INFX, srv["id"], tar, pattern=r"_agg_w0\.out$",
-                                                                     grep="snapshots/")])
+                                                                     grep=LOG_GREP)])
         recipe = next(iter(((rc.get("data") or {}).get("text") or {}).values()), None)
         if not recipe:
             sys.exit(f"{srv_name}: no logs/config.yaml in {tar}")
@@ -97,6 +100,16 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
                     remote.run_python(relay, HF_COMMITS, {"name": cmd["draft"], "kind": "models"}), run["created_at"])
                 draft_from_log = False
         source, launch_text = f"{srv_name[:60]}.../{tar}: logs/config.yaml + server log", recipe
+    # the launch we parsed must be what the CI's server says it ran (catches a CI format change that still parses)
+    fw = cmd.get("framework") or bmk.get("framework")
+    try:
+        problems = ci_baseline.check_against_server(fw, cmd["flags"], log)
+    except ValueError as e:
+        sys.exit(f"CI run {ci_run}: {e}")
+    if problems:
+        sys.exit(f"CI run {ci_run}: the launch parsed from {source} does not match its server's own arguments "
+                 "(a CI format change?); nothing written:\n  " + "\n  ".join(problems))
+    n_args = len(ci_baseline.server_logged_args(log)[1])
     ds = bmk.get("dataset") or {}
     commits = remote.run_python(relay, HF_COMMITS, {"name": ds["hf_dataset_name"]})
     corpus_rev = ci_baseline.corpus_rev_at(commits, run["created_at"])
@@ -110,6 +123,8 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     if not draft_from_log:   # review.md: the draft revision was not in the log, so it is derived like the corpus's
         rows = [(f, v, "HF commit history at the CI run (not in the server log)", "derived") if f.startswith("launch.draft")
                 else (f, v, s, k) for f, v, s, k in rows]
+    rows.append(("check: server's own arguments", f"every parsed flag matches; {n_args} logged arguments read",
+                 f"CI run {ci_run}: server log `{'non-default args' if fw == 'vllm' else 'server_args='}` dump", "exact"))
     errs = baseline.validation_errors(rec)
     if errs:
         sys.exit("draft is not schema-valid:\n  " + "\n  ".join(errs))

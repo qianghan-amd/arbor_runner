@@ -1,0 +1,117 @@
+schema: 2
+name: musespark-fp4-mi355x-sglang-agentic_tp4_c1
+model:
+  path: hf:amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4
+  container: 
+    lmsysorg/sglang-rocm:muse-spark-open@sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4
+  precision: fp4
+resources:
+  gpu_type: mi355x
+  gpus_per_node: 8
+frontend:
+  type: sglang
+  enable_multiple_frontends: false
+observability:
+  enabled: false
+  tachometer:
+    enabled: false
+engine: sglang
+roles:
+  agg:
+    nodes: 1
+    workers: 1
+    args:
+      served-model-name: amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4
+      attention-backend: aiter
+      page-size: 16
+      kv-cache-dtype: fp8_e4m3
+      mem-fraction-static: 0.85
+      max-running-requests: 128
+      speculative-algorithm: DFLASH
+      speculative-draft-model-path: RadixArk/Muse-Spark-Open-DFlash2
+      speculative-draft-attention-backend: triton
+      speculative-num-draft-tokens: 8
+      reasoning-parser: muse
+      tool-call-parser: muse
+      watchdog-timeout: 1800
+      enable-metrics: true
+      tensor-parallel-size: 4
+      expert-parallel-size: 4
+    env:
+      PYTHONNOUSERSITE: '1'
+      SGLANG_TIMEOUT_KEEP_ALIVE: '900'
+      SGLANG_USE_AITER: '1'
+      SGLANG_USE_AITER_UNIFIED_ATTN: '1'
+      MUSE_MOE_BACKEND: flydsl
+      HF_HUB_OFFLINE: '1'
+      SGLANG_SIMULATE_ACC_LEN: '4.05'
+      SGLANG_SIMULATE_ACC_METHOD: match-expected
+      SGLANG_SIMULATE_ACC_TOKEN_MODE: real-draft-token
+    gpus: 4
+benchmark:
+  env:
+    AIPERF_HTTP_TCP_USER_TIMEOUT: '900000'
+    AIPERF_REQUIRED_SERVER_METRIC_PREFIX: 'sglang:'
+    CONC: '1'
+    KV_OFFLOADING: none
+    MODEL: amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4
+    REQUIRE_POWER: '0'
+    ENABLE_AGENTX_POWER: '1'
+    RESULT_FILENAME: 
+      musespark_tp4_conc1_kvnone_spec-draft_model_fp4_sglang_tp4-pp1-dcp1-pcp1-ep4-dpafalse_disagg-false_-0257ceba8fb605ce0842
+    RUN_EVAL: 'false'
+    EVAL_ONLY: 'false'
+    FRAMEWORK: sglang
+    MODEL_PREFIX: musespark
+    PRECISION: fp4
+    DURATION: '3600'
+    TP: '4'
+    PP_SIZE: '1'
+    PCP_SIZE: '1'
+    AGENTIC_OUTPUT_DIR: /logs
+    RESULT_DIR: /logs/agentic
+  type: custom
+  command: bash /infmax-workspace/benchmarks/srt_agentic.sh
+  concurrencies:
+    - 1
+telemetry:
+  enabled: true
+  storage_subdir: power
+  startup_timeout_seconds: 300
+  required: false
+srun_options:
+  container-workdir: /infmax-workspace
+  gpus-per-node: '4'
+  container-remap-root: ''
+  container-writable: ''
+post_eval:
+  command:
+    - bash
+    - '{infmax_workspace}/benchmarks/single_node/srt_eval.sh'
+    - '{endpoint}'
+    - /logs/infx-eval-exit-code
+  passthrough_env:
+    - AIPERF_DYNAMO_SESSION_TIMEOUT_SECONDS
+    - AIPERF_EXPERIMENTAL_FAST
+    - AIPERF_FAILED_REQUEST_THRESHOLD
+    - AIPERF_HTTP_X_DYNAMO_SESSION_ID_FROM_CORRELATION_ID
+    - AIPERF_USE_DYNAMO_CONV_AWARE_ROUTING
+    - CONC
+    - DCP_SIZE
+    - DP_ATTENTION
+    - ENABLE_AGENTX_POWER
+    - EP_SIZE
+    - EVAL_ENDPOINT_READY_TIMEOUT_SECONDS
+    - EVAL_FRAMEWORK
+    - EVAL_MODEL_STABILIZATION_SECONDS
+    - EVAL_ONLY
+    - IS_AGENTIC
+    - OPENAI_API_KEY
+    - PCP_SIZE
+    - PP_SIZE
+    - REQUIRE_POWER
+    - SCENARIO_TYPE
+    - SGLANG_TORCH_PROFILER_DIR
+    - TP
+    - VLLM_ENGINE_READY_TIMEOUT_S
+    - VLLM_TORCH_PROFILER_DIR
