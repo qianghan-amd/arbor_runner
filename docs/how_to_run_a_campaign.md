@@ -23,6 +23,40 @@ Then you get `comparison.json`: before, after, and the best known result (the "c
 after always run on the same node, in the same job. That makes the comparison fair. GSM8K (the accuracy check) is off
 unless you set `gsm8k: true`.
 
+## The inputs of a campaign
+
+**These inputs decide what a campaign tests. Get them right first.** A campaign has three main inputs:
+
+| # | Input | What it is | Where it comes from |
+|---|---|---|---|
+| 1 | **The starting point** (the "baseline") | The server launch Arbor starts from: framework (vLLM or SGLang), TP/EP, server flags, server env, concurrency. | One **AgentX CI run** of InferenceX. `scripts/make_baseline.py` turns a CI run into a baseline record in `baselines/<model>/<target>/`. |
+| 2 | **The Docker image** | The serving image (vLLM or SGLang build), pinned by its digest. | The same AgentX CI run: the image that run used. |
+| 3 | **The Arbor commit** | The Arbor code under test. | You. `commit:` in the request. |
+
+You pick 1 and 2 together, by picking a cell (`model` + `target`). Each cell has a stored baseline, and the baseline
+holds the image. To start from a different CI run or a different image, first make a new baseline from that CI run
+(`make_baseline.py draft`, `measure`, `finalize`; vLLM CI runs only for now). After that, every request for that cell uses the new baseline.
+
+The baseline also pins these inputs. They come from the same CI run, and you do not set them in a request:
+
+- **Model weights**: the model and its exact Hugging Face revision.
+- **Test data** (the "corpus"): the AgentX dataset and its revision.
+- **Benchmark client**: the InferenceX commit that replays the AgentX traffic.
+- **The goal**: the target says what Arbor must improve. `c1_p90` means P90 interactivity (`e2e_norm_intvty.p90`) at concurrency 1;
+  `c32_tput` means throughput at concurrency 32.
+
+You set these in the request or in your one-time setup:
+
+| Input | Where | Note |
+|---|---|---|
+| Campaign length | `campaign_minutes` in the request | The runner stops Arbor at this time. 8 h is a good start (see "How long it takes"). |
+| Weights folder | `weights_path` in the request (optional) | Saves the download. The files must match the pinned revision. |
+| Cluster and QOS | `local.yaml` (or `backend_options` in the request) | One node per cell. |
+| LLM gateway key | one-time setup, step 5 | Arbor's agents call the LLM through it. A campaign cannot start without it. |
+
+What is not possible yet: starting from a hand-written full config, without a CI run. The closest way today is to run
+`make_baseline.py draft` on a CI run and edit the `draft.json` it writes before `measure`.
+
 ## One-time setup
 
 Do this once per person.
