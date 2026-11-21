@@ -1,0 +1,11 @@
+{
+  "phase": "before",
+  "started_at": "2026-11-21T19:29:12Z",
+  "ended_at": "2026-11-21T20:40:11Z",
+  "tree": "44dd28244f4848640a87bf51bfc6729981e282b5 baseline: framework as shipped in vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47",
+  "launch_from": "pristine",
+  "node": "cv350-rck-g03-e15-08",
+  "job": "146989",
+  "duration_s": 3600,
+  "gsm8k_questions": 0
+}

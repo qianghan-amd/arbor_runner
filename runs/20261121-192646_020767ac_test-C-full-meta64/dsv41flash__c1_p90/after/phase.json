@@ -1,0 +1,11 @@
+{
+  "phase": "after",
+  "started_at": "2026-11-21T21:11:50Z",
+  "ended_at": "2026-11-21T22:14:45Z",
+  "tree": "bd1da7db65476ac4cd27c1bfa915d71dec090282 chore: seed arbor/config.json baseline",
+  "launch_from": "kept",
+  "node": "cv350-rck-g03-e15-08",
+  "job": "146989",
+  "duration_s": 3600,
+  "gsm8k_questions": 0
+}

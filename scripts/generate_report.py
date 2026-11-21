@@ -63,10 +63,16 @@ def main():
             comp["ceiling"]["after_vs_ceiling_pct"] = None
             comp["ceiling"]["note"] = (f"run on {site} ({rc.get('gpu_type')}), a runner-only site: the ceiling is a baseline "
                                        "site's number and is not compared; before vs after (same node) still holds")
+        ex = read_json(d / "campaign_exit.json") or {}
+        comp["campaign_exit"] = {k: ex.get(k) for k in ("reason", "iteration", "keeps")} if ex else None
+        if ex and not ex.get("keeps"):
+            # nothing kept: after ran the same launch as before (the workspace config Arbor seeds is the pristine one),
+            # so the difference is run-to-run noise (an A/A reading; meta64 test C 2026-11-21: P90 +5.5 %, P50 +0.6 %)
+            comp["note"] = "the campaign kept nothing: after is the same launch as before, so before vs after is noise"
         comp["generated_at"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         (d / "comparison.json").write_text(json.dumps(comp, indent=2) + "\n", encoding="utf-8", newline="\n")
         p = comp["deltas"][record["target"]["primary_metric_path"].split(".", 1)[1]]
-        rows.append((model, target, "ok", f"baseline {src_txt}; primary {p['before']} -> {p['after']} ({p['change_pct']}%), "
+        rows.append((model, target, "ok" if not comp.get("note") else "ok, NOTHING KEPT (A/A)", f"baseline {src_txt}; primary {p['before']} -> {p['after']} ({p['change_pct']}%), "
                                           f"after vs ceiling {comp['ceiling']['after_vs_ceiling_pct']}%, GSM8K {comp['gsm8k']['status']}, "
                                           f"weights {comp['weights']['weights_source']}"))
         if args.print:

@@ -1,0 +1,7 @@
+# Test D (2026-11-21): a stored baseline (old InferenceX layout: benchmarks/benchmark_lib.sh + utils/aiperf, bench
+# client 86699be6) on meta64: uv Python 3.12, the aiperf install of the lib layout, one 600 s AgentX replay.
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+site: meta64
+targets:
+  - { model: dsv41flash, target: c1_p90 }

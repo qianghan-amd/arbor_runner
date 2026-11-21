@@ -1,0 +1,23 @@
+{
+ "schema": "arbor.exit/1",
+ "reason": "sigterm",
+ "code": 0,
+ "outcome": "finished",
+ "resumable": false,
+ "iteration": 1,
+ "keeps": 0,
+ "map": {
+  "open": 0,
+  "pending": 0,
+  "closed": 0,
+  "exhausted": false,
+  "round": 0,
+  "phase": "bootstrap"
+ },
+ "deadline": null,
+ "ts": "2026-11-21T21:10:13Z",
+ "arbor": {
+  "version": "0.11.0.dev0",
+  "commit": "e34509ccb8aed0fbee808391a0860d0ef36cd3c1"
+ }
+}

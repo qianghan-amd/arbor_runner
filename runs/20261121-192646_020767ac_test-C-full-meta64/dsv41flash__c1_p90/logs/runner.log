@@ -1,0 +1,38 @@
+[runner] 2026-11-21T19:27:05Z fetch: start on cv350-rck-g03-e15-08 job=146989
+[runner] 2026-11-21T19:27:06Z weights: {  "weights_source": "downloaded",  "path": "/var/tmp/qiangh/arbor_ab/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6",  "model_id": "deepseek-ai/Dee
+[runner] 2026-11-21T19:27:06Z fetch: done
+[runner] 2026-11-21T19:27:06Z prepare: start on cv350-rck-g03-e15-08 job=146989
+[runner] 2026-11-21T19:27:06Z highest GPU VRAM% before start: 0
+[runner] 2026-11-21T19:27:06Z image vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47 @ sha256:694108707f333787b1041caa0e948dd18b86f2450365a94e38819f026275ee32
+[runner] 2026-11-21T19:27:32Z Arbor 020767ac02a7bfad05a37f8ad7fb09419e529584 at /apps/qiangh/arbor_ab/runs/20261121-192646_020767ac_test-C-full-meta64/dsv41flash__c1_p90/arbor (local commit e34509ccb8aed0fbee808391a0860d0ef36cd3c1 in Arbor's own records)
+[runner] 2026-11-21T19:27:38Z submodule inferencex-e2e/utils/srt-slurm @ 2d9079c678 not in the clone: skipped (not needed to run AgentX)
+[runner] 2026-11-21T19:27:38Z submodule pretraining/torchtitan @ 847fabbca0 not in the clone: skipped (not needed to run AgentX)
+[runner] 2026-11-21T19:27:38Z InferenceX client 8f15ac7136382ee56734348269fd8980abc17528 at /apps/qiangh/arbor_ab/runs/20261121-192646_020767ac_test-C-full-meta64/dsv41flash__c1_p90/infx (layout infx, /workspace/InferenceX/inferencex-e2e)
+corpus offline load ok: 393
+[runner] 2026-11-21T19:29:10Z ruppell build: rc=0 (RUPPELL_BUILD=/root/ruppell-work/build)
+[runner] arbor check rc=0 ok=True refused=[] waits=[] lacks=[] warnings=0 runs_under=process
+[runner] 2026-11-21T19:29:11Z prepare: done
+[runner] 2026-11-21T19:29:11Z before: start on cv350-rck-g03-e15-08 job=146989
+[serve_cmd] pristine (no workspace config) launch: vllm, 41 flag words, 30 env vars
+[runner] 2026-11-21T19:35:30Z before: healthy after 378 s
+[runner] 2026-11-21T20:39:56Z before: AgentX rc=0 after 3866 s
+[runner] AgentX status=ok total_throughput_per_gpu=8015.44267 e2e_norm_intvty_p90=347.5539 requests=394/405
+[runner] 2026-11-21T20:39:56Z before: GSM8K skipped (request skip_gsm8k)
+[runner] 2026-11-21T20:40:11Z before: server stopped, GPUs free
+[runner] 2026-11-21T20:40:11Z before: done
+[runner] 2026-11-21T20:40:11Z campaign: start on cv350-rck-g03-e15-08 job=146989
+[runner] arbor check rc=0 ok=True refused=[] waits=[] lacks=[] warnings=0 runs_under=process
+[runner] 2026-11-21T21:10:38Z campaign: arbor run rc=124 (stopped by the runner at the 30-min budget)
+[runner] 2026-11-21T21:10:38Z campaign exit: { "schema": "arbor.exit/1", "reason": "sigterm", "code": 0, "outcome": "finished", "resumable": false, "iteration": 1, "keeps": 0, "map": {  "open": 0,  "pending": 0,  "closed": 0,  "exhausted": false,  "round": 0,  "phase": "bootstrap" }, "deadline": null, "ts": "2026-11-21T21:10:13Z", "arbor": {  
+[runner] 2026-11-21T21:11:49Z campaign: container restarted (Arbor's processes ended), GPUs free
+[runner] 2026-11-21T21:11:49Z campaign: done
+[runner] 2026-11-21T21:11:50Z after: start on cv350-rck-g03-e15-08 job=146989
+[serve_cmd] kept (workspace arbor/config.json) launch: vllm, 41 flag words, 30 env vars
+[runner] 2026-11-21T21:13:51Z after: healthy after 121 s
+[runner] 2026-11-21T22:14:29Z after: AgentX rc=0 after 3638 s
+[runner] AgentX status=ok total_throughput_per_gpu=8025.47371 e2e_norm_intvty_p90=366.73458 requests=394/405
+[runner] 2026-11-21T22:14:29Z after: GSM8K skipped (request skip_gsm8k)
+[runner] 2026-11-21T22:14:45Z after: server stopped, GPUs free
+[runner] 2026-11-21T22:14:45Z after: done
+[runner] 2026-11-21T22:14:45Z cell dsv41flash__c1_p90: all phases done
+[runner] 2026-11-21T22:14:48Z container ab_20261121-192646_dsv41flash_c1_p90 removed

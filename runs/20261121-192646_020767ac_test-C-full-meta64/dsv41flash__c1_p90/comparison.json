@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "run_id": "20261121-192646_020767ac_test-C-full-meta64",
+  "model": "dsv41flash",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "arbor_commit": "020767ac02a7bfad05a37f8ad7fb09419e529584",
+  "epoch_id": "dsv41flash__c1_p90__8f15ac7136_a95c2c30",
+  "baseline_source": {
+    "epoch_id": "dsv41flash__c1_p90__8f15ac7136_a95c2c30",
+    "source_type": "agentx_ci",
+    "ci_run_id": "44689368479",
+    "ci_commit": "8f15ac7136382ee56734348269fd8980abc17528",
+    "ci_commit_date": "2026-11-20",
+    "image": "vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47",
+    "image_digest": "sha256:694108707f333787b1041caa0e948dd18b86f2450365a94e38819f026275ee32"
+  },
+  "reference": {
+    "kind": "baseline",
+    "id": "dsv41flash__c1_p90__8f15ac7136_a95c2c30",
+    "note": "before = the baseline's pristine launch, re-measured fresh in this run"
+  },
+  "before": {
+    "total_tput_tps": 32061.77067,
+    "tput_per_gpu": 8015.44267,
+    "intvty": {
+      "p50": 709.55976,
+      "p90": 692.38035,
+      "p95": 684.19072
+    },
+    "e2e_norm_intvty": {
+      "p50": 633.0222,
+      "p90": 347.5539,
+      "p95": 171.46033
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "after": {
+    "total_tput_tps": 32101.89484,
+    "tput_per_gpu": 8025.47371,
+    "intvty": {
+      "p50": 711.90424,
+      "p90": 693.8032,
+      "p95": 683.50129
+    },
+    "e2e_norm_intvty": {
+      "p50": 636.58669,
+      "p90": 366.73458,
+      "p95": 227.21468
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "deltas": {
+    "e2e_norm_intvty.p90": {
+      "before": 347.5539,
+      "after": 366.73458,
+      "change_pct": 5.519
+    },
+    "e2e_norm_intvty.p50": {
+      "before": 633.0222,
+      "after": 636.58669,
+      "change_pct": 0.563
+    }
+  },
+  "ceiling": {
+    "primary": null,
+    "source": null,
+    "after_vs_ceiling_pct": null,
+    "note": "run on meta64 (mi350x), a runner-only site: the ceiling is a baseline site's number and is not compared; before vs after (same node) still holds"
+  },
+  "gsm8k": {
+    "max_drop": 0.01,
+    "status": "skipped",
+    "scores": {},
+    "note": "request skip_gsm8k"
+  },
+  "baseline_flags": {
+    "ci_verified": false,
+    "numeric_gate": "not_run",
+    "data_quality_warning": []
+  },
+  "phases": {
+    "before": {
+      "phase": "before",
+      "started_at": "2026-11-21T19:29:12Z",
+      "ended_at": "2026-11-21T20:40:11Z",
+      "tree": "44dd28244f4848640a87bf51bfc6729981e282b5 baseline: framework as shipped in vllm/vllm-openai-rocm:nightly-9c1d45c21836370104d4eb51d3b46eda20719c47",
+      "launch_from": "pristine",
+      "node": "cv350-rck-g03-e15-08",
+      "job": "146989",
+      "duration_s": 3600,
+      "gsm8k_questions": 0
+    },
+    "after": {
+      "phase": "after",
+      "started_at": "2026-11-21T21:11:50Z",
+      "ended_at": "2026-11-21T22:14:45Z",
+      "tree": "bd1da7db65476ac4cd27c1bfa915d71dec090282 chore: seed arbor/config.json baseline",
+      "launch_from": "kept",
+      "node": "cv350-rck-g03-e15-08",
+      "job": "146989",
+      "duration_s": 3600,
+      "gsm8k_questions": 0
+    }
+  },
+  "weights": {
+    "weights_source": "downloaded",
+    "path": "/var/tmp/qiangh/arbor_ab/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6",
+    "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "model_rev": "314113f8a7dadb388215396ba5fbee2c610a04d6"
+  },
+  "verdict": null,
+  "campaign_exit": {
+    "reason": "sigterm",
+    "iteration": 1,
+    "keeps": 0
+  },
+  "note": "the campaign kept nothing: after is the same launch as before, so before vs after is noise",
+  "generated_at": "2026-11-21T22:19:43Z"
+}

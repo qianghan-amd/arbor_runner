@@ -1,0 +1,8 @@
+# Test A (2026-11-21): this smoke job is killed with SIGKILL once its container is up; a probe job on the same node
+# then checks that the container is gone (runner dead-man switch). Cheap: shared-hub weights, smoke mode.
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+site: crusoe
+exclude_nodes: [crsuse2-m2m-v3-177, crsuse2-m2m-v3-182]
+targets:
+  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 }

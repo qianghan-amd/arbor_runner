@@ -1,0 +1,10 @@
+# run_from_ci.py: InferenceX CI run 38877885539 (Run Sweep - [Klaud Cold] Add Muse Spark Open MXFP4 MI355X SGLang DFlash2 AgentX recipe / [Klaud Cold)
+# start point: runs/drafts/muse_spark__c1_p90__ci38877885539/draft.json (rebuild it with make_baseline.py draft --model muse_spark --target c1_p90 --ci-run 38877885539 --tp 4)
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+campaign_minutes: 480
+ci_run: '38877885539'
+targets:
+- model: muse_spark
+  target: c1_p90
+site: meta64
