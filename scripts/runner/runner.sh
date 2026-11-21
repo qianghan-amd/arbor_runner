@@ -162,8 +162,22 @@ prepare() {
         rm -rf "$INFX" && archive_tree "$INFX_CLONE" "$INFX_SHA" "$INFX" || return 1
         echo "$INFX_SHA" > "$INFX/.source_commit"
     fi
-    [ -f "$INFX/benchmarks/benchmark_lib.sh" ] || [ -d "$INFX/infx" ] || { log "InferenceX client has neither benchmark_lib.sh nor infx"; return 1; }
-    log "InferenceX client $INFX_SHA at $INFX"
+    # Two InferenceX layouts, as Arbor's packs/agentx/validator/bench_agentx.sh tells them apart (the older wins when
+    # both are there): `lib` = benchmarks/benchmark_lib.sh; `infx` = the infx package at the root or under
+    # inferencex-e2e/ (InferenceX 8f15ac71, CI run 44689368479), which builds its own uv venv for the AgentX client.
+    INFX_LAYOUT=; INFX_HOME_C=
+    if [ -f "$INFX/benchmarks/benchmark_lib.sh" ]; then INFX_LAYOUT=lib
+    else
+        for sub in "" /inferencex-e2e; do
+            [ -d "$INFX$sub/infx/bench" ] && { INFX_LAYOUT=infx; INFX_HOME_C=/workspace/InferenceX$sub; break; }
+        done
+    fi
+    [ -n "$INFX_LAYOUT" ] || { log "InferenceX client has neither benchmarks/benchmark_lib.sh nor infx/bench"; return 1; }
+    if [ "$INFX_LAYOUT" = infx ] && [ "${NQ_FULL:-0}" != 0 ]; then
+        log "GSM8K needs benchmarks/benchmark_lib.sh, which this InferenceX ($INFX_SHA) does not have: run without gsm8k"
+        return 1
+    fi
+    log "InferenceX client $INFX_SHA at $INFX (layout $INFX_LAYOUT${INFX_HOME_C:+, $INFX_HOME_C})"
 
     if [ ! -x "$PY" ]; then
         python3 -m venv "$VENV" && retry 3 "$PY" -m pip install -q --upgrade pip \
@@ -215,10 +229,22 @@ prepare() {
           && echo \"framework tree $(basename "$WORKSPACE_ROOT") at \$(git rev-parse --short HEAD), dirty: \$(git status --porcelain --untracked-files=no | wc -l)\"" \
         | sed 's/^/[runner] /' || return 1
 
-    retry 3 in_c 'export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic
-          [ -f "$AIPERF_RUNTIME_DIR/.ready" ] && exit 0
-          source /workspace/InferenceX/benchmarks/benchmark_lib.sh && install_agentic_deps && touch "$AIPERF_RUNTIME_DIR/.ready"' \
-        >> "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
+    local aienv
+    if [ "$INFX_LAYOUT" = lib ]; then
+        retry 3 in_c 'export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic
+              [ -f "$AIPERF_RUNTIME_DIR/.ready" ] && exit 0
+              source /workspace/InferenceX/benchmarks/benchmark_lib.sh && install_agentic_deps && touch "$AIPERF_RUNTIME_DIR/.ready"' \
+            >> "$LOGS/aiperf_install.log" 2>&1 || { log "aiperf install (see logs/aiperf_install.log)"; return 1; }
+        aienv="cd /tmp && export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic \
+              && source /workspace/InferenceX/benchmarks/benchmark_lib.sh >/dev/null && export HF_HUB_CACHE=/hf-hub"
+    else
+        # infx builds the client venv itself at every bench (uv, pinned agentx-harness from PyPI): build it once here
+        # with the same code, so a node that cannot build it fails now, and the corpus check runs in that python
+        retry 3 in_c "cd '$INFX_HOME_C' && AIPERF_RUNTIME_DIR=/root/inferencex-agentic python3 -c \
+              'import os; from infx.bench.agentic.venv import Runtime, bootstrap; raise SystemExit(bootstrap(Runtime.for_job(os.environ)))'" \
+            >> "$LOGS/aiperf_install.log" 2>&1 || { log "infx AgentX client venv (see logs/aiperf_install.log)"; return 1; }
+        aienv="cd /tmp && export AIPERF_PYTHON=/root/inferencex-agentic/venv/bin/python HF_HUB_CACHE=/hf-hub"
+    fi
 
     # The corpus as the bench loads it: aiperf's weka loader calls datasets.load_dataset(<corpus>, split="train") with
     # the launch's HF_HUB_OFFLINE=1 (recorded server_env; Arbor gives the bench the server's env, claude_loop.py
@@ -229,8 +255,6 @@ prepare() {
     # differs between InferenceX versions: smoke job 299409).
     local crev; crev=$(cat "$HUB/datasets--${CORPUS_ID//\//--}/refs/main" 2>/dev/null)
     [ -n "$crev" ] || { log "no pinned corpus revision in $HUB"; return 1; }
-    local aienv="cd /tmp && export INFMAX_CONTAINER_WORKSPACE=/workspace/InferenceX AIPERF_RUNTIME_DIR=/root/inferencex-agentic \
-          && source /workspace/InferenceX/benchmarks/benchmark_lib.sh >/dev/null && export HF_HUB_CACHE=/hf-hub"
     retry 3 in_c "$aienv && echo \"aiperf python: \$AIPERF_PYTHON\" && HF_HUB_OFFLINE=0 \"\$AIPERF_PYTHON\" -c \
           \"from datasets import load_dataset; d = load_dataset('$CORPUS_ID', revision='$crev', split='train'); print('corpus cache warmed:', len(d))\"" \
         >> "$LOGS/corpus_check.log" 2>&1 || { log "corpus cache warm-up failed (see logs/corpus_check.log)"; return 1; }
