@@ -1,0 +1,8 @@
+# Smoke wave 2 (2026-11-22): two cells in one request (stored baselines), through run_pr_test.py; 15-min campaigns.
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+site: crusoe
+targets:
+  - { model: dsv41flash, target: c1_p90 }
+  - { model: minimax_m31_flash, target: c1_p90 }

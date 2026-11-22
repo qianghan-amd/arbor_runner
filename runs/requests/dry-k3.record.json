@@ -62,7 +62,7 @@
   "fingerprint": {
     "source_type": "agentx_ci",
     "image": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
-    "image_digest": null,
+    "image_digest": "sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c",
     "local_mirror_path": null,
     "ci_commit": "0df7e892b73c53d66a486c2a085e994b67653042",
     "ci_run_id": "40037005947",

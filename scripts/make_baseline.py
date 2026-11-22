@@ -130,6 +130,14 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gf
     if not digest:   # the tag's digest now; review.md marks it `derived`
         reg = registry.check(relay, [(bmk["image"], None)])[0]
         digest = reg.get("tag_digest")
+    if not digest:   # the tag is gone upstream (nightly tags are deleted: Kimi K3 run 40037005947, 2026-11-22):
+        # a stored record that pinned the same tag earlier knows its digest, which Docker Hub may still serve
+        same = [r for mo, t in config.cells(config.load_matrix()) for r in [baseline.load_latest(mo, t)]
+                if r and r["fingerprint"].get("image") == image and r["fingerprint"].get("image_digest")]
+        digest = same[0]["fingerprint"]["image_digest"] if same else None
+        if digest:
+            print(f"note: image tag {image} is gone upstream; using the digest {digest[:19]} that "
+                  f"{same[0]['epoch_id']} pinned for it")
     try:
         tpl = ci_baseline.template_record(model, target, cmd.get("framework") or bmk.get("framework"))
     except ValueError as e:

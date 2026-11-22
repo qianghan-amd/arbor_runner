@@ -124,6 +124,14 @@ def main():
         have = backend.files_exist([f"{snap}/config.json", f"{snap}/model.safetensors.index.json"])
         weights = snap if have and all(have.values()) else None
     print(f"3. weights: {weights or 'downloaded by the job at the pinned revision'}")
+    # the image must still be pullable (by its digest, else its tag): a deleted nightly tag would fail on the node
+    from arbor_ab import registry
+    fp = rec["fingerprint"]
+    avail, detail = registry.summarize(registry.check(relay, [(fp["image"], fp["image_digest"])])[0], fp["image_digest"])
+    if avail is False:
+        sys.exit(f"image {fp['image']}@{(fp['image_digest'] or '<no digest>')[:19]} cannot be pulled ({detail}): this CI "
+                 "run's image is gone from the registry. Pick a newer run, or give a launch record with an available image")
+    print(f"   image: {detail}")
     bench = rec["measured"]["bench_client_commit"]
     got = backend.ensure_bench_commits([bench]).get(bench)
     if got is not None and not got["ok"]:

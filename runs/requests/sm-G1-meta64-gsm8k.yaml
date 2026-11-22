@@ -1,0 +1,7 @@
+# Smoke wave 2 (2026-11-22): GSM8K path (stored DSv4.1, old InferenceX lib layout), smoke mode (600 s AgentX + 200 Q).
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+gsm8k: true
+site: meta64
+targets:
+  - { model: dsv41flash, target: c1_p90 }

@@ -294,7 +294,10 @@ def choose_cell(points, matrix, model=None, target=None, tp=None):
     matches the point's concurrency.
     With several TPs at that concurrency, the matrix's expected_host.tp decides, else `tp` must."""
     models = matrix["models"]
-    by_prefix = {spec.get("infmax_prefix", k): k for k, spec in models.items()}
+    by_prefix = {}   # infmax_prefix: one name or a list (Kimi K3.1 Pro is kimik31pro in its record, kimik3.1 in CI names)
+    for k, spec in models.items():
+        ps = spec.get("infmax_prefix", k)
+        by_prefix.update({p: k for p in (ps if isinstance(ps, list) else [ps])})
     opts = []
     for prefix, p_tp, conc in points:
         key = model or by_prefix.get(prefix)

@@ -37,7 +37,7 @@ models:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
       c1_p90:   { kind: p90,  conc: 1,  expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
   kimik31pro:
-    infmax_prefix: kimik31pro   # InferenceX MODEL_PREFIX (CI artifact names); from the stored baselines
+    infmax_prefix: [kimik31pro, kimik3.1]   # the record's MODEL_PREFIX; CI 41954410041 names its artifacts kimik3.1
     status: active
     targets:
       c32_tput: { kind: tput, conc: 32, expected_host: { framework: vllm, tp: 8, ep: 1, dcp: 8 } }
