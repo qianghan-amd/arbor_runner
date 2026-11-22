@@ -211,7 +211,7 @@ def main():
     p = sub.add_parser("draft")
     p.add_argument("--model", required=True)
     p.add_argument("--target", required=True)
-    p.add_argument("--ci-run", required=True)
+    p.add_argument("--ci-run", required=True, help="InferenceX Actions run id or URL")
     p.add_argument("--tp", type=int)
     p = sub.add_parser("measure")
     p.add_argument("--draft", required=True)
@@ -226,6 +226,11 @@ def main():
     p.add_argument("--run-dir", required=True)
     p.add_argument("--replace", action="store_true")
     args = ap.parse_args()
+    if getattr(args, "ci_run", None):
+        try:                               # a run id, or a run/job URL pasted from GitHub
+            args.ci_run = ci_baseline.parse_ci_run(args.ci_run)
+        except ValueError as e:
+            sys.exit(str(e))
     return {"draft": cmd_draft, "measure": cmd_measure, "finalize": cmd_finalize}[args.cmd](args)
 
 

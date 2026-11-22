@@ -218,6 +218,23 @@ def corpus_rev_at(commits, ci_created_at):
     return max(before, key=lambda c: c["date"])["id"]
 
 
+CI_REPO = "SemiAnalysisAI/InferenceX"
+
+
+def parse_ci_run(arg):
+    """The Actions run id from what a user pastes: `44689368479`, or a run / job / attempt URL of InferenceX
+    (https://github.com/SemiAnalysisAI/InferenceX/actions/runs/44689368479[/job/123][/attempts/2])."""
+    arg = str(arg).strip()
+    if arg.isdigit():
+        return arg
+    m = re.match(r"^https?://github\.com/([^/]+/[^/]+)/actions/runs/(\d+)(?:/.*)?$", arg)
+    if not m:
+        raise ValueError(f"--ci-run {arg!r}: give the run id or its URL (https://github.com/{CI_REPO}/actions/runs/<id>)")
+    if m.group(1).lower() != CI_REPO.lower():
+        raise ValueError(f"--ci-run {arg!r}: a run of {m.group(1)}, not of {CI_REPO}")
+    return m.group(2)
+
+
 BMK_NAME = re.compile(r"^bmk_agentic_([a-z0-9.]+)_tp(\d+)_conc(\d+)_")   # glm5.2 has a dot
 
 

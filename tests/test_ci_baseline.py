@@ -130,3 +130,14 @@ def test_corpus_rev_at_ci_time():
     assert ci_baseline.corpus_rev_at(commits, "2026-11-01T00:00:00Z") == "new"
     with pytest.raises(ValueError):
         ci_baseline.corpus_rev_at(commits, "2026-01-01T00:00:00Z")
+
+
+def test_parse_ci_run_accepts_id_and_urls():
+    for arg in ("44689368479", " 44689368479 ", "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/44689368479",
+                "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/44689368479/job/987",
+                "https://github.com/semianalysisai/inferencex/actions/runs/44689368479/attempts/2"):
+        assert ci_baseline.parse_ci_run(arg) == "44689368479"
+    with pytest.raises(ValueError, match="not of SemiAnalysisAI/InferenceX"):
+        ci_baseline.parse_ci_run("https://github.com/AMD-AGI/Arbor/actions/runs/1")
+    with pytest.raises(ValueError, match="run id or its URL"):
+        ci_baseline.parse_ci_run("https://github.com/SemiAnalysisAI/InferenceX/pull/5151")

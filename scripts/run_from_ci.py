@@ -1,6 +1,6 @@
 """Run an Arbor campaign from an AgentX CI run: the first use case, one command.
 
-  python scripts/run_from_ci.py --ci-run <InferenceX Actions run id> --arbor-commit <sha> [options]
+  python scripts/run_from_ci.py --ci-run <InferenceX Actions run id or URL> --arbor-commit <sha> [options]
 
 What it does, in order (each step prints what it decided):
   1. reads the CI run's AgentX points (bmk_agentic_* artifacts) and picks the cell: model, target (by concurrency), TP.
@@ -50,7 +50,7 @@ def arbor_sha(clone, commit):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--ci-run", required=True, help="InferenceX GitHub Actions run id of the AgentX sweep")
+    ap.add_argument("--ci-run", required=True, help="the InferenceX AgentX CI run: its Actions run id or URL (https://github.com/SemiAnalysisAI/InferenceX/actions/runs/<id>)")
     ap.add_argument("--arbor-commit", required=True)
     ap.add_argument("--model", help="matrix model key, when the CI run measured several models")
     ap.add_argument("--target", help="matrix target, e.g. c1_p90, when several match")
@@ -67,6 +67,11 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--follow", action="store_true", help="wait for the job and print the report")
     args = ap.parse_args()
+    if getattr(args, "ci_run", None):
+        try:                               # a run id, or a run/job URL pasted from GitHub
+            args.ci_run = ci_baseline.parse_ci_run(args.ci_run)
+        except ValueError as e:
+            sys.exit(str(e))
 
     local, matrix = config.load_local(), config.load_matrix()
     backend = backends.for_site(local, args.site)

@@ -97,7 +97,44 @@ Do this once per person.
 
 On Windows (Git Bash), use `.venv/Scripts/python` instead of `.venv/bin/python`.
 
-## Run a campaign
+## Run a campaign from an AgentX CI run (the usual way)
+
+You give two things: the AgentX CI run and the Arbor commit. Everything else is read from the CI run.
+
+```bash
+python scripts/run_from_ci.py --ci-run <run id or URL> --arbor-commit <Arbor SHA> [--site crusoe|meta64]
+```
+
+**What to give as `--ci-run`:** an InferenceX GitHub Actions run that ran the AgentX benchmark. Either form works:
+
+- the run's URL, as you copy it from the browser:
+  `https://github.com/SemiAnalysisAI/InferenceX/actions/runs/44689368479` (a `.../job/<n>` URL of that run also works);
+- or just the number: `44689368479`.
+
+**Where to find one:** in the InferenceX repository, Actions tab, workflow "Run Sweep". Or open the pull request
+that changed the recipe and click its "Run Sweep" check. Pick a run that:
+
+- **finished and ran the benchmark.** Its Artifacts list has `bmk_agentic_<model>_tp<N>_conc<C>_...` files. A run
+  whose jobs were skipped because it reused older results has no such files: the tool refuses it and says so. Use the
+  earlier run on the same branch that produced the numbers.
+- **is less than 90 days old.** GitHub deletes artifacts after that.
+- **measured the model you want**, at the concurrency of your target. The tool reads the model and concurrency from the
+  artifact names. If the run measured several of our cells (for example C1 and C16, or TP4 and TP8), it lists them and
+  stops. Then add `--target c1_p90` and, if needed, `--tp 4`.
+
+Supported: vLLM and SGLang runs, in both artifact formats seen so far (the older `vllm_command.txt` and the srtctl
+recipe). The model must already have a stored baseline in this repo, for its container layout.
+
+**What the tool prints**, step by step: the cell it chose, the image and model revision from the CI run, where the
+weights come from, the request file it wrote (`runs/requests/ci<id>-...yaml`, to repeat the run exactly), and the job.
+`runs/drafts/<model>__<target>__ci<id>/review.md` shows where each setting came from.
+
+Options: `--mode campaign` (default) | `full` | `smoke` | `campaign_smoke`, `--campaign-minutes 480`, `--gsm8k`,
+`--exclude-nodes ...`, `--dry-run` (write everything, submit nothing), `--follow` (wait and print the report).
+
+## Run a campaign from a request file
+
+Use this to run a stored baseline, several cells at once, or a request you wrote by hand.
 
 ### 1. Pick the commit
 
