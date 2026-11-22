@@ -29,7 +29,7 @@ def poll(run_dir, backend=None, fetch=True, extend=False):
         if fetch:
             s["files_fetched"] = backend.fetch(c, run_dir / c["cell"])
         print(f"{s['cell']}: {s['state']} ({s['raw']}) {s['elapsed']} on {s['node']} | runner {s['runner_state']} "
-              f"| done {s['phases_done']}" + (f" | extended to {s['extended_to']}" if s.get("extended_to") else ""))
+              f"| done {s['phases_done']}" + (f" | extended to {s['extended_to']}" if s.get("extended_to") else ""), flush=True)
     doc = {"run_id": rc["run_id"], "backend": backend.name, "polled_at": dt.datetime.now(dt.timezone.utc).isoformat(),
            "cells": status}
     (run_dir / "status.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8", newline="\n")

@@ -58,6 +58,7 @@ def main():
         run_dir = args.run_dir
         backend = backends.for_run(local, json.loads((run_dir / "run_config.json").read_text(encoding="utf-8")))
     doc = follow(run_dir, backend, args.every)
+    sys.stdout.flush()   # our buffered lines first, then the report's
     rep = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "generate_report.py"), "--run-dir", str(run_dir)])
     failed = [c["cell"] for c in doc["cells"] if c["state"] != "SUCCEEDED"]
     print(f"run {run_dir.name}: " + ("all cells succeeded" if not failed else f"not succeeded: {failed} (see their logs/runner.log)"))

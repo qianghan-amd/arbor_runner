@@ -173,6 +173,7 @@ def main():
     print(f"follow: python scripts/run_pr_test.py --run-dir {run_dir.relative_to(REPO_ROOT).as_posix()}")
     if args.follow:
         doc = run_pr_test.follow(run_dir, backend, 10)
+        sys.stdout.flush()   # our buffered lines first, then the report's (piped output was out of order, G3 2026-11-22)
         subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "generate_report.py"), "--run-dir", str(run_dir)])
         return 0 if all(c["state"] == "SUCCEEDED" for c in doc["cells"]) else 1
     return 0

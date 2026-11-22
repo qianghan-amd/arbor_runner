@@ -1,0 +1,12 @@
+# run_from_ci.py: InferenceX CI run 40037005947 (Run Sweep - [AMD][MI355X] Kimi-K3 vLLM AgentX nightly df6603f0 with latency_specialized decode at c1)
+# launch: sm-K1b-crusoe-ci40037005947.record.json (from runs/drafts/kimik3__c1_p90__ci40037005947/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '40037005947'
+targets:
+- model: kimik3
+  target: c1_p90
+  record: runs/requests/sm-K1b-crusoe-ci40037005947.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--moonshotai--Kimi-K3/snapshots/f831ab66814297da540d832a5235f8e904f29d06
+site: crusoe
