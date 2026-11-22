@@ -1,0 +1,11 @@
+# run_from_ci.py: InferenceX CI run 43487923974 (Run Sweep - perf: use Gluon for GLM-5.2 TP8 AgentX on 1111 daily / perf: GLM-5.2 TP8 AgentX 使用 Gluon)
+# launch: sm-M3-meta64-ci43487923974.record.json (from runs/drafts/glm52__c16_tput__ci43487923974/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '43487923974'
+targets:
+- model: glm52
+  target: c16_tput
+  record: runs/requests/sm-M3-meta64-ci43487923974.record.json
+site: meta64

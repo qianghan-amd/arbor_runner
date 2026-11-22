@@ -1,0 +1,12 @@
+# run_from_ci.py: InferenceX CI run 34657748450 (Run Sweep - add DS V4.1 Flash on MI355X / 新增 MI355X 配方)
+# launch: sm-C1-crusoe-ci34657748450.record.json (from runs/drafts/dsv41flash__c1_p90__ci34657748450/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '34657748450'
+targets:
+- model: dsv41flash
+  target: c1_p90
+  record: runs/requests/sm-C1-crusoe-ci34657748450.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277
+site: crusoe

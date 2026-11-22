@@ -1,0 +1,137 @@
+{
+  "schema_version": 2,
+  "model": "muse_spark",
+  "target": {
+    "key": "c16_tput",
+    "conc": 16,
+    "direction": "max",
+    "primary_metric_path": "metrics.total_tput_tps",
+    "primary_metric_per_gpu_path": "metrics.tput_per_gpu",
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "sglang",
+    "tp": 4,
+    "ep": 4,
+    "dcp": 1,
+    "num_gpus": 4,
+    "recipe_sh": null,
+    "recipe_point": null,
+    "model_path": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "server_flags": "--attention-backend aiter --page-size 16 --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85 --max-running-requests 128 --speculative-algorithm DFLASH --speculative-draft-model-path RadixArk/Muse-Spark-Open-DFlash2 --speculative-draft-attention-backend triton --speculative-num-draft-tokens 8 --reasoning-parser muse --tool-call-parser muse --watchdog-timeout 1800 --enable-metrics --tensor-parallel-size 4 --expert-parallel-size 4",
+    "server_env": {
+      "HF_HUB_OFFLINE": "1",
+      "MUSE_MOE_BACKEND": "flydsl",
+      "PYTHONNOUSERSITE": "1",
+      "SGLANG_TIMEOUT_KEEP_ALIVE": "900",
+      "SGLANG_USE_AITER": "1",
+      "SGLANG_USE_AITER_UNIFIED_ATTN": "1",
+      "SGLANG_SIMULATE_ACC_LEN": "4.05",
+      "SGLANG_SIMULATE_ACC_METHOD": "match-expected",
+      "SGLANG_SIMULATE_ACC_TOKEN_MODE": "real-draft-token",
+      "MODEL_PREFIX": "musespark",
+      "FRAMEWORK": "sglang",
+      "HF_HUB_CACHE": "/hf-hub",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "lmsysorg/sglang-rocm:muse-spark-open",
+    "image_digest": "sha256:72065dfc0b87818ab415f96c0fc08848233d25f22b002ac8f28c33fad6ec82a4",
+    "local_mirror_path": null,
+    "ci_commit": "8a76a78e410a412b74c43ebcb969a1bd2fa7549f",
+    "ci_run_id": "38877885539",
+    "ci_commit_date": "2026-10-16",
+    "recipe_fingerprint": "af3946cbf5113787fc75661cedf765c796a6aecb9a0aad034e00dc736e1641b9"
+  },
+  "epoch_id": "muse_spark__c16_tput__8a76a78e41_11ba158f",
+  "health": {
+    "ci_artifact_available": true,
+    "image_available": null,
+    "local_mirror_exists": false,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "not_run",
+      "checked_at": null,
+      "detail": null
+    },
+    "numeric": {
+      "status": "not_run",
+      "checked_at": null,
+      "ci_artifact": null,
+      "ci_value": null,
+      "measured_value": null,
+      "delta_pct": null,
+      "tolerance_pct": null
+    }
+  },
+  "measured": {
+    "date": null,
+    "cluster": null,
+    "node": null,
+    "job": null,
+    "replays": null,
+    "duration_s": null,
+    "bench_client_commit": "8a76a78e410a412b74c43ebcb969a1bd2fa7549f",
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": null,
+    "tput_per_gpu": null,
+    "intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": null,
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "make_baseline.py draft from InferenceX CI run 38877885539"
+  },
+  "superseded_by": null,
+  "data_quality_warning": null,
+  "launch": {
+    "model_id": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "model_rev": "c7bc74fd64371315a091bc15f9723882eead0dc1",
+    "draft_id": "RadixArk/Muse-Spark-Open-DFlash2",
+    "draft_rev": "46c90f412549c472941a68382d91a99e5e6372a0",
+    "corpus_id": "semianalysisai/cc-traces-weka-062126-256k",
+    "corpus_rev": "8fecd2fc56694469f758f0afbbb6335ad3043740",
+    "served_model_name": "amd/Muse-Spark-Open-816B-A42B-Quark-MXFP4",
+    "workspace_root": "/sgl-workspace/sglang",
+    "editable_packages": null,
+    "gpu_ids": "0,1,2,3",
+    "concurrency": 16,
+    "num_prompts": null,
+    "bench_timeout_s": null,
+    "gsm8k": {
+      "tool": "sglang_few_shot",
+      "num_questions": 1319,
+      "concurrency": 64
+    },
+    "missing": [],
+    "source": "InferenceX CI run 38877885539 (bmk_agentic_musespark_tp4_conc16_kvnone_spec-draft_model_fp4_sglang_tp4-pp1-dcp1-pcp1-ep4-dpafalse_disagg-false-6f57061d8e679c61c1e1) + env/launch copied from muse_spark__c16_tput__8a76a78e41_11ba158f"
+  }
+}

@@ -77,7 +77,6 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gf
     if "vllm_command.txt" in files:   # direct-launch CI format
         cmd = ci_baseline.parse_vllm_command(files["vllm_command.txt"])
         log = files.get("server.log", "")
-        model_rev = ci_baseline.model_rev_from_log(log, cmd["model"])
         launch_text = files["vllm_command.txt"]
     else:                             # srtctl CI format: the resolved recipe and the server log in server_logs_*
         srv_name = "server_logs_" + bmk_art["name"][len("bmk_agentic_"):]
@@ -97,15 +96,22 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gf
         except ValueError as e:                                         # e.g. engine atom, or a disaggregated recipe
             sys.exit(f"CI run {ci_run}: {e}")
         log = "\n".join(((rl.get("data") or {}).get("text") or {}).values())
-        model_rev = ci_baseline.model_rev_from_log(log, cmd["model"])
-        if cmd.get("draft"):              # the draft model's revision: the server log, else its HF main at the CI run
-            try:
-                draft_rev = ci_baseline.model_rev_from_log(log, cmd["draft"])
-            except ValueError:
-                draft_rev = ci_baseline.corpus_rev_at(
-                    remote.run_python(relay, HF_COMMITS, {"name": cmd["draft"], "kind": "models"}), run["created_at"])
-                draft_from_log = False
         source, launch_text = f"{srv_name[:60]}.../{tar}: logs/config.yaml + server log", recipe
+
+    def rev_of(repo):
+        """(revision, from the log?): the snapshot path the CI's server loaded; else, when it loaded by repo id
+        without one (Kimi K3 run 40037005947 downloaded main during the run), the repo's HF main at the CI run."""
+        try:
+            return ci_baseline.model_rev_from_log(log, repo), True
+        except ValueError:
+            try:
+                commits = remote.run_python(relay, HF_COMMITS, {"name": repo, "kind": "models"})
+                return ci_baseline.corpus_rev_at(commits, run["created_at"]), False
+            except (ValueError, RuntimeError) as e:
+                sys.exit(f"CI run {ci_run}: no revision of {repo}: not in the server log, and HF history: {e}")
+    model_rev, model_from_log = rev_of(cmd["model"])
+    if cmd.get("draft"):   # a speculative draft model (SGLang draft path, or vLLM speculative-config "model")
+        draft_rev, draft_from_log = rev_of(cmd["draft"])
     # the launch we parsed must be what the CI's server says it ran (catches a CI format change that still parses)
     fw = cmd.get("framework") or bmk.get("framework")
     try:
@@ -130,9 +136,10 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gf
         sys.exit(f"CI run {ci_run}: {e}")
     rec, rows = ci_baseline.build_draft(model, tgt, run, bmk_art["name"], bmk, cmd, model_rev, ds["hf_dataset_name"],
                                         corpus_rev, digest, tpl, server_env=server_env, source=source, draft_rev=draft_rev)
-    if not draft_from_log:   # review.md: the draft revision was not in the log, so it is derived like the corpus's
-        rows = [(f, v, "HF commit history at the CI run (not in the server log)", "derived") if f.startswith("launch.draft")
-                else (f, v, s, k) for f, v, s, k in rows]
+    derived_revs = [p for p, ok in (("launch.model", model_from_log), ("launch.draft", draft_from_log)) if not ok]
+    if derived_revs:   # review.md: a revision not in the log is derived, like the corpus's
+        rows = [(f, v, "HF commit history at the CI run (not in the server log)", "derived")
+                if f.startswith(tuple(derived_revs)) else (f, v, s, k) for f, v, s, k in rows]
     rows += [("check note", n, "server log argument dump", "derived") for n in check_notes]
     rows.append(("check: server's own arguments", f"every parsed flag matches; {n_args} logged arguments read",
                  f"CI run {ci_run}: server log `{'non-default args' if fw == 'vllm' else 'server_args='}` dump", "exact"))

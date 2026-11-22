@@ -1,0 +1,11 @@
+# run_from_ci.py: InferenceX CI run 38877885539 (Run Sweep - [Klaud Cold] Add Muse Spark Open MXFP4 MI355X SGLang DFlash2 AgentX recipe / [Klaud Cold)
+# launch: sm-M7-meta64-ci38877885539.record.json (from runs/drafts/muse_spark__c16_tput__ci38877885539/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '38877885539'
+targets:
+- model: muse_spark
+  target: c16_tput
+  record: runs/requests/sm-M7-meta64-ci38877885539.record.json
+site: meta64

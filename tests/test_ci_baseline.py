@@ -147,3 +147,11 @@ def test_ci_arch():
     assert ci_baseline.ci_arch("cluster:mi355x-amds") == ci_baseline.ci_arch("mi350x") == "gfx950"
     assert ci_baseline.ci_arch("cluster:mi325x-amd") == "gfx942"
     assert ci_baseline.ci_arch("cluster:gb200-nv") == "gb200" and ci_baseline.ci_arch(None) == "unknown"
+
+
+def test_vllm_draft_from_speculative_config():
+    assert ci_baseline.vllm_draft("--x 1 --speculative-config '{\"method\": \"dspark\", \"model\": \"Inferact/Kimi-K3-DSpark\"}'") \
+        == "Inferact/Kimi-K3-DSpark"
+    assert ci_baseline.vllm_draft("--speculative-config '{\"method\": \"dspark\", \"num_speculative_tokens\": 5}'") is None
+    assert ci_baseline.vllm_draft("--speculative-config '{\"model\": \"/local/draft\"}'") is None
+    assert ci_baseline.vllm_draft("--max-num-seqs 2") is None

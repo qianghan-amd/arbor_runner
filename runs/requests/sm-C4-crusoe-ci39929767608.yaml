@@ -1,0 +1,12 @@
+# run_from_ci.py: InferenceX CI run 39929767608 (Run Sweep - [Klaud Cold] minimaxm31flash-fp4-mi355x-vllm-agentic-dspark: day-zero MiniMax-M3.1-Flash)
+# launch: sm-C4-crusoe-ci39929767608.record.json (from runs/drafts/minimax_m31_flash__c1_p90__ci39929767608/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '39929767608'
+targets:
+- model: minimax_m31_flash
+  target: c1_p90
+  record: runs/requests/sm-C4-crusoe-ci39929767608.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--amd--MiniMax-M3.1-Flash-Quark-MXFP4/snapshots/1442d09d4926cb286fa2dc6646c83c4af2b3898c
+site: crusoe

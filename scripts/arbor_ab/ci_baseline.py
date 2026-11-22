@@ -58,7 +58,8 @@ def parse_srt_recipe(text):
         toks += [f"--{k}"] if v is True else [f"--{k}", v if isinstance(v, str) else str(v)]
     model = str((cfg.get("model") or {}).get("path", "")).removeprefix("hf:")
     env = {k: str(v) for k, v in (roles["agg"].get("env") or {}).items()}
-    out.update(model=model, flags=shlex.join(toks))
+    flags = shlex.join(toks)
+    out.update(model=model, flags=flags, draft=out["draft"] or vllm_draft(flags))
     return out, env, str((cfg.get("model") or {}).get("container") or "").strip()
 
 
@@ -154,12 +155,12 @@ def _same(ours, logged_text):
 
 
 def check_against_server(framework, flags, log_text, notes=None):
-    """Problems (empty = the parsed flags are what the CI's server ran). Every flag of ours must be among the server's
-    logged arguments with the same value (objects: by key only; `auto`: the server resolves it); for vLLM, whose log
-    lists only the arguments it was given, every logged argument but the harness's must also be among ours.
-    SGLang dumps every argument, but some under another name (aliases, deprecated flags): a flag of ours it does not
-    list goes to `notes` (a name SGLang did not know would stop our own server at its start, so it cannot pass
-    silently). Raises ValueError without a dump."""
+    """Problems (empty = the parsed flags are what the CI's server ran). A flag of ours that the server logged must
+    have the same value (objects: by key only; `auto`: the server resolves it). vLLM logs only its non-default
+    arguments: every one of them but the harness's must be among ours (a dropped flag is caught), and a flag of ours
+    it does not list is a note (set to the default). SGLang logs every argument, some under another name (aliases,
+    deprecated flags): one it does not list is a note (a name SGLang did not know would stop our own server at its
+    start). Raises ValueError without a dump."""
     kind, logged = server_logged_args(log_text)
     if kind is None:
         raise ValueError("the server log has no argument dump (vLLM `non-default args`, SGLang `server_args=`): "
@@ -171,8 +172,11 @@ def check_against_server(framework, flags, log_text, notes=None):
     for k, v in ours.items():
         key = SGLANG_KEY_ALIASES.get(k, k) if framework == "sglang" else k
         if key not in logged:
-            msg = f"--{k.replace('_', '-')} is in the parsed flags but not among the server's arguments"
-            (notes if framework == "sglang" else problems).append(msg)
+            # vLLM lists only arguments that differ from its defaults: a recipe that sets one to the default value
+            # (Kimi K3 run 40037005947: --moe-backend) is absent; its other direction below stays strict
+            msg = f"--{k.replace('_', '-')} is in the parsed flags but not among the server's arguments" + (
+                " (vLLM lists non-default arguments only: probably its default value)" if framework == "vllm" else "")
+            notes.append(msg)
         elif str(v).lower() == "auto":
             notes.append(f"--{k.replace('_', '-')} auto: the server resolved it to {logged[key][:60]}")
         elif not (framework == "sglang" and key in SGLANG_ADJUSTED) and _same(v, logged[key]) is False:
@@ -182,6 +186,21 @@ def check_against_server(framework, flags, log_text, notes=None):
             if key not in ours and key not in VLLM_HARNESS_KEYS:
                 problems.append(f"the server ran {key}={val[:80]}, which the parsed flags lack")
     return problems
+
+
+def vllm_draft(flags):
+    """The draft model repo of a vLLM `--speculative-config {"model": "<org>/<name>", ...}` (Kimi K3's DSpark, run
+    40037005947), pinned like the served model; None for a native draft (dspark/mtp without a model) or a local path."""
+    import json
+    t = shlex.split(flags)
+    for i, tok in enumerate(t[:-1]):
+        if tok == "--speculative-config":
+            try:
+                m = json.loads(t[i + 1]).get("model")
+            except (ValueError, AttributeError):
+                return None
+            return m if isinstance(m, str) and "/" in m and not m.startswith("/") else None
+    return None
 
 
 def parse_vllm_command(text):
@@ -209,7 +228,7 @@ def parse_vllm_command(text):
             continue
         flags.append(tok)
         i += 1
-    out.update(model=model, flags=shlex.join(flags))
+    out.update(model=model, flags=shlex.join(flags), draft=vllm_draft(shlex.join(flags)))
     return out
 
 
