@@ -34,6 +34,7 @@ import time
 COMPARE = ("model.safetensors.index.json", "config.json")
 LAST_USED = ".ab_last_used"   # in each hub entry a run used: the eviction order
 GB = 1e9
+NO_ROOM = 3   # exit code: not enough room on the node; final (the runner does not retry it)
 
 
 def tree_bytes(path):
@@ -83,9 +84,10 @@ def make_room(hub, need, keep, min_free_gb, max_cache_gb):
         ok, free = fits()
         if ok:
             return
-    sys.exit(f"[fetch] not enough room: {need / GB:.0f} GB to fetch, {free / GB:.0f} GB free on {hub}'s disk, hub "
-             f"{tree_bytes(hub) / GB:.0f} GB; limits: keep {min_free_gb} GB free, hub at most {max_cache_gb} GB. Nothing "
-             "left to evict: use weights_path (pre-downloaded weights) or another node/site")
+    print(f"[fetch] not enough room: {need / GB:.0f} GB to fetch, {free / GB:.0f} GB free on {hub}'s disk, hub "
+          f"{tree_bytes(hub) / GB:.0f} GB; limits: keep {min_free_gb} GB free, hub at most {max_cache_gb} GB. Nothing "
+          "left to evict: use weights_path (pre-downloaded weights) or another node/site", flush=True)
+    sys.exit(NO_ROOM)
 
 
 def entry_dir(hub, repo, kind):

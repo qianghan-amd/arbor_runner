@@ -41,9 +41,9 @@ def test_make_room_fails_before_download_when_nothing_left(tmp_path, monkeypatch
     hub = tmp_path / "hub"
     keep = entry(hub, "models--c--needed", 3000, 10)
     monkeypatch.setattr(fetch.shutil, "disk_usage", lambda p: Usage(0, 0, 5000))       # 5 "GB" free
-    with pytest.raises(SystemExit, match="not enough room"):
+    with pytest.raises(SystemExit) as e:
         fetch.make_room(str(hub), need=4000, keep={keep}, min_free_gb=2, max_cache_gb=None)
-    assert os.path.exists(keep)
+    assert e.value.code == fetch.NO_ROOM == 3 and os.path.exists(keep)
 
 
 def test_make_room_noop_when_it_fits(tmp_path, monkeypatch):

@@ -107,7 +107,10 @@ fetch() {
         rm -rf "$NL/dlvenv"
         "$hp" -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
     fi
-    retry 3 fetch_once || return 1
+    # rc 3 = not enough room on the node (fetch.py make_room): final, a retry cannot change it (meta64 Kimi K3 1.57 TB)
+    fetch_once; local rc=$?
+    [ "$rc" = 3 ] && { log "fetch: not enough room on this node (logs/fetch.log): not retried"; return 1; }
+    [ "$rc" = 0 ] || retry 2 fetch_once || return 1
     [ -s "$CELL_DIR/weights.json" ] || { log "fetch wrote no weights.json (provenance of the served weights)"; return 1; }
     log "weights: $(tr -d '\n' < "$CELL_DIR/weights.json" | cut -c1-200)"
 }
