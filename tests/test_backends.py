@@ -100,6 +100,35 @@ def test_relative_weights_path_refused(tmp_path):
         submit_ab_test.submit(req, "fake-test.yaml", FakeBackend(tmp_path / "cluster"), tmp_path / "arbor")
 
 
+def test_target_record_file_is_the_launch(tmp_path):
+    """`record:` in a target: that JSON (a run_from_ci draft, or one a person wrote/edited) is launched, not the stored
+    baseline; it must be schema-valid and name the target's cell."""
+    from arbor_ab import baseline
+    sha = _git_repo(tmp_path / "arbor")
+    rec = baseline.load_latest("dsv41flash", "c1_p90")
+    rec["host"]["server_flags"] += " --max-num-seqs 3"                 # a person's edit
+    rec_file = tmp_path / "my.record.json"
+    rec_file.write_text(json.dumps(rec), encoding="utf-8")
+    (tmp_path / "cluster").mkdir()
+    req = {"commit": sha, "mode": "smoke", "targets": [{"model": "dsv41flash", "target": "c1_p90", "record": str(rec_file)}]}
+    rc = submit_ab_test.submit(req, "fake-test.yaml", FakeBackend(tmp_path / "cluster"), tmp_path / "arbor", dry_run=True)
+    run_dir = REPO_ROOT / "runs" / rc["run_id"]
+    try:
+        used = json.loads((run_dir / "dsv41flash__c1_p90" / "baseline_record.json").read_text())
+        assert used["host"]["server_flags"].endswith("--max-num-seqs 3")
+        cfg = json.loads((run_dir / "dsv41flash__c1_p90" / "arbor_config.json").read_text())
+        assert cfg["server_flags"].endswith("--max-num-seqs 3")
+    finally:
+        shutil.rmtree(run_dir, ignore_errors=True)
+    import pytest
+    wrong = dict(req, targets=[{"model": "dsv41flash", "target": "c32_tput", "record": str(rec_file)}])
+    with pytest.raises(SystemExit, match="is for dsv41flash/c1_p90"):
+        submit_ab_test.submit(wrong, "fake-test.yaml", FakeBackend(tmp_path / "cluster"), tmp_path / "arbor", dry_run=True)
+    rec_file.write_text(json.dumps({**rec, "schema_version": 1}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="record"):
+        submit_ab_test.submit(req, "fake-test.yaml", FakeBackend(tmp_path / "cluster"), tmp_path / "arbor", dry_run=True)
+
+
 def test_get_selects_backend():
     b = backends.get(LOCAL, CLUSTER)
     assert b.name == "crusoe_slurm" and b.run_dir("r1") == "/w/runs/r1"

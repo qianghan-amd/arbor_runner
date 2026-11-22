@@ -15,6 +15,8 @@ Request:
   targets:
     - { model: dsv41flash, target: c1_p90 }
     - { model: glm52, target: c1_p90, weights_path: /shared_nfs/<...>/snapshots/<rev> }   # optional, see README
+    - { model: dsv41flash, target: c1_p90, record: runs/requests/x.record.json }   # optional: launch from this record
+                                         # JSON (run_from_ci's draft, or one you wrote/edited), not the stored baseline
 Where the jobs run is the execution backend's business (local.yaml `backend`, default crusoe_slurm; design.md 5.1).
 Stateless: everything it decides is written to runs/<run_id>/run_config.json; it never waits for results.
 --dry-run renders every file locally and touches no cluster. A cell that is not runnable (render.check_runnable)
@@ -77,6 +79,27 @@ def write(p, text):
     p.write_text(text, encoding="utf-8", newline="\n")
 
 
+def load_record_file(t):
+    """(record, problems) for a target's `record:` (a launch record JSON, path relative to the repo or absolute).
+    It must be schema-valid (schemas/baseline.schema.json) and name the target's model and target."""
+    p = Path(t["record"])
+    p = p if p.is_absolute() else REPO_ROOT / p
+    if not p.is_file():
+        return None, [f"record {t['record']}: no such file"]
+    try:
+        r = json.loads(p.read_text(encoding="utf-8"))
+    except ValueError as e:
+        return None, [f"record {t['record']}: not JSON ({e})"]
+    why = [f"record {t['record']}: {e}" for e in baseline.validation_errors(r)]
+    if not why and (r["model"], r["target"]["key"]) != (t["model"], t["target"]):
+        why.append(f"record {t['record']} is for {r['model']}/{r['target']['key']}, the target says {t['model']}/{t['target']}")
+    if not why and r["epoch_id"] != baseline.derive_epoch_id(r):   # a hand edit of the image or CI fields
+        print(f"note: {t['record']}: epoch_id {r['epoch_id']} does not match its fingerprint; using "
+              f"{baseline.derive_epoch_id(r)}")
+        r["epoch_id"] = baseline.derive_epoch_id(r)
+    return r, why
+
+
 def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False, now=None, records=None):
     """Render runs/<run_id>/ and (unless dry_run) start one job per cell through `backend`. Returns run_config."""
     mode = req.get("mode", "campaign")   # default: campaign only (user decision 2026-11-20)
@@ -96,8 +119,15 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
 
     given, records, refusals = records, [], []   # records: measure these (e.g. a make_baseline.py draft), not the stored ones
     for i, t in enumerate(req["targets"]):
-        r = given[i] if given else baseline.load_latest(t["model"], t["target"])
-        why = ["no baseline record"] if r is None else render.check_runnable(r)
+        why = []
+        if given:
+            r = given[i]
+        elif t.get("record"):
+            # a launch record JSON instead of the stored baseline (run_from_ci's draft, or one a person wrote or edited)
+            r, why = load_record_file(t)
+        else:
+            r = baseline.load_latest(t["model"], t["target"])
+        why = why or (["no baseline record"] if r is None else render.check_runnable(r))
         if t.get("weights_path") and not str(t["weights_path"]).startswith("/"):
             why.append(f"weights_path {t['weights_path']!r} must be an absolute path on the node")
         if why:

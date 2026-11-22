@@ -15,6 +15,7 @@ Default: mode campaign (no before/after measurement), 480 min, no GSM8K, the QOS
 reports (run_pr_test.py); --dry-run renders everything and submits nothing.
 """
 import argparse
+import json
 import subprocess
 import sys
 
@@ -121,8 +122,13 @@ def main():
 
     # 5. request file, then submit
     name = args.name or f"ci{args.ci_run}-{model}-{target}-{sha[:8]}"
+    # the launch record goes next to the request (both tracked), and the request names it: resubmitting the request
+    # with submit_ab_test.py runs this launch again, not the stored baseline
+    record = REPO_ROOT / "runs" / "requests" / f"{name}.record.json"
+    write(record, json.dumps(rec, indent=2) + "\n")
     req = {"commit": sha, "mode": args.mode, "campaign_minutes": args.campaign_minutes, "ci_run": str(args.ci_run),
-           "targets": [{"model": model, "target": target, **({"weights_path": weights} if weights else {})}]}
+           "targets": [{"model": model, "target": target, "record": record.relative_to(REPO_ROOT).as_posix(),
+                        **({"weights_path": weights} if weights else {})}]}
     if args.gsm8k:
         req["gsm8k"] = True
     if args.site:
@@ -133,8 +139,8 @@ def main():
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
     rf = REPO_ROOT / "runs" / "requests" / f"{name}.yaml"
     write(rf, f"# run_from_ci.py: InferenceX CI run {args.ci_run} ({run['display_title'][:100]})\n"
-              f"# start point: {d.relative_to(REPO_ROOT).as_posix()}/draft.json (rebuild it with make_baseline.py draft "
-              f"--model {model} --target {target} --ci-run {args.ci_run} --tp {tp})\n"
+              f"# launch: {record.name} (from {d.relative_to(REPO_ROOT).as_posix()}/draft.json; review.md there says where "
+              f"each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>\n"
               + yaml.safe_dump(req, sort_keys=False))
     print(f"5. request {rf.relative_to(REPO_ROOT).as_posix()}")
     rc = submit_ab_test.submit(req, rf, backend, clone, dry_run=args.dry_run, records=[rec])

@@ -132,6 +132,37 @@ weights come from, the request file it wrote (`runs/requests/ci<id>-...yaml`, to
 Options: `--mode campaign` (default) | `full` | `smoke` | `campaign_smoke`, `--campaign-minutes 480`, `--gsm8k`,
 `--exclude-nodes ...`, `--dry-run` (write everything, submit nothing), `--follow` (wait and print the report).
 
+### The launch JSON: saved, and yours to give
+
+`run_from_ci.py` saves what it read from the CI run as one JSON, the **launch record**, next to its request file:
+`runs/requests/<name>.record.json`. The request names it (`record:` in the target), so
+`python scripts/submit_ab_test.py --request runs/requests/<name>.yaml` repeats exactly that launch.
+
+You can also give a launch record yourself, without a CI run:
+
+1. Copy one: a `runs/requests/*.record.json`, a `runs/drafts/*/draft.json`, or a stored baseline
+   (`baselines/<model>/<target>/<epoch>.json`).
+2. Edit what you want to change. The fields you usually touch:
+   - `host.server_flags`, `host.server_env`: the server's flags and env;
+   - `fingerprint.image`, `fingerprint.image_digest`: the container image;
+   - `launch.model_id`, `launch.model_rev`: the weights (and `launch.draft_id`, `launch.draft_rev`);
+   - `launch.corpus_id`, `launch.corpus_rev`: the AgentX traces.
+3. Name it in a request target:
+
+   ```yaml
+   commit: <Arbor SHA>
+   campaign_minutes: 480
+   targets:
+     - { model: dsv41flash, target: c1_p90, record: runs/requests/my-launch.record.json }
+   ```
+
+4. Submit: `python scripts/submit_ab_test.py --request runs/requests/my-launch.yaml --dry-run`, then without
+   `--dry-run`.
+
+Submit refuses a record that is not valid (`schemas/baseline.schema.json`) or names another cell, and says why. It
+recomputes `epoch_id` if your edit changed the fields it comes from. A hand-written launch has no CI check behind it
+(the server-argument check runs only on CI runs): you are responsible for what it says.
+
 ## Run a campaign from a request file
 
 Use this to run a stored baseline, several cells at once, or a request you wrote by hand.
