@@ -53,3 +53,40 @@ def test_make_room_noop_when_it_fits(tmp_path, monkeypatch):
     monkeypatch.setattr(fetch.shutil, "disk_usage", lambda p: Usage(0, 0, 10 ** 9))
     fetch.make_room(str(hub), need=1000, keep=set(), min_free_gb=1, max_cache_gb=10)
     assert os.path.exists(a)
+
+
+def shared_entry(hub, name, blobs, used_ago_s):
+    """An entry as huggingface_hub 2.4 writes it with a cache_dir: snapshot links into the SHARED <hub>/blobs."""
+    snap = hub / name / "snapshots" / "rev"
+    snap.mkdir(parents=True)
+    for b, nbytes in blobs.items():
+        blob = hub / "blobs" / b
+        blob.parent.mkdir(exist_ok=True)
+        if not blob.exists():
+            blob.write_bytes(b"\0" * nbytes)
+        try:
+            os.symlink(blob, snap / b)
+        except OSError:
+            pytest.skip("no symlink permission on this workstation")
+    stamp = hub / name / fetch.LAST_USED
+    stamp.write_text("t")
+    t = time.time() - used_ago_s
+    os.utime(stamp, (t, t))
+    return str(hub / name)
+
+
+def test_shared_blobs_evicted_through_links_and_orphans_first(tmp_path, monkeypatch):
+    fetch.GB = 1000
+    hub = tmp_path / "hub"
+    old = shared_entry(hub, "models--a--old", {"x1": 3000, "shared": 1000}, 300)
+    keep = shared_entry(hub, "models--c--needed", {"k1": 2000, "shared": 1000}, 900)
+    (hub / "blobs" / "orphan").write_bytes(b"\0" * 500)                              # an earlier eviction's leftover
+    user = tmp_path / "user_weights"
+    user.mkdir()
+    (user / "w").write_bytes(b"\0" * 9000)
+    os.symlink(user, hub / "models--c--needed" / "snapshots" / "user")              # a user-model link: never deleted
+    monkeypatch.setattr(fetch.shutil, "disk_usage", lambda p: Usage(0, 0, 10 ** 12))
+    fetch.make_room(str(hub), need=1000, keep={keep}, min_free_gb=None, max_cache_gb=4.2)   # 6500 + 1000 > 4200
+    assert not (hub / "blobs" / "orphan").exists() and not (hub / "blobs" / "x1").exists()
+    assert (hub / "blobs" / "shared").exists() and (hub / "blobs" / "k1").exists()  # still used by the kept entry
+    assert not os.path.exists(old) and (user / "w").exists()

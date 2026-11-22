@@ -1,0 +1,171 @@
+{
+  "schema_version": 2,
+  "model": "kimik3",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 8,
+    "ep": 1,
+    "dcp": 8,
+    "num_gpus": 8,
+    "recipe_sh": null,
+    "recipe_point": null,
+    "model_path": "moonshotai/Kimi-K3",
+    "server_flags": "--trust-remote-code --moe-backend auto --gpu-memory-utilization 0.9 --language-model-only --enable-auto-tool-choice --tool-call-parser kimi_k3 --reasoning-parser kimi_k3 --max-model-len 1048576 --enable-prefix-caching --kv-cache-dtype fp8 --attention-config '{\"mla_prefill_backend\":\"ROCM_AITER_FA\"}' --stream-interval 10 --decode-context-parallel-size 8 --dcp-comm-backend a2a --max-num-seqs 1 --max-num-batched-tokens 16384 --compilation-config '{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"max_cudagraph_capture_size\":16,\"custom_ops\":[\"+fused_rms_norm_gated\"],\"cudagraph_capture_sizes\":[2,4,6,8,10,12,14,16]}' --speculative-config '{\"model\": \"Inferact/Kimi-K3-DSpark\", \"num_speculative_tokens\": 7, \"method\": \"dspark\", \"attention_backend\": \"ROCM_AITER_MLA\", \"kv_cache_dtype\": \"fp8\", \"draft_sample_method\": \"probabilistic\", \"rejection_sample_method\": \"synthetic\", \"synthetic_acceptance_length\": 3.84}' --additional-config '{\"decode_backend\":\"latency_specialized\",\"kda_prefill_backend\":\"fused\"}'",
+    "server_env": {
+      "SAFETENSORS_FAST_GPU": "1",
+      "HSA_NO_SCRATCH_RECLAIM": "1",
+      "VLLM_ENGINE_READY_TIMEOUT_S": "7200",
+      "PYTHONNOUSERSITE": "1",
+      "HF_HUB_OFFLINE": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "AIPERF_HTTP_TCP_USER_TIMEOUT": "900000",
+      "AIPERF_REQUIRED_SERVER_METRIC_PREFIX": "vllm:",
+      "MODEL_PREFIX": "kimik3",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+      "TP": "8",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "TOTAL_CPU_DRAM_GB": "0",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache",
+      "VLLM_ROCM_AITER_MLA_ASM_PADDING": "asm",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE_SITUV2": "1",
+      "AITER_BF16_FP8_MOE_BOUND": "0",
+      "AITER_FLYDSL_STAGE2_FP8": "1",
+      "VLLM_ROCM_QUICK_REDUCE_QUANTIZATION": "INT4",
+      "VLLM_ROCM_QUICK_REDUCE_MIN_SIZE_BYTES_MB": "16",
+      "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1200",
+      "VLLM_USE_DIRECT_DCP_A2A": "0",
+      "VLLM_USE_DIRECT_DCP_Q_GATHER": "0",
+      "VLLM_USE_DIRECT_DCP_KV_GATHER": "0",
+      "VLLM_ROCM_AITER_MLA_DCP_VERIFY": "asm",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "0",
+      "VLLM_USE_V2_MODEL_RUNNER": "1"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:nightly-rocm100-df6603f0583375f244d1ac6d36265462b7490392",
+    "image_digest": "sha256:81899892d73777a4ae81e16f39e749169687f29249505eb4c56da83bd097d41c",
+    "local_mirror_path": null,
+    "ci_commit": "0df7e892b73c53d66a486c2a085e994b67653042",
+    "ci_run_id": "40037005947",
+    "ci_commit_date": "2026-10-23",
+    "recipe_fingerprint": "42e35508de39340422c1ea8fc3e6ed993c3cf371a503f99149fba080628b3590"
+  },
+  "epoch_id": "kimik3__c1_p90__0df7e892b7_20156a0f",
+  "health": {
+    "ci_artifact_available": true,
+    "image_available": null,
+    "local_mirror_exists": false,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "not_run",
+      "checked_at": null,
+      "detail": null
+    },
+    "numeric": {
+      "status": "not_run",
+      "checked_at": null,
+      "ci_artifact": null,
+      "ci_value": null,
+      "measured_value": null,
+      "delta_pct": null,
+      "tolerance_pct": null
+    }
+  },
+  "measured": {
+    "date": null,
+    "cluster": null,
+    "node": null,
+    "job": null,
+    "replays": null,
+    "duration_s": null,
+    "bench_client_commit": "0df7e892b73c53d66a486c2a085e994b67653042",
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": null,
+    "tput_per_gpu": null,
+    "intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": null,
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "make_baseline.py draft from InferenceX CI run 40037005947"
+  },
+  "superseded_by": null,
+  "data_quality_warning": null,
+  "launch": {
+    "model_id": "moonshotai/Kimi-K3",
+    "model_rev": "f831ab66814297da540d832a5235f8e904f29d06",
+    "draft_id": "Inferact/Kimi-K3-DSpark",
+    "draft_rev": "cf6b8244620e7ea4b0651d214f28e89eac75bed6",
+    "corpus_id": "semianalysisai/cc-traces-weka-062126",
+    "corpus_rev": "23f152f6f0f9399a85901b89a6458def0ef16729",
+    "served_model_name": "moonshotai/Kimi-K3",
+    "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
+    "editable_packages": [
+      {
+        "name": "aiter",
+        "path": "/usr/local/lib/python3.12/dist-packages/aiter",
+        "rebuild": null
+      },
+      {
+        "name": "flydsl",
+        "path": "/usr/local/lib/python3.12/dist-packages/flydsl",
+        "rebuild": null
+      }
+    ],
+    "gpu_ids": "0,1,2,3,4,5,6,7",
+    "concurrency": 1,
+    "num_prompts": 320,
+    "bench_timeout_s": 7200,
+    "gsm8k": {
+      "tool": "infx_lm_eval",
+      "num_questions": 1319,
+      "concurrency": 16
+    },
+    "missing": [],
+    "source": "InferenceX CI run 40037005947 (bmk_agentic_kimik3_tp8_conc1_kvnone_spec-mtp_fp4_vllm_tp8-pp1-dcp8-pcp1-ep1-dpafalse_disagg-false_spec-mtp_conc-53d22280cdac00ccdc41) + env/launch copied from kimik3__c1_p90__0df7e892b7_20156a0f"
+  }
+}

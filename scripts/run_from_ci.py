@@ -121,8 +121,10 @@ def main():
     if weights == "auto":
         org_name = rec["launch"]["model_id"].replace("/", "--")
         snap = f"{backend.site()['shared_hf_hub']}/models--{org_name}/snapshots/{rec['launch']['model_rev']}"
-        have = backend.files_exist([f"{snap}/config.json", f"{snap}/model.safetensors.index.json"])
-        weights = snap if have and all(have.values()) else None
+        complete, detail = backend.snapshot_complete(snap)
+        weights = snap if complete else None
+        if complete is False and "no snapshot" not in detail:
+            print(f"   the shared hub's snapshot is incomplete ({detail}): the job downloads instead")
     print(f"3. weights: {weights or 'downloaded by the job at the pinned revision'}")
     # the image must still be pullable (by its digest, else its tag): a deleted nightly tag would fail on the node
     from arbor_ab import registry

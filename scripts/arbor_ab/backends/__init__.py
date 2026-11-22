@@ -73,6 +73,10 @@ class Backend:
         {sha: {"ok": bool, "submodules": {path: bool}}}; {} = not supported (the job then checks and fails)."""
         return {}
 
+    def snapshot_complete(self, path):
+        """Optional: (complete?, detail) for a model snapshot dir: its index's every shard exists. (None, why) = unknown."""
+        return None, "not supported by this backend"
+
     def files_exist(self, paths):
         """Optional: which of these paths exist as the job sees them ({path: bool}); {} = cannot tell."""
         return {}

@@ -63,8 +63,40 @@ def last_used(entry):
     return os.path.getmtime(p) if os.path.exists(p) else os.path.getmtime(entry)
 
 
+def entry_files(entry, hub):
+    """The real files an entry holds or links to inside the hub. huggingface_hub 2.4 with a cache_dir keeps contents in
+    a SHARED <hub>/blobs (meta64 c23-08, 2026-11-22: 885 GB there, the models--* dirs only links), so an entry's
+    size is what its snapshot links point to. A link out of the hub (user weights) is never counted or deleted."""
+    hub_real, out = os.path.realpath(hub) + os.sep, set()
+    for root, _dirs, files in os.walk(entry):            # links to directories (a user-model snapshot) are not walked
+        for f in files:
+            rp = os.path.realpath(os.path.join(root, f))
+            if rp.startswith(hub_real) and os.path.isfile(rp):
+                out.add(rp)
+    return out
+
+
+def files_bytes(paths):
+    total = 0
+    for p in paths:
+        try:
+            total += os.path.getsize(p)
+        except OSError:
+            pass
+    return total
+
+
+def remove_files(paths):
+    for p in paths:
+        try:
+            os.remove(p)
+        except OSError:
+            pass                                          # e.g. a root-owned file the container wrote: left
+
+
 def make_room(hub, need, keep, min_free_gb, max_cache_gb):
-    """Evict this user's least-recently-used hub entries not in `keep` until `need` bytes fit both limits."""
+    """Make `need` bytes fit both limits: first delete hub blobs no entry links to (orphans), then evict this user's
+    least-recently-used entries not in `keep`, deleting each one's files unless a remaining entry still uses them."""
     def fits():
         free = shutil.disk_usage(hub).free
         ok_free = min_free_gb is None or free - need >= min_free_gb * GB
@@ -74,13 +106,29 @@ def make_room(hub, need, keep, min_free_gb, max_cache_gb):
     if ok:
         return
     entries = [os.path.join(hub, e) for e in os.listdir(hub) if e.startswith(("models--", "datasets--"))]
+    files = {e: entry_files(e, hub) for e in entries}
+    shared_blobs = os.path.join(hub, "blobs")
+    if os.path.isdir(shared_blobs):                       # orphans: left by an entry removed earlier
+        used = set().union(*files.values()) if files else set()
+        orphans = {os.path.realpath(os.path.join(shared_blobs, b)) for b in os.listdir(shared_blobs)} - used
+        orphans = {p for p in orphans if os.path.isfile(p)}
+        if orphans:
+            size = files_bytes(orphans)
+            remove_files(orphans)
+            print(f"[fetch] removed {len(orphans)} orphaned blobs ({size / GB:.0f} GB) no entry links to", flush=True)
+            ok, free = fits()
+            if ok:
+                return
     uid = getattr(os, "getuid", lambda: None)()          # None only off Linux (the unit tests on a workstation)
     victims = sorted((e for e in entries if e not in keep and (uid is None or os.stat(e).st_uid == uid)), key=last_used)
     for e in victims:
-        size, used = tree_bytes(e), last_used(e)
+        used_by_others = set().union(*(f for o, f in files.items() if o != e)) if len(files) > 1 else set()
+        mine = files.pop(e) - used_by_others
+        size, last = files_bytes(mine), last_used(e)
+        remove_files(mine)
         shutil.rmtree(e, ignore_errors=True)
         print(f"[fetch] evicted {os.path.basename(e)} ({size / GB:.0f} GB, last used "
-              f"{time.strftime('%Y-%m-%d %H:%M', time.gmtime(used))}Z) to make room", flush=True)
+              f"{time.strftime('%Y-%m-%d %H:%M', time.gmtime(last))}Z) to make room", flush=True)
         ok, free = fits()
         if ok:
             return

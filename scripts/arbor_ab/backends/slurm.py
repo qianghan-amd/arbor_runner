@@ -138,6 +138,19 @@ print(json.dumps(out))
 '''
 
 
+SNAPSHOT_PROGRAM = r'''
+import os
+p = PAYLOAD["path"]
+idx = [f for f in os.listdir(p) if f.endswith(".safetensors.index.json")] if os.path.isdir(p) else []
+if not idx:
+    print(json.dumps({"complete": False, "detail": "no snapshot or no *.safetensors.index.json"}))
+else:
+    want = sorted(set(json.load(open(os.path.join(p, idx[0])))["weight_map"].values()))
+    missing = [f for f in want if not os.path.isfile(os.path.join(p, f))]
+    print(json.dumps({"complete": not missing, "detail": f"{len(want) - len(missing)}/{len(want)} shards present"}))
+'''
+
+
 def to_minutes(limit):
     """Slurm 'D-HH:MM:SS' / 'HH:MM:SS' / 'MM:SS' -> minutes."""
     days, _, rest = limit.partition("-") if "-" in limit else ("0", "", limit)
@@ -193,6 +206,12 @@ class Slurm(Backend):
         return remote.run_python(self.host, INFX_FETCH_PROGRAM, {"clone": self.local["remote"]["infx_clone"],
                                                                  "shas": list(shas), "required": ["utils/aiperf"]},
                                  timeout=1800)
+
+    def snapshot_complete(self, path):
+        """A shared-hub snapshot can hold config.json and the index but no shards (Kimi K3.1 Pro on Crusoe, 2026-11-22:
+        96 of 96 missing): every shard the index names must exist."""
+        r = remote.run_python(self.host, SNAPSHOT_PROGRAM, {"path": path}, timeout=300)
+        return r["complete"], r["detail"]
 
     def files_exist(self, paths):
         """Shared storage looks the same from the login node and the compute nodes (/shared_nfs)."""
