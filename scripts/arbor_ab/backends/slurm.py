@@ -182,6 +182,8 @@ class Slurm(Backend):
     def site(self):
         r = self.local["remote"]
         return {"node_local_root": r["node_local_root"], "shared_hf_hub": r.get("shared_hf_hub"),
+                "node_local_min_free_gb": self.cluster.get("node_local_min_free_gb"),
+                "node_local_max_cache_gb": self.cluster.get("node_local_max_cache_gb"),
                 "infx_clone": r["infx_clone"], "gateway_env": (self.local.get("arbor") or {}).get("gateway_env")}
 
     def run_dir(self, run_id):

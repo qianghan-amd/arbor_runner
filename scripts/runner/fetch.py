@@ -15,17 +15,77 @@ Usage: python fetch.py <hub_dir> <shared_hub_or_-> [--user-model PATH] [--proven
   where the weights came from.
 - Every *.safetensors file the index names must resolve; refs/main is written so offline loads find the pin.
 - HF_TOKEN, if the runner set it, lives in this process's environment on the host only; it is never printed.
+- --min-free-gb N / --max-cache-gb N (the cluster's node_local_* limits): before any download, the bytes still to fetch
+  (HF API sizes at the pinned revision) must leave N GB free on the hub's disk, and keep the hub (our own cache) under
+  its cap. Else the hub's least-recently-used entries that this run does not need, and that belong to this user, are
+  removed until it fits; if it still does not, the fetch fails before downloading. A node's disk may be its root disk
+  (meta64 /var/tmp; DSv4.1 Flash is 510 GB, Kimi K3 1.56 TB): filling it would hurt every user of the node.
 Exit 1 on any failure. Idempotent: a pinned, complete entry is left as it is.
 """
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 
 COMPARE = ("model.safetensors.index.json", "config.json")
+LAST_USED = ".ab_last_used"   # in each hub entry a run used: the eviction order
+GB = 1e9
+
+
+def tree_bytes(path):
+    """Bytes of the files under path, links not followed (a user-model snapshot link costs nothing)."""
+    total = 0
+    for root, _dirs, files in os.walk(path):
+        for f in files:
+            try:
+                st = os.lstat(os.path.join(root, f))
+                total += st.st_size if not os.path.islink(os.path.join(root, f)) else 0
+            except OSError:
+                pass
+    return total
+
+
+def remote_bytes(repo, rev, kind):
+    """Size of a repo at a revision (HF API, file metadata)."""
+    from huggingface_hub import HfApi
+    api = HfApi()
+    info = (api.dataset_info if kind == "dataset" else api.model_info)(repo, revision=rev, files_metadata=True)
+    return sum((s.size or 0) for s in (info.siblings or []))
+
+
+def last_used(entry):
+    p = os.path.join(entry, LAST_USED)
+    return os.path.getmtime(p) if os.path.exists(p) else os.path.getmtime(entry)
+
+
+def make_room(hub, need, keep, min_free_gb, max_cache_gb):
+    """Evict this user's least-recently-used hub entries not in `keep` until `need` bytes fit both limits."""
+    def fits():
+        free = shutil.disk_usage(hub).free
+        ok_free = min_free_gb is None or free - need >= min_free_gb * GB
+        ok_cap = max_cache_gb is None or tree_bytes(hub) + need <= max_cache_gb * GB
+        return ok_free and ok_cap, free
+    ok, free = fits()
+    if ok:
+        return
+    entries = [os.path.join(hub, e) for e in os.listdir(hub) if e.startswith(("models--", "datasets--"))]
+    uid = getattr(os, "getuid", lambda: None)()          # None only off Linux (the unit tests on a workstation)
+    victims = sorted((e for e in entries if e not in keep and (uid is None or os.stat(e).st_uid == uid)), key=last_used)
+    for e in victims:
+        size, used = tree_bytes(e), last_used(e)
+        shutil.rmtree(e, ignore_errors=True)
+        print(f"[fetch] evicted {os.path.basename(e)} ({size / GB:.0f} GB, last used "
+              f"{time.strftime('%Y-%m-%d %H:%M', time.gmtime(used))}Z) to make room", flush=True)
+        ok, free = fits()
+        if ok:
+            return
+    sys.exit(f"[fetch] not enough room: {need / GB:.0f} GB to fetch, {free / GB:.0f} GB free on {hub}'s disk, hub "
+             f"{tree_bytes(hub) / GB:.0f} GB; limits: keep {min_free_gb} GB free, hub at most {max_cache_gb} GB. Nothing "
+             "left to evict: use weights_path (pre-downloaded weights) or another node/site")
 
 
 def entry_dir(hub, repo, kind):
@@ -108,18 +168,35 @@ def link_user_model(hub, repo, rev, user_path):
 
 def main(argv):
     hub, shared, *rest = argv
-    user_model = provenance = None
+    user_model = provenance = min_free_gb = max_cache_gb = None
     while rest and rest[0].startswith("--"):
         flag, val, *rest = rest
         if flag == "--user-model":
             user_model = val or None
         elif flag == "--provenance":
             provenance = val
+        elif flag == "--min-free-gb":
+            min_free_gb = float(val) if val else None
+        elif flag == "--max-cache-gb":
+            max_cache_gb = float(val) if val else None
         else:
             sys.exit(f"unknown option {flag}")
     from huggingface_hub import __version__ as hv, snapshot_download
     os.makedirs(hub, exist_ok=True)
     print(f"[fetch] hub {hub}; huggingface_hub {hv}" + (f"; user model {user_model}" if user_model else ""), flush=True)
+    # room first: what this run still has to download must fit the node's limits (evict our LRU entries otherwise)
+    keep, need, first_model = set(), 0, None
+    for item in rest:
+        repo, rev, kind = item.rsplit(":", 2)
+        keep.add(entry_dir(hub, repo, kind))
+        is_served = kind == "model" and first_model is None
+        first_model = first_model or (repo if kind == "model" else None)
+        if not pinned(hub, repo, rev, kind) and not (is_served and user_model) and not (
+                kind == "dataset" and shared != "-" and os.path.isdir(entry_dir(shared, repo, kind))):
+            need += remote_bytes(repo, rev, kind)
+    print(f"[fetch] to download: {need / GB:.0f} GB; disk free {shutil.disk_usage(hub).free / GB:.0f} GB; "
+          f"hub {tree_bytes(hub) / GB:.0f} GB; limits: keep {min_free_gb} GB free, hub at most {max_cache_gb} GB", flush=True)
+    make_room(hub, need, keep, min_free_gb, max_cache_gb)
     served, prov = None, None
     for item in rest:
         repo, rev, kind = item.rsplit(":", 2)
@@ -151,6 +228,7 @@ def main(argv):
         if not os.path.isdir(path):
             sys.exit(f"[fetch] {repo}: snapshot {full} not on disk")
         n = check_shards(path, repo) if kind == "model" else 0
+        open(os.path.join(entry_dir(hub, repo, kind), LAST_USED), "w").write(time.strftime("%Y-%m-%dT%H:%M:%SZ\n", time.gmtime()))
         print(f"[fetch] ok {repo}@{full[:10]} ({kind}, {how}): {n} indexed shards, {time.time() - t:.0f} s", flush=True)
         if is_served and prov is not None:
             prov.update({"model_id": repo, "model_rev": full})

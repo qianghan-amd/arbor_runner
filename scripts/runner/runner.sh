@@ -71,7 +71,7 @@ run_phase() {   # run_phase <name> <function> [args...]: skipped when already do
 # ---- fetch: pinned model / draft / corpus into node-local NVMe ----------------------------------------------------------
 fetch_once() {   # one attempt; fetch.py skips what is already pinned and complete, so a retry resumes
     # options first, then the items; the served model is the first `model` item
-    local items=(--provenance "$CELL_DIR/weights.json")
+    local items=(--provenance "$CELL_DIR/weights.json" --min-free-gb "${NL_MIN_FREE_GB:-}" --max-cache-gb "${NL_MAX_CACHE_GB:-}")
     # WEIGHTS_PATH (request `weights_path`): pre-downloaded weights, checked against the pin and linked, not downloaded
     [ -n "${WEIGHTS_PATH:-}" ] && items+=(--user-model "$WEIGHTS_PATH")
     items+=("$MODEL_ID:$MODEL_REV:model" "$CORPUS_ID:$CORPUS_REV:dataset")

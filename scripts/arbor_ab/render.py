@@ -102,6 +102,8 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         "ARBOR_TAR": arbor_tar, "ARBOR_TAR_SHA256": arbor_tar_sha256,
         "RUN_ID": run_id, "CELL": cell_name(record["model"], record["target"]["key"]), "MODE": mode,
         "CELL_DIR": cell_dir, "NL_ROOT": site["node_local_root"], "SHARED_HUB": site.get("shared_hf_hub") or "",
+        # the node-local disk limits (fetch.py make_room): free space kept, our cache's cap
+        "NL_MIN_FREE_GB": site.get("node_local_min_free_gb") or "", "NL_MAX_CACHE_GB": site.get("node_local_max_cache_gb") or "",
         "IMAGE_TAG": fp["image"], "IMAGE_DIGEST": fp["image_digest"] or "",
         "CONTAINER": container, "PORT": str(PORT), "GPUS": lau["gpu_ids"], "FRAMEWORK": h["framework"],
         "MODEL_ID": lau["model_id"], "MODEL_REV": lau["model_rev"],
