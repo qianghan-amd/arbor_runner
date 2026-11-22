@@ -62,6 +62,7 @@ def main():
     ap.add_argument("--weights-path", default="auto", help="auto (shared hub when present), none (download), or a path")
     ap.add_argument("--exclude-nodes", nargs="*", default=[])
     ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
+    ap.add_argument("--allow-other-hw", action="store_true", help="launch a CI run of another GPU architecture anyway")
     ap.add_argument("--qos")
     ap.add_argument("--account")
     ap.add_argument("--name", help="request name (default ci<ID>-<model>-<target>-<sha8>)")
@@ -91,6 +92,14 @@ def main():
         sys.exit(f"CI run {args.ci_run} ({run['display_title'][:80]}) has no live AgentX artifacts (bmk_agentic_*): "
                  "the run reused older results, skipped the AgentX jobs, or its artifacts expired. Use the run that "
                  "produced the numbers (same branch, earlier run).")
+    # the hardware first (one result JSON): an NVIDIA or gfx942 run is refused before any question about its cells
+    arch = config.load_cluster(config.local_view(args.site).get("cluster", backend.site_name)).get("gpu_arch", "gfx950")
+    first = next(a for a in arts if ci_baseline.BMK_NAME.match(a["name"]) and not a.get("expired"))
+    hw = next(iter((github_relay.call(relay, [github_relay.artifact_json(make_baseline.INFX, first["id"])])[0].get("data")
+                    or {}).values()), {}).get("hw")
+    if ci_baseline.ci_arch(hw) != arch and not args.allow_other_hw:
+        sys.exit(f"CI run {args.ci_run} ran on {hw} ({ci_baseline.ci_arch(hw)}); this site's GPUs are {arch}: its image "
+                 "and recipe are not for them. Pick an MI355X/MI350X run (or --allow-other-hw)")
     try:
         model, target, tp = ci_baseline.choose_cell(points, matrix, args.model, args.target, args.tp)
     except ValueError as e:
@@ -98,7 +107,8 @@ def main():
     print(f"1. CI run {args.ci_run} ({run['head_branch']}, {run['created_at']}): cell {model}/{target}, tp{tp}")
 
     # 2. the starting point
-    d, rec = make_baseline.draft(model, target, args.ci_run, tp, run_info=run, arts=arts)
+    d, rec = make_baseline.draft(model, target, args.ci_run, tp, run_info=run, arts=arts, gpu_arch=arch,
+                                 allow_other_hw=args.allow_other_hw)
     print(f"2. start point {rec['epoch_id']}: image {rec['fingerprint']['image']}@{(rec['fingerprint']['image_digest'] or '')[:19]}, "
           f"model rev {rec['launch']['model_rev'][:10]}; where each field came from: "
           f"{d.relative_to(REPO_ROOT).as_posix()}/review.md")

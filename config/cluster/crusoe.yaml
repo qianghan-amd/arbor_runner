@@ -9,6 +9,10 @@ qos: amd-hyperloom-qos
 qos_group_node_limit: 5         # a released node may not come back
 gpu_type: mi355x
 gpus_per_node: 8
+gpu_arch: gfx950                # CI runs of other architectures are refused (run_from_ci --allow-other-hw)
+# Node-local cache limit (runner fetch.py make_room): keep 300 GB free on /mnt/m2m_nobackup; no cache cap until the
+# disk's size is measured (2026-11-22).
+node_local_min_free_gb: 300
 hold_job:
   submit_time: "1-00:00:00"     # a pending job longer than the QOS max wall is blocked
   max_time: "3-00:00:00"        # raise with scontrol once RUNNING

@@ -12,6 +12,7 @@ qos_default: null               # association: account default, QOS normal (the 
 account_default: null
 gpu_type: mi350x                # 8 x AMD Instinct MI350X (gfx950) a node; 384 CPUs; ~3 TB RAM
 gpus_per_node: 8
+gpu_arch: gfx950                # CI runs of other architectures are refused (run_from_ci --allow-other-hw)
 # Node-local cache limits (runner fetch.py make_room): /var/tmp is the node's ROOT disk (1.9 TB free, 2026-11-21), so
 # keep 400 GB free for the system and other users, and our cache at most 1100 GB (two 510-GB models). A model that
 # does not fit (Kimi K3 1.56 TB) is refused before any download: use weights_path, or Crusoe.

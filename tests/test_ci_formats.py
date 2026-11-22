@@ -55,8 +55,13 @@ def test_the_check_catches_a_dropped_a_changed_and_an_unknown_flag():
     changed = cmd["flags"].replace("--max-num-seqs 1", "--max-num-seqs 4")
     assert any("--max-num-seqs: parsed '4'" in p for p in ci_baseline.check_against_server("vllm", changed, log("vllm_srtctl")))
     sg, _ = parsed("sglang_srtctl")
-    probs = ci_baseline.check_against_server("sglang", sg["flags"] + " --renamed-flag 3", log("sglang_srtctl"))
-    assert probs == ["--renamed-flag is in the parsed flags but not among the server's arguments"]
+    notes = []
+    probs = ci_baseline.check_against_server("sglang", sg["flags"] + " --renamed-flag 3", log("sglang_srtctl"), notes)
+    assert probs == [] and notes == ["--renamed-flag is in the parsed flags but not among the server's arguments"]
+    # SGLang: a changed value still stops it; `auto` is the server's to resolve
+    assert ci_baseline.check_against_server("sglang", sg["flags"].replace("--page-size 16", "--page-size 32"), log("sglang_srtctl"))
+    notes = []
+    assert ci_baseline.check_against_server("sglang", sg["flags"] + " --attention-backend auto", log("sglang_srtctl"), notes) == []
     # SGLang rescales mem_fraction_static itself: not a mismatch; its TP flag is checked under its own name, tp_size
     assert "--mem-fraction-static 0.85" in sg["flags"] and "--tensor-parallel-size 4" in sg["flags"]
     with pytest.raises(ValueError, match="no argument dump"):

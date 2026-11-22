@@ -71,8 +71,13 @@ def parse_srt_recipe(text):
 VLLM_HARNESS_KEYS = {"model_tag", "model", "served_model_name", "host", "port", "tensor_parallel_size", "api_server_count",
                      "device_ids"}
 SGLANG_KEY_ALIASES = {"tensor_parallel_size": "tp_size", "expert_parallel_size": "ep_size", "pipeline_parallel_size": "pp_size",
-                      "data_parallel_size": "dp_size"}
-SGLANG_ADJUSTED = {"mem_fraction_static"}   # SGLang rescales it at start (0.85 -> 0.7225, run 38877885539)
+                      "data_parallel_size": "dp_size",
+                      # run 44231353783 (SGLang DSv4.1 MI355X, 2026-11-18): stored under another name
+                      "fp8_gemm_backend": "fp8_gemm_runner_backend", "fp4_gemm_backend": "fp4_gemm_runner_backend",
+                      "monokernel_backend": "enable_amd_monokernel"}
+# keys whose value SGLang rewrites (rescaled, or a deprecated flag mapped to a switch): compared by key only
+SGLANG_ADJUSTED = {"mem_fraction_static",       # 0.85 -> 0.7225 (run 38877885539)
+                   "enable_amd_monokernel"}     # `--monokernel-backend amd` -> True (deprecated; run 44231353783)
 
 
 def _top_level_items(text):
@@ -148,10 +153,13 @@ def _same(ours, logged_text):
     return str(ours) == str(theirs)
 
 
-def check_against_server(framework, flags, log_text):
+def check_against_server(framework, flags, log_text, notes=None):
     """Problems (empty = the parsed flags are what the CI's server ran). Every flag of ours must be among the server's
-    logged arguments with the same value (objects: by key only); for vLLM, whose log lists only the arguments it was
-    given, every logged argument but the harness's must also be among ours. Raises ValueError without a dump."""
+    logged arguments with the same value (objects: by key only; `auto`: the server resolves it); for vLLM, whose log
+    lists only the arguments it was given, every logged argument but the harness's must also be among ours.
+    SGLang dumps every argument, but some under another name (aliases, deprecated flags): a flag of ours it does not
+    list goes to `notes` (a name SGLang did not know would stop our own server at its start, so it cannot pass
+    silently). Raises ValueError without a dump."""
     kind, logged = server_logged_args(log_text)
     if kind is None:
         raise ValueError("the server log has no argument dump (vLLM `non-default args`, SGLang `server_args=`): "
@@ -159,10 +167,14 @@ def check_against_server(framework, flags, log_text):
     if kind != framework:
         return [f"the server log is {kind}'s, the launch is {framework}"]
     ours, problems = _flag_dict(flags), []
+    notes = notes if notes is not None else []
     for k, v in ours.items():
         key = SGLANG_KEY_ALIASES.get(k, k) if framework == "sglang" else k
         if key not in logged:
-            problems.append(f"--{k.replace('_', '-')} is in the parsed flags but not among the server's arguments")
+            msg = f"--{k.replace('_', '-')} is in the parsed flags but not among the server's arguments"
+            (notes if framework == "sglang" else problems).append(msg)
+        elif str(v).lower() == "auto":
+            notes.append(f"--{k.replace('_', '-')} auto: the server resolved it to {logged[key][:60]}")
         elif not (framework == "sglang" and key in SGLANG_ADJUSTED) and _same(v, logged[key]) is False:
             problems.append(f"--{k.replace('_', '-')}: parsed {v!r}, the server ran {logged[key][:80]}")
     if framework == "vllm":
@@ -219,6 +231,15 @@ def corpus_rev_at(commits, ci_created_at):
 
 
 CI_REPO = "SemiAnalysisAI/InferenceX"
+# GPU architecture of a CI run's hardware (bmk JSON `hw`, e.g. "cluster:mi355x-amds"); images and recipes are built and
+# tuned per architecture, so a run of one is not launched on another (NVIDIA runs carry CUDA images)
+HW_ARCH = {"mi355x": "gfx950", "mi350x": "gfx950", "mi325x": "gfx942", "mi300x": "gfx942"}
+
+
+def ci_arch(hw):
+    """'cluster:mi355x-amds' -> 'gfx950'; an NVIDIA or unknown name -> the name itself (never equal to a gfx arch)."""
+    name = (hw or "").split(":")[-1].split("-")[0].lower()
+    return HW_ARCH.get(name, name or "unknown")
 
 
 def parse_ci_run(arg):
@@ -280,16 +301,35 @@ def split_image(ref):
     return (ref.split("@", 1) + [None])[:2] if ref and "@" in ref else (ref, None)
 
 
-def template_record(model, target):
-    """The latest baseline of the same model with a usable launch block; the same target first."""
+# Fixed by the runner's own container (scripts/runner/runner.sh docker run mounts): never copied, always set
+CONTAINER_BENCH_ENV = {"HF_HUB_CACHE": "/hf-hub", "HF_HUB_OFFLINE": "1", "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+                       "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache"}
+# Bench-side env keys that do not depend on the model (InferenceX's AgentX scripts read them); with a template of
+# another model only these are kept, and the model-specific ones are set from the CI run (build_draft).
+GENERIC_BENCH_KEYS = {"AIPERF_DATASET_MMAP_CACHE_DIR", "AIPERF_HTTP_TCP_USER_TIMEOUT", "AIPERF_REQUIRED_SERVER_METRIC_PREFIX",
+                      "DP_ATTENTION", "DURATION", "EP_SIZE", "FRAMEWORK", "HF_HUB_CACHE", "HF_HUB_OFFLINE", "IMAGE",
+                      "INFMAX_CONTAINER_WORKSPACE", "KV_OFFLOADING", "MODEL_PREFIX", "PRECISION", "PYTHONUNBUFFERED",
+                      "RUNNER_TYPE", "SPEC_DECODING", "TOTAL_CPU_DRAM_GB", "TP", "WEKA_LOADER_OVERRIDE", "AGENTX_TOKENIZER"}
+
+
+def template_record(model, target, framework=None):
+    """The stored baseline whose launch layout (framework install path, editable packages, GSM8K tool) a draft copies.
+    In order: the same model (same target first) with the CI's framework; else another model with that framework
+    (the layout belongs to the framework's images, not to the model: a model's first SGLang run needs this)."""
     from . import config
     m = config.load_matrix()
-    order = [target] + [t for t in m["models"][model]["targets"] if t != target]
-    for t in order:
+    def usable(r):
+        return r and r.get("launch") and not r["launch"]["missing"] and framework in (None, r["host"]["framework"])
+    for t in [target] + [t for t in m["models"][model]["targets"] if t != target]:
         r = baseline.load_latest(model, t)
-        if r and r.get("launch") and not r["launch"]["missing"]:
+        if usable(r):
             return r
-    raise ValueError(f"no baseline of {model} with a launch block to copy the env from")
+    others = [r for r in (baseline.load_latest(mo, t) for mo, t in config.cells(m) if mo != model) if usable(r)]
+    if others:   # the most complete layout: the same target first, then the most generic bench keys
+        return max(others, key=lambda r: (r["target"]["key"] == target,
+                                          len(GENERIC_BENCH_KEYS & set(r["host"].get("server_env") or {}))))
+    raise ValueError(f"no stored baseline with a launch block for framework {framework!r}: nothing to copy the "
+                     "container layout from")
 
 
 def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpus_rev, image_digest, template,
@@ -299,7 +339,7 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
     cmd["draft"] / draft_rev: the speculative draft model (SGLang), pinned like the model."""
     if bmk.get("framework") not in FRAMEWORKS:
         raise ValueError(f"framework {bmk.get('framework')!r}: only {FRAMEWORKS} CI runs are supported")
-    if template["host"]["framework"] != bmk["framework"]:
+    if template["host"]["framework"] != bmk["framework"]:   # template_record(framework=...) prevents this
         raise ValueError(f"the stored baseline {template['epoch_id']} is {template['host']['framework']}, the CI run is "
                          f"{bmk['framework']}: its container layout (workspace_root, editable_packages) cannot be copied")
     tpl = template
@@ -316,6 +356,14 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
              "DP_ATTENTION": bmk.get("dp_attention"), "KV_OFFLOADING": bmk.get("kv_offloading"),
              "SPEC_DECODING": bmk.get("spec_decoding")}
     env.update({k: str(v) for k, v in point.items() if k in env and v is not None})
+    if tpl["model"] != model:   # a template of another model: only its generic bench keys; the rest from the CI run
+        env = {k: v for k, v in env.items() if k in GENERIC_BENCH_KEYS or (server_env or {}).get(k) == v}
+        hw = (bmk.get("hw") or "").split(":")[-1].split("-")[0]
+        derived = {"AGENTX_TOKENIZER": cmd["model"], "WEKA_LOADER_OVERRIDE": (bmk.get("dataset") or {}).get("loader"),
+                   "RUNNER_TYPE": hw or None}
+        env.update({k: v for k, v in derived.items() if v and (k in env or k != "AGENTX_TOKENIZER")})
+    for k, v in CONTAINER_BENCH_ENV.items():   # the container's own paths, whatever the template had
+        env.setdefault(k, v)
     tp = cmd["tp"] or bmk.get("tp")
     num_gpus = bmk.get("num_gpus") or tp
     # model path: the template's convention (snapshot path in the node hub, or the repo id)
@@ -370,7 +418,9 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
           else f"copied from {tpl['epoch_id']} (MODEL_PREFIX, FRAMEWORK from the bmk JSON)"),
          "exact+copied" if server_env is not None else "copied"),
         ("launch.workspace_root/editable_packages/gsm8k", f"{lau['workspace_root']} / {lau.get('editable_packages')} / {lau['gsm8k']}",
-         f"copied from {tpl['epoch_id']}", "copied"),
+         f"copied from {tpl['epoch_id']}" + (f" (another model, same framework {tpl['host']['framework']}: the image "
+                                              "layout; the runner checks it on the node)" if tpl["model"] != model else ""),
+         "copied"),
         ("host.model_path", model_path, f"the template's convention ({'node hub snapshot' if model_path.startswith('/') else 'repo id'})",
          "derived"),
     ]

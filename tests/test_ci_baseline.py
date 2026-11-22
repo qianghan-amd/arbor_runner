@@ -141,3 +141,9 @@ def test_parse_ci_run_accepts_id_and_urls():
         ci_baseline.parse_ci_run("https://github.com/AMD-AGI/Arbor/actions/runs/1")
     with pytest.raises(ValueError, match="run id or its URL"):
         ci_baseline.parse_ci_run("https://github.com/SemiAnalysisAI/InferenceX/pull/5151")
+
+
+def test_ci_arch():
+    assert ci_baseline.ci_arch("cluster:mi355x-amds") == ci_baseline.ci_arch("mi350x") == "gfx950"
+    assert ci_baseline.ci_arch("cluster:mi325x-amd") == "gfx942"
+    assert ci_baseline.ci_arch("cluster:gb200-nv") == "gb200" and ci_baseline.ci_arch(None) == "unknown"

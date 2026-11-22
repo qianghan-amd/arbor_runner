@@ -42,7 +42,7 @@ def cmd_draft(args):
     return 0
 
 
-def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
+def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gfx950", allow_other_hw=False):
     """Write runs/drafts/<model>__<target>__ci<ID>/ and return (dir, record). run_info/arts: already fetched."""
     local, matrix = config.load_local(), config.load_matrix()
     relay = config.local_view()["ssh"]["github_relay_host"]
@@ -63,6 +63,9 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     best = max(((a, next(iter((g.get("data") or {}).values()), {})) for a, g in zip(cands, got)),
                key=lambda x: x[1].get("num_requests_successful") or 0)
     bmk_art, bmk = best
+    if ci_baseline.ci_arch(bmk.get("hw")) != gpu_arch and not allow_other_hw:
+        sys.exit(f"CI run {ci_run} ran on {bmk.get('hw')} ({ci_baseline.ci_arch(bmk.get('hw'))}); this site's GPUs are "
+                 f"{gpu_arch}: its image and recipe are not for them. Pick an MI355X/MI350X run (or --allow-other-hw)")
     agentic = "agentic_" + bmk_art["name"][len("bmk_agentic_"):]
     agentic_art = next((a for a in arts if a["name"] == agentic and not a["expired"]), None)
     if not agentic_art:
@@ -89,7 +92,10 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
         recipe = next(iter(((rc.get("data") or {}).get("text") or {}).values()), None)
         if not recipe:
             sys.exit(f"{srv_name}: no logs/config.yaml in {tar}")
-        cmd, server_env, _ = ci_baseline.parse_srt_recipe(recipe)   # the image comes from the bmk JSON, as for direct runs
+        try:
+            cmd, server_env, _ = ci_baseline.parse_srt_recipe(recipe)   # the image comes from the bmk JSON, as for direct runs
+        except ValueError as e:                                         # e.g. engine atom, or a disaggregated recipe
+            sys.exit(f"CI run {ci_run}: {e}")
         log = "\n".join(((rl.get("data") or {}).get("text") or {}).values())
         model_rev = ci_baseline.model_rev_from_log(log, cmd["model"])
         if cmd.get("draft"):              # the draft model's revision: the server log, else its HF main at the CI run
@@ -103,7 +109,8 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     # the launch we parsed must be what the CI's server says it ran (catches a CI format change that still parses)
     fw = cmd.get("framework") or bmk.get("framework")
     try:
-        problems = ci_baseline.check_against_server(fw, cmd["flags"], log)
+        check_notes = []
+        problems = ci_baseline.check_against_server(fw, cmd["flags"], log, notes=check_notes)
     except ValueError as e:
         sys.exit(f"CI run {ci_run}: {e}")
     if problems:
@@ -117,12 +124,16 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None):
     if not digest:   # the tag's digest now; review.md marks it `derived`
         reg = registry.check(relay, [(bmk["image"], None)])[0]
         digest = reg.get("tag_digest")
-    tpl = ci_baseline.template_record(model, target)
+    try:
+        tpl = ci_baseline.template_record(model, target, cmd.get("framework") or bmk.get("framework"))
+    except ValueError as e:
+        sys.exit(f"CI run {ci_run}: {e}")
     rec, rows = ci_baseline.build_draft(model, tgt, run, bmk_art["name"], bmk, cmd, model_rev, ds["hf_dataset_name"],
                                         corpus_rev, digest, tpl, server_env=server_env, source=source, draft_rev=draft_rev)
     if not draft_from_log:   # review.md: the draft revision was not in the log, so it is derived like the corpus's
         rows = [(f, v, "HF commit history at the CI run (not in the server log)", "derived") if f.startswith("launch.draft")
                 else (f, v, s, k) for f, v, s, k in rows]
+    rows += [("check note", n, "server log argument dump", "derived") for n in check_notes]
     rows.append(("check: server's own arguments", f"every parsed flag matches; {n_args} logged arguments read",
                  f"CI run {ci_run}: server log `{'non-default args' if fw == 'vllm' else 'server_args='}` dump", "exact"))
     errs = baseline.validation_errors(rec)

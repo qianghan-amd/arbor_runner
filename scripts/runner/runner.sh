@@ -241,8 +241,27 @@ prepare() {
     local pkg=vllm; [ "$FRAMEWORK" = sglang ] && pkg=sglang
     # __path__, not __file__: SGLang can be a namespace package (None __file__); cd /tmp so the cwd cannot shadow it
     local where; where=$(in_c "cd /tmp && python3 -c 'import $pkg; print(list($pkg.__path__)[0])'" 2>/dev/null | tail -1)
+    [ -n "$where" ] || { log "no $pkg importable in $IMAGE_TAG"; return 1; }
+    # The layout the record gives (workspace_root, editable_packages) is a stored baseline's: for a CI run of another
+    # model it is copied from a baseline of the same framework (ci_baseline.template_record), and images differ. The
+    # image decides: the framework tree is where its package is installed, and an editable package the image does
+    # not have is dropped. arbor_config.json is updated to match, and each change is logged.
     case "$WORKSPACE_ROOT" in "$where"|"${where%/python/$pkg}"|"${where%/$pkg}") ;; *)
-        log "workspace_root $WORKSPACE_ROOT does not hold the installed $pkg ($where)"; return 1;; esac
+        local root=$where; [ "${where%/python/$pkg}" != "$where" ] && root=${where%/python/$pkg}   # SGLang's repo layout
+        log "layout: workspace_root $WORKSPACE_ROOT does not hold the installed $pkg ($where): using $root"
+        WORKSPACE_ROOT=$root ;; esac
+    local present=() p
+    for p in $("$PY" -c 'import json,sys; [print(e["path"]) for e in json.load(open(sys.argv[1])).get("editable_packages") or []]' "$CELL_DIR/arbor_config.json"); do
+        if in_c "test -d '$p'"; then present+=("$p"); else log "layout: editable package $p is not in $IMAGE_TAG: dropped"; fi
+    done
+    "$PY" - "$CELL_DIR/arbor_config.json" "$WORKSPACE_ROOT" "${present[@]}" <<'PY' || return 1
+import json, sys
+path, root, keep = sys.argv[1], sys.argv[2], set(sys.argv[3:])
+c = json.load(open(path))
+c["workspace_root"] = root
+c["editable_packages"] = [e for e in c.get("editable_packages") or [] if e["path"] in keep]
+open(path, "w").write(json.dumps(c, indent=2) + "\n")
+PY
     in_c "cd '$WORKSPACE_ROOT' && { git rev-parse --git-dir >/dev/null 2>&1 || { git init -q . && git config user.email arbor@local \
           && git config user.name Arbor && git config core.fileMode false && printf '__pycache__/\n*.pyc\n' > .git/info/exclude \
           && git add -A 2>/dev/null && git commit -q -m 'baseline: framework as shipped in $IMAGE_TAG'; }; } \

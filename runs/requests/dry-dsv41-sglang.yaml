@@ -1,0 +1,11 @@
+# run_from_ci.py: InferenceX CI run 44231353783 (Run Sweep - [AMD][AgentX] DeepSeek-V4.1-Flash MI355X SGLang: bump image to 20261111 and add DP atten)
+# launch: dry-dsv41-sglang.record.json (from runs/drafts/dsv41flash__c1_p90__ci44231353783/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign
+campaign_minutes: 480
+ci_run: '44231353783'
+targets:
+- model: dsv41flash
+  target: c1_p90
+  record: runs/requests/dry-dsv41-sglang.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6
