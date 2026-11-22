@@ -1,0 +1,13 @@
+# run_from_ci.py: InferenceX CI run 43171131215 (Run Sweep - [AMD][AgentX] m31-flash)
+# launch: sm-G2b-meta64-ci43171131215.record.json (from runs/drafts/minimax_m31_flash__c1_p90__ci43171131215/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 15
+ci_run: '43171131215'
+targets:
+- model: minimax_m31_flash
+  target: c1_p90
+  record: runs/requests/sm-G2b-meta64-ci43171131215.record.json
+site: meta64
+backend_options:
+  partition: interactive
