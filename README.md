@@ -58,6 +58,15 @@ Nothing is sent. It prints the cell, the image, the weights and the request file
 
 Sites are in `local.yaml`. Other options: `--qos`, `--partition`, `--nodelist`, `--exclude-nodes`.
 
+Have your own "hold" job with a node agent (it runs `ctrl/node<i>/*.sh` on node i)? Use one of its free nodes:
+
+```bash
+--hold-job 304634 --nodelist crsuse2-m2m-v3-002
+```
+
+The tool checks that the hold job is yours, holds that node, and has enough time left. The runner still refuses a
+node whose GPUs are in use.
+
 ### 4. Pick what to run
 
 ```bash
