@@ -1,4 +1,4 @@
-# Test (2026-11-22): a hand-edited launch record (--max-num-seqs 1 -> 2 in the CI 44689368479 record), smoke on
+# Test (2026-11-22): a hand-edited launch record (--gpu-memory-utilization 0.9 -> 0.88 in; the first try, --max-num-seqs 1 -> 2, made vLLM's monokernel fail at warm-up: the CI 44689368479 record), smoke on
 # meta64 (Crusoe burst slots were full): the server's cmdline must carry the edit.
 commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
 mode: smoke

@@ -109,13 +109,20 @@ def make_room(hub, need, keep, min_free_gb, max_cache_gb):
     files = {e: entry_files(e, hub) for e in entries}
     shared_blobs = os.path.join(hub, "blobs")
     if os.path.isdir(shared_blobs):                       # orphans: left by an entry removed earlier
+        # sharded: blobs/<2-char prefix>/<sha256>, with .refs / .lock sidecars beside each blob (meta64 c23-08,
+        # 2026-11-22: 191 prefix dirs, 1023 files; a scan of the top level saw only directories and freed nothing)
         used = set().union(*files.values()) if files else set()
-        orphans = {os.path.realpath(os.path.join(shared_blobs, b)) for b in os.listdir(shared_blobs)} - used
-        orphans = {p for p in orphans if os.path.isfile(p)}
+        orphans = set()
+        for root, _dirs, names in os.walk(shared_blobs):
+            for n in names:
+                p = os.path.realpath(os.path.join(root, n))
+                if not n.endswith((".refs", ".lock")) and p not in used and os.path.isfile(p):
+                    orphans |= {p} | {p + s for s in (".refs", ".lock") if os.path.exists(p + s)}
         if orphans:
             size = files_bytes(orphans)
             remove_files(orphans)
-            print(f"[fetch] removed {len(orphans)} orphaned blobs ({size / GB:.0f} GB) no entry links to", flush=True)
+            n = sum(1 for p in orphans if not p.endswith((".refs", ".lock")))
+            print(f"[fetch] removed {n} orphaned blobs ({size / GB:.0f} GB) no entry links to", flush=True)
             ok, free = fits()
             if ok:
                 return
