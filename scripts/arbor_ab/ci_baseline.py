@@ -347,7 +347,12 @@ def point_kv_and_parallel(env, bmk):
         for k in KV_BACKEND_KEYS:      # TOTAL_CPU_DRAM_GB: read only with dram offload
             env.pop(k, None)
     elif mode and backend:
-        if env.get("KV_OFFLOAD_BACKEND") != backend:
+        # the bmk JSON gives the backend's name, or (CI 44550646425, 2026-11-19) its metadata object {"name": ...}
+        meta = backend if isinstance(backend, dict) else None
+        backend = meta.get("name") if meta else backend
+        if meta:
+            env["KV_OFFLOAD_BACKEND_METADATA"] = json.dumps(meta, separators=(",", ":"))
+        elif env.get("KV_OFFLOAD_BACKEND") != backend or "KV_OFFLOAD_BACKEND_METADATA" not in env:
             env["KV_OFFLOAD_BACKEND_METADATA"] = json.dumps({"name": backend}, separators=(",", ":"))
         env["KV_OFFLOAD_BACKEND"] = backend
         if bmk.get("allocated_cpu_dram_gb"):
@@ -380,6 +385,13 @@ def kv_env_problem(env, strict=True):
     except (ValueError, AttributeError):
         return "KV_OFFLOAD_BACKEND_METADATA is not a JSON object"
     return None if name == backend else "KV_OFFLOAD_BACKEND must match KV_OFFLOAD_BACKEND_METADATA.name"
+
+
+def known_model_ids(model):
+    """The weights (HF repo ids) the model's stored baselines launch: what a CI cell of this model must serve."""
+    from . import config
+    return {r["launch"]["model_id"] for t in config.load_matrix()["models"][model]["targets"]
+            for r in [baseline.load_latest(model, t)] if r and r.get("launch") and r["launch"].get("model_id")}
 
 
 def template_record(model, target, framework=None):

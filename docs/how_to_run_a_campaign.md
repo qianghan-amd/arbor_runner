@@ -121,6 +121,10 @@ that changed the recipe and click its "Run Sweep" check. Pick a run that:
 - **measured the model you want**, at the concurrency of your target. The tool reads the model and concurrency from the
   artifact names. If the run measured several of our cells (for example C1 and C16, or TP4 and TP8), it lists them and
   stops. Then add `--target c1_p90` and, if needed, `--tp 4`.
+- **served the same weights as the model's stored baselines.** A CI name can cover another model: run 44550646425 is
+  named `glm5.2` but serves `amd/GLM-5.3-Quark-MXFP4-AttnFP8`. The tool refuses such a run. Add the new model to
+  `config/matrix.yaml` as its own model, or add `--allow-other-model` to run it anyway.
+- **ran on MI355X or MI350X** (gfx950). The tool refuses NVIDIA and MI300/MI325 runs (`--allow-other-hw` overrides).
 
 Supported: vLLM and SGLang runs, in both artifact formats seen so far (the older `vllm_command.txt` and the srtctl
 recipe). The model must already have a stored baseline in this repo, for its container layout.

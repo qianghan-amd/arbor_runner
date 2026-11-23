@@ -170,6 +170,14 @@ def test_point_kv_and_parallel_from_ci_not_template():
                                             "allocated_cpu_dram_gb": 800})
     assert env["KV_OFFLOAD_BACKEND"] == "lmcache" and env["TOTAL_CPU_DRAM_GB"] == "800"
     assert ci_baseline.kv_env_problem(env) is None
+    env = {"KV_OFFLOADING": "dram"}   # newer bmk JSON (CI 44550646425): the backend as its metadata object
+    ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "dram", "kv_offload_backend": {"name": "hicache"},
+                                            "allocated_cpu_dram_gb": 1274})
+    assert (env["KV_OFFLOAD_BACKEND"], env["KV_OFFLOAD_BACKEND_METADATA"], env["TOTAL_CPU_DRAM_GB"]) == \
+        ("hicache", '{"name":"hicache"}', "1274")
+    env = {"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache"}   # the template had no metadata (lib layout)
+    ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "dram", "kv_offload_backend": "hicache"})
+    assert env["KV_OFFLOAD_BACKEND_METADATA"] == '{"name":"hicache"}'
     env = dict(tpl)   # same backend as the template: its metadata kept
     ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "dram", "kv_offload_backend": "hicache"})
     assert env["KV_OFFLOAD_BACKEND_METADATA"] == '{"name":"hicache"}'
@@ -184,3 +192,9 @@ def test_kv_env_problem():
     assert ci_baseline.kv_env_problem({"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache"}, strict=False) is None
     assert "must match" in ci_baseline.kv_env_problem({"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache",
                                                        "KV_OFFLOAD_BACKEND_METADATA": '{"name":"lmcache"}'})
+
+
+def test_known_model_ids_from_stored_baselines():
+    # CI 44550646425: a glm5.2 cell served amd/GLM-5.3-Quark-MXFP4-AttnFP8; make_baseline.draft refuses it by this set
+    assert ci_baseline.known_model_ids("glm52") == {"amd/GLM-5.2-MXFP4"}
+    assert "amd/GLM-5.3-Quark-MXFP4-AttnFP8" not in ci_baseline.known_model_ids("glm52")

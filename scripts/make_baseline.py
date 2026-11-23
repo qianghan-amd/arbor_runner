@@ -42,7 +42,8 @@ def cmd_draft(args):
     return 0
 
 
-def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gfx950", allow_other_hw=False):
+def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gfx950", allow_other_hw=False,
+          allow_other_model=False):
     """Write runs/drafts/<model>__<target>__ci<ID>/ and return (dir, record). run_info/arts: already fetched."""
     local, matrix = config.load_local(), config.load_matrix()
     relay = config.local_view()["ssh"]["github_relay_host"]
@@ -66,7 +67,18 @@ def draft(model, target, ci_run, tp=None, run_info=None, arts=None, gpu_arch="gf
     if ci_baseline.ci_arch(bmk.get("hw")) != gpu_arch and not allow_other_hw:
         sys.exit(f"CI run {ci_run} ran on {bmk.get('hw')} ({ci_baseline.ci_arch(bmk.get('hw'))}); this site's GPUs are "
                  f"{gpu_arch}: its image and recipe are not for them. Pick an MI355X/MI350X run (or --allow-other-hw)")
-    agentic = "agentic_" + bmk_art["name"][len("bmk_agentic_"):]
+    known = ci_baseline.known_model_ids(model)
+    if not known:
+        print(f"note: no stored baseline of {model} names its weights; the CI's {bmk.get('model')} is not checked")
+    elif bmk.get("model") not in known:
+        # CI 44550646425 (2026-11-19): a cell named glm5.2 served amd/GLM-5.3-Quark-MXFP4-AttnFP8 (user decision
+        # 2026-11-23: refuse, with an override; a new model gets its own matrix entry)
+        if not allow_other_model:
+            sys.exit(f"CI run {ci_run}: cell {model}/{target} served {bmk.get('model')}, but {model}'s stored baselines "
+                     f"use {sorted(known)}: another model under the same CI name. Add it to config/matrix.yaml as its "
+                     "own model (or --allow-other-model)")
+        print(f"note: --allow-other-model: {model}/{target} runs {bmk.get('model')} (stored baselines: {sorted(known)})")
+    agentic ="agentic_" + bmk_art["name"][len("bmk_agentic_"):]
     agentic_art = next((a for a in arts if a["name"] == agentic and not a["expired"]), None)
     if not agentic_art:
         sys.exit(f"no live {agentic} artifact (needed for the server command)")

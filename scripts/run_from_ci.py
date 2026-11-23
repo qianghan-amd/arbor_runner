@@ -63,7 +63,9 @@ def main():
     ap.add_argument("--exclude-nodes", nargs="*", default=[])
     ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     ap.add_argument("--allow-other-hw", action="store_true", help="launch a CI run of another GPU architecture anyway")
-    ap.add_argument("--partition", help="Slurm partition for this run (e.g. meta64's interactive)")
+    ap.add_argument("--allow-other-model", action="store_true",
+                    help="launch a CI cell whose weights differ from the model's stored baselines anyway")
+    ap.add_argument("--partition",help="Slurm partition for this run (e.g. meta64's interactive)")
     ap.add_argument("--nodelist", help="run on this node (Slurm --nodelist)")
     ap.add_argument("--qos")
     ap.add_argument("--account")
@@ -110,7 +112,7 @@ def main():
 
     # 2. the starting point
     d, rec = make_baseline.draft(model, target, args.ci_run, tp, run_info=run, arts=arts, gpu_arch=arch,
-                                 allow_other_hw=args.allow_other_hw)
+                                 allow_other_hw=args.allow_other_hw, allow_other_model=args.allow_other_model)
     print(f"2. start point {rec['epoch_id']}: image {rec['fingerprint']['image']}@{(rec['fingerprint']['image_digest'] or '')[:19]}, "
           f"model rev {rec['launch']['model_rev'][:10]}; where each field came from: "
           f"{d.relative_to(REPO_ROOT).as_posix()}/review.md")
