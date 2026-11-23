@@ -190,3 +190,24 @@ def test_crusoe_status_normalizes(monkeypatch):
     s = b.status([{"job_id": "1", "remote_dir": "/a"}, {"job_id": "2", "remote_dir": "/b"}, {"job_id": None, "remote_dir": "/c"}])
     assert [x["state"] for x in s] == ["RUNNING", "CANCELLED", "UNKNOWN"]
     assert b.extend({"job_id": "1", "job_minutes": 150}, s[0]) is None          # already has its wall time
+
+
+def test_hold_mode_pieces():
+    # hold job mode (Crusoe hold4-arbor 304634, 2026-11-23): one node of the user's own hold job, through its node agent
+    from arbor_ab.backends import slurm
+    b = crusoe_slurm.CrusoeSlurm(LOCAL, CLUSTER)
+    with pytest.raises(ValueError, match="needs nodelist"):
+        b.job_script("/w/c", "ab-c", 150, options={"hold_job": 304634})
+    with pytest.raises(ValueError, match="needs nodelist"):
+        slurm.hold_options({"hold_job": 304634, "nodelist": "n[1-2]"})
+    assert slurm.hold_options({"hold_job": 304634, "nodelist": "n1"}) == ("304634", "n1")
+    assert slurm.hold_options({"qos": "q"}) is None
+    s = slurm.hold_script("/w/runs/r1/c", 150)
+    assert "timeout --signal=TERM --kill-after=15m 150m bash $d/job.sbatch" in s and "echo $? > $d/hold_exit" in s
+    assert "\r" not in s
+    # every cell of a request goes to the same hold node, or none is sent
+    cells = [{"backend_options": {"hold_job": 1, "nodelist": "n1"}}, {"backend_options": {"qos": "q"}}]
+    ids, err = b.submit(cells)
+    assert ids == [None, None] and "same hold job" in err
+    # extend never touches a hold cell
+    assert b.extend({"job_id": "hold:1:n1", "job_minutes": 999}, {"state": "RUNNING", "time_limit": "1:00:00"}) is None

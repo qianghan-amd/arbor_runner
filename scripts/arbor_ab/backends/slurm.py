@@ -23,9 +23,10 @@ STATE_MAP = {"PENDING": "PENDING", "CONFIGURING": "PENDING", "REQUEUED": "PENDIN
              "CANCELLED": "CANCELLED", "PREEMPTED": "CANCELLED"}
 
 STATUS_PROGRAM = r'''
-import os, subprocess
+import datetime as dt, os, subprocess
 cells = PAYLOAD["cells"]
-ids = [c["job_id"] for c in cells if c["job_id"]]
+ids = [c["job_id"] for c in cells if c["job_id"] and not c["job_id"].startswith("hold:")]
+ids += sorted({c["job_id"].split(":")[1] for c in cells if (c["job_id"] or "").startswith("hold:")})
 def run(cmd):
     return subprocess.run(cmd, capture_output=True, text=True).stdout
 sq = {}
@@ -39,13 +40,37 @@ if ids:
         if len(f) >= 2 and f[0] in ids:
             sq.setdefault(f[0], {"raw": f[1], "elapsed": f[2] if len(f) > 2 else "", "time_limit": f[3] if len(f) > 3 else "",
                                  "node": f[4] if len(f) > 4 else "", "exit_code": f[5] if len(f) > 5 else ""})
+def read(p):
+    return open(p).read().strip() if os.path.exists(p) else None
+def hold_job(c, d, state):
+    """A hold-mode cell's job record, from its ctrl file and its own markers (it has no Slurm job)."""
+    _, j, node = c["job_id"].split(":", 2)
+    ctrl, start, rc = c.get("hold_ctrl") or "", read(f"{d}/hold_start"), read(f"{d}/hold_exit")
+    if os.path.exists(ctrl):
+        raw = "PENDING"                                     # the agent has not picked it up yet
+    elif os.path.exists(ctrl + ".cancelled"):
+        raw = "CANCELLED"
+    elif rc is not None:
+        raw = "COMPLETED" if rc == "0" and state == "done" else "FAILED"
+    elif start and sq.get(j, {}).get("raw", "").startswith("RUNNING"):
+        raw = "RUNNING"
+    else:                                                   # the hold job ended under the cell (or never started it)
+        raw = "FAILED" if start else "PENDING"
+    el = ""
+    if start:
+        s = dt.datetime.fromisoformat(start.replace("Z", "+00:00"))
+        end = dt.datetime.fromtimestamp(os.path.getmtime(f"{d}/hold_exit"), dt.timezone.utc) if rc is not None else dt.datetime.now(dt.timezone.utc)
+        el = str(end - s).split(".")[0]
+    return {"raw": f"{raw} (hold {j})", "elapsed": el, "time_limit": "", "node": read(f"{d}/hold_node") or node,
+            "reason": "", "exit_code": rc or ""}
 out = []
 for c in cells:
     d = c["remote_dir"]
     state = open(f"{d}/state").read().strip() if os.path.exists(f"{d}/state") else None
     done = sorted(f[:-5] for f in os.listdir(f"{d}/phases") if f.endswith(".done")) if os.path.isdir(f"{d}/phases") else []
     tail = open(f"{d}/logs/runner.log", errors="replace").read().splitlines()[-5:] if os.path.exists(f"{d}/logs/runner.log") else []
-    out.append({"job": sq.get(c["job_id"] or "", {}), "runner_state": state, "phases_done": done, "log_tail": tail})
+    job = hold_job(c, d, state) if (c["job_id"] or "").startswith("hold:") else sq.get(c["job_id"] or "", {})
+    out.append({"job": job, "runner_state": state, "phases_done": done, "log_tail": tail})
 print(json.dumps(out))
 '''
 
@@ -151,6 +176,69 @@ else:
 '''
 
 
+# Hold-job mode (backend_options {hold_job, nodelist}): a node of a running "hold" job of one's own, whose node agent
+# runs each ctrl/node<i>/*.sh once on node i (skills/crusoe-arbor-run; Crusoe hold4-arbor 304634, 2026-11-23: the
+# user's hyperloom nodes, shared with other sessions). The cell gets no Slurm job: its job.sbatch runs under the hold
+# job, with the cell's wall time as a hard `timeout`; status comes from the ctrl file and the cell's own markers.
+HOLD_SUBMIT_PROGRAM = r'''
+import datetime as dt, getpass, os, re, subprocess
+j, node = str(PAYLOAD["hold_job"]), PAYLOAD["node"]
+info = subprocess.run(["scontrol", "show", "job", j], capture_output=True, text=True).stdout
+def field(k):
+    m = re.search(rf"(?<![A-Za-z]){k}=(\S+)", info)
+    return m.group(1) if m else None
+root, state, user, end = field("WorkDir"), field("JobState"), field("UserId") or "", field("EndTime")
+problem = None
+if state != "RUNNING":
+    problem = f"hold job {j} is {state or 'not found'}"
+elif not user.startswith(getpass.getuser()):
+    problem = f"hold job {j} belongs to {user}, not {getpass.getuser()}"
+elif not (root and os.path.isfile(f"{root}/NODES") and os.path.isdir(f"{root}/ctrl")):
+    problem = f"hold job {j}: no NODES file and ctrl/ in its WorkDir {root}: not a node-agent hold job"
+nodes = open(f"{root}/NODES").read().split() if not problem else []
+if not problem and node not in nodes:
+    problem = f"node {node} is not in hold job {j} ({' '.join(nodes)})"
+left = None
+if not problem and end:
+    try:
+        left = int((dt.datetime.fromisoformat(end) - dt.datetime.now()).total_seconds() // 60)
+    except ValueError:
+        left = None
+need = max(c["minutes"] for c in PAYLOAD["cells"])
+if not problem and left is not None and left < need:
+    problem = f"hold job {j} ends in {left} min; the cell needs {need} min"
+out = {"problem": problem, "root": root, "left": left, "ids": []}
+if not problem:
+    i = nodes.index(node)
+    for c in PAYLOAD["cells"]:
+        d = f"{root}/ctrl/node{i}"
+        with open(f"{d}/{c['name']}.tmp", "w", newline="\n") as f:
+            f.write(c["script"])
+        os.replace(f"{d}/{c['name']}.tmp", f"{d}/{c['name']}.sh")   # the agent picks up *.sh only: complete or nothing
+        out["ids"].append({"job_id": f"hold:{j}:{node}", "ctrl": f"{d}/{c['name']}.sh"})
+print(json.dumps(out))
+'''
+
+
+def hold_script(cell_dir, minutes):
+    """What the hold job's node agent runs for one cell: the cell's job.sbatch, bounded by its wall time."""
+    return ("#!/bin/bash\n"
+            f"# arbor-ci cell {cell_dir} (scripts/arbor_ab/backends/slurm.py hold mode)\n"
+            f"d={cell_dir}\n"
+            "mkdir -p $d/logs; date -u +%FT%TZ > $d/hold_start; hostname -s > $d/hold_node\n"
+            f"timeout --signal=TERM --kill-after=15m {minutes}m bash $d/job.sbatch > $d/logs/hold.out 2>&1\n"
+            "echo $? > $d/hold_exit\n")
+
+
+def hold_options(opts):
+    """(hold job id, node) from backend_options, or None."""
+    if not (opts or {}).get("hold_job"):
+        return None
+    if not opts.get("nodelist") or "," in opts["nodelist"] or "[" in opts["nodelist"]:
+        raise ValueError("backend_options hold_job needs nodelist: the one node of the hold job to run on")
+    return str(opts["hold_job"]), opts["nodelist"]
+
+
 def to_minutes(limit):
     """Slurm 'D-HH:MM:SS' / 'HH:MM:SS' / 'MM:SS' -> minutes."""
     days, _, rest = limit.partition("-") if "-" in limit else ("0", "", limit)
@@ -221,9 +309,11 @@ class Slurm(Backend):
     def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
         """options (request backend_options): {partition, qos, account} override the site's for this run."""
         opts = options or {}
-        unknown = set(opts) - {"partition", "qos", "account", "nodelist"}
+        unknown = set(opts) - {"partition", "qos", "account", "nodelist", "hold_job"}
         if unknown:
-            raise ValueError(f"slurm backend_options: unknown {sorted(unknown)} (known: partition, qos, account, nodelist)")
+            raise ValueError(f"slurm backend_options: unknown {sorted(unknown)} (known: partition, qos, account, nodelist, "
+                             "hold_job)")
+        hold_options(opts)   # hold_job needs its one node
         part = opts.get("partition", self.partition)
         qos, account = opts.get("qos", self.qos), opts.get("account", self.account)
         # a longer --time than the QOS / partition allows pends forever (QOSMaxWallDurationPerJobLimit, PartitionTimeLimit)
@@ -262,6 +352,21 @@ class Slurm(Backend):
             raise RuntimeError(p.stderr.decode(errors="replace"))
 
     def submit(self, cells):
+        holds = [c for c in cells if hold_options(c.get("backend_options"))]
+        if holds:
+            if len(holds) != len(cells) or len({hold_options(c["backend_options"]) for c in cells}) != 1:
+                return [None] * len(cells), "hold_job: every cell of a request goes to the same hold job and node"
+            j, node = hold_options(cells[0]["backend_options"])
+            r = remote.run_python(self.host, HOLD_SUBMIT_PROGRAM, {"hold_job": j, "node": node, "cells": [
+                {"name": f"ab_{c['remote_dir'].rstrip('/').split('/')[-2]}_{c['cell']}", "minutes": c["job_minutes"],
+                 "script": hold_script(c["remote_dir"], c["job_minutes"])} for c in cells]})
+            if r["problem"]:
+                return [None] * len(cells), f"hold_job: {r['problem']}"
+            for c, got in zip(cells, r["ids"]):
+                c["hold_ctrl"] = got["ctrl"]
+            print(f"hold job {j}: {len(cells)} cell(s) dropped for {node} ({r['left']} min left); its agent starts "
+                  "them within 20 s", flush=True)
+            return [got["job_id"] for got in r["ids"]], None
         script = "".join(f"sbatch --parsable {c['remote_dir']}/job.sbatch || echo FAILED\n" for c in cells)
         p = remote.run_bash(self.host, script)
         out = p.stdout.decode(errors="replace").split()
@@ -309,12 +414,23 @@ class Slurm(Backend):
     def cancel(self, cell):
         if not cell.get("job_id"):
             return "no job id"
+        if cell["job_id"].startswith("hold:"):
+            # not picked up yet: take the ctrl file back; running: stop our runner only (its unique cell path), whose
+            # EXIT trap removes our container. The hold job and other sessions' work are not touched.
+            _, j, node = cell["job_id"].split(":", 2)
+            ctrl = cell.get("hold_ctrl") or ""
+            p = remote.run_bash(self.host, f"if [ -e {ctrl} ]; then mv {ctrl} {ctrl}.cancelled && echo taken-back; else "
+                                f"srun --jobid={j} --overlap -w {node} -N1 -n1 pkill -TERM -f 'runner[.]sh {cell['remote_dir']}$' "
+                                f"&& echo stopped; fi", timeout=180)
+            out = p.stdout.decode(errors="replace")
+            return ("cancelled (not started)" if "taken-back" in out else "cancelled (runner stopped)" if "stopped" in out
+                    else f"cancel failed: {(out + p.stderr.decode(errors='replace')).strip()[-200:]}")
         p = self._ssh("scancel", str(cell["job_id"]))
         return "cancelled" if p.returncode == 0 else f"scancel failed: {p.stderr.decode(errors='replace').strip()[-200:]}"
 
     def extend(self, cell, status):
         """A RUNNING job below the wall time its cell needs gets `scontrol update TimeLimit`."""
-        if status["state"] != "RUNNING" or not status.get("time_limit"):
+        if (cell.get("job_id") or "").startswith("hold:") or status["state"] != "RUNNING" or not status.get("time_limit"):
             return None
         if to_minutes(status["time_limit"]) >= cell["job_minutes"]:
             return None

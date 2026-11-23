@@ -165,7 +165,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
             shutil.copyfile(REPO_ROOT / "scripts" / "runner" / f, cdir / f)
         cells.append({"model": r["model"], "target": r["target"]["key"], "epoch_id": r["epoch_id"], "cell": cell,
                       "remote_dir": rcdir, "container": container, "job_minutes": wall, "job_id": None,
-                      "weights_path": t.get("weights_path")})
+                      "weights_path": t.get("weights_path"), "backend_options": req.get("backend_options")})
 
     run_config = {"schema_version": 1, "run_id": run_id, "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                   "request": req, "request_file": Path(request_file).as_posix(), "commit": commit, "arbor_repo": "AMD-AGI/Arbor",
