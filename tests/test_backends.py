@@ -169,6 +169,7 @@ def test_sites_and_a_cluster_without_qos():
     assert meta.site_name == "meta64" and meta.gpu_type == "mi350x" and meta.run_dir("r1") == "/m/w/runs/r1"
     text = meta.job_script("/m/w/runs/r1/c", "ab-c", 600)[1]
     assert "#SBATCH --partition=meta64" in text and "--qos" not in text and "--account" not in text
+    assert "#SBATCH --nodelist=n7" in meta.job_script("/m/w/c", "ab-c", 60, options={"nodelist": "n7"})[1]
     with pytest.raises(ValueError, match="partition meta64 allows 7200 min"):
         meta.job_script("/m/w/c", "ab-c", 7201)
 

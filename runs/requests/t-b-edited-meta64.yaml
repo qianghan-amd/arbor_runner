@@ -1,0 +1,7 @@
+# Test (2026-11-22): a hand-edited launch record (--max-num-seqs 1 -> 2 in the CI 44689368479 record), smoke on
+# meta64 (Crusoe burst slots were full): the server's cmdline must carry the edit.
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+site: meta64
+targets:
+  - { model: dsv41flash, target: c1_p90, record: runs/requests/t-b-edited.record.json }

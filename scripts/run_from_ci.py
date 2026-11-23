@@ -64,6 +64,7 @@ def main():
     ap.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     ap.add_argument("--allow-other-hw", action="store_true", help="launch a CI run of another GPU architecture anyway")
     ap.add_argument("--partition", help="Slurm partition for this run (e.g. meta64's interactive)")
+    ap.add_argument("--nodelist", help="run on this node (Slurm --nodelist)")
     ap.add_argument("--qos")
     ap.add_argument("--account")
     ap.add_argument("--name", help="request name (default ci<ID>-<model>-<target>-<sha8>)")
@@ -160,6 +161,8 @@ def main():
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
     if args.partition:
         req.setdefault("backend_options", {})["partition"] = args.partition
+    if args.nodelist:
+        req.setdefault("backend_options", {})["nodelist"] = args.nodelist
     rf = REPO_ROOT / "runs" / "requests" / f"{name}.yaml"
     write(rf, f"# run_from_ci.py: InferenceX CI run {args.ci_run} ({run['display_title'][:100]})\n"
               f"# launch: {record.name} (from {d.relative_to(REPO_ROOT).as_posix()}/draft.json; review.md there says where "

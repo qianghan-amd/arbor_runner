@@ -221,9 +221,9 @@ class Slurm(Backend):
     def job_script(self, cell_dir, job_name, minutes, exclude=(), options=None):
         """options (request backend_options): {partition, qos, account} override the site's for this run."""
         opts = options or {}
-        unknown = set(opts) - {"partition", "qos", "account"}
+        unknown = set(opts) - {"partition", "qos", "account", "nodelist"}
         if unknown:
-            raise ValueError(f"slurm backend_options: unknown {sorted(unknown)} (known: partition, qos, account)")
+            raise ValueError(f"slurm backend_options: unknown {sorted(unknown)} (known: partition, qos, account, nodelist)")
         part = opts.get("partition", self.partition)
         qos, account = opts.get("qos", self.qos), opts.get("account", self.account)
         # a longer --time than the QOS / partition allows pends forever (QOSMaxWallDurationPerJobLimit, PartitionTimeLimit)
@@ -239,6 +239,8 @@ class Slurm(Backend):
             lines.append(f"#SBATCH --account={account}")
         if exclude:
             lines.append(f"#SBATCH --exclude={','.join(exclude)}")
+        if opts.get("nodelist"):   # a node of one's choice (a test on a given node's cache, or the node of an earlier run)
+            lines.append(f"#SBATCH --nodelist={opts['nodelist']}")
         lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", f"#SBATCH --time={slurm_time(minutes)}",
                   f"#SBATCH --output={cell_dir}/logs/slurm-%j.out",
                   # Spur does not merge stderr into --output: without --error it goes to $HOME/spur-<job>.out
@@ -265,7 +267,15 @@ class Slurm(Backend):
         out = p.stdout.decode(errors="replace").split()
         ids = [None if (t == "FAILED") else t.split(";")[0] for t in out][:len(cells)]
         ids += [None] * (len(cells) - len(ids))
-        return ids, p.stderr.decode(errors="replace")[-2000:] or None
+        err = p.stderr.decode(errors="replace")[-2000:] or None
+        if not all(ids) and self.qos:
+            # Spur says only "Client specified an invalid argument" when the user's QOS submit limit is reached (burst: 4;
+            # 2026-11-22, the user's other jobs held all 4): say how many jobs this user has in the QOS
+            q = remote.run_bash(self.host, f"squeue -u $(whoami) -h -q {self.qos} | wc -l").stdout.decode().strip()
+            cap = (self.cluster.get("qos_max_submit_per_user") or {}).get(self.qos)
+            err = (err or "") + (f"\nhint: you have {q} job(s) in QOS {self.qos}" + (f" (its submit limit is {cap})" if cap else "")
+                                 + ": at the limit, wait for one to end, or choose another QOS (backend_options)")
+        return ids, err
 
     def status(self, cells):
         raw = remote.run_python(self.host, STATUS_PROGRAM, {"cells": cells})

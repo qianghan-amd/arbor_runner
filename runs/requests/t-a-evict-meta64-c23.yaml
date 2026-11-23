@@ -1,0 +1,13 @@
+# run_from_ci.py: InferenceX CI run 44689368479 (Run Sweep - [AMD][AgentX] DeepSeek-V4.1-Flash MI355X vLLM: rerun the whole curve on the 11-19 nightl)
+# launch: t-a-evict-meta64-c23.record.json (from runs/drafts/dsv41flash__c1_p90__ci44689368479/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 10
+ci_run: '44689368479'
+targets:
+- model: dsv41flash
+  target: c1_p90
+  record: runs/requests/t-a-evict-meta64-c23.record.json
+site: meta64
+backend_options:
+  nodelist: cv350-rck-g03-c23-08

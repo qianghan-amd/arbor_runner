@@ -28,6 +28,8 @@ account_default: amd-hyperloom
 qos_fallback: { qos: amd-agentx-qos, account: amd-agentx }
 # MaxWall per QOS (sacctmgr show qos, 2026-11-20): a longer --time pends forever, so the backend refuses it.
 qos_max_wall_minutes: { amd-burst-qos: 1440, amd-agentx-qos: 2880, amd-hyperloom-qos: 2880 }
+# MaxSubmitPU per QOS (sacctmgr, 2026-11-20): every job of the user counts, not only this project's
+qos_max_submit_per_user: { amd-burst-qos: 4, amd-agentx-qos: 4 }
 # LLM gateway for Arbor's agents (format of the earlier campaigns' gateway.env, verified 2026-11-19). The subscription
 # key itself is never here: scripts/setup_remote.py writes it into <work_root>/secrets/gateway.env (mode 600).
 llm_gateway:
