@@ -9,6 +9,10 @@ partition: meta64               # 68 nodes cv350-rck-g03-*, MaxTime 5-00:00:00, 
 # `interactive` has the same nodes with a 1-day limit; choose it per run with backend_options {partition: interactive}
 partition_max_wall_minutes: { meta64: 7200, interactive: 1440 }
 qos_default: null               # association: account default, QOS normal (the partition's default; MaxSubmitPU 10)
+# Preemption (scontrol show config, 2026-11-23): PreemptType preempt/qos, PreemptMode REQUEUE, JobRequeue 1. A
+# higher QOS can preempt our job; Slurm requeues it, maybe on another node (job 147783: preempted in `after`, rerun on
+# two nodes). The runner then starts the cell over, at most 3 attempts (runner.sh start_over).
+preempt_mode: requeue
 account_default: null
 gpu_type: mi350x                # 8 x AMD Instinct MI350X (gfx950) a node; 384 CPUs; ~3 TB RAM
 gpus_per_node: 8

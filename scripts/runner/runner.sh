@@ -7,7 +7,8 @@
 # modes:  smoke = fetch, prepare, smoke (600 s AgentX + 200 GSM8K questions)
 #         full  = fetch, prepare, before, campaign, after (3600 s AgentX + full GSM8K each side)
 # state:  <cell_dir>/state holds the phase running now, `done`, or `failed:<phase>`; <cell_dir>/phases/<p>.{start,done}
-#         mark each phase, so a re-submitted job resumes after the last finished phase.
+#         mark each phase. A restarted job (requeued after preemption, or re-submitted) does not resume: an unfinished
+#         cell moves its earlier attempt to attempts/<n>/ and starts over (start_over below).
 # output: <cell_dir>/<phase>/{agg.json, bench_output.json, gsm8k.log, phase.json, launch.json, cmdline.txt, ...}
 #
 # Sources (each step's proven original): skills/arbor-ci-campaign-setup/templates/{dl,prepare,ab,campaign}.sh and their
@@ -15,8 +16,8 @@
 # with no result is fatal; the after-launch is Arbor's own live launch (serve_cmd.py), not a hand patch; no HF token in
 # any container; corpus offline-load is a hard gate; arbor check runs first with the same flags as arbor run.
 #
-# Known limit (MVP): the container is removed when the job exits, so a job that dies between `campaign` and `after`
-# loses the kept tree inside it; re-running `after` then needs the session restored (`python3 -m arbor restore`).
+# The container is removed when the job exits, so a job that dies between `campaign` and `after` loses the kept tree
+# inside it: that is one reason a restart starts over.
 set -uo pipefail
 CELL_DIR=${1:?usage: runner.sh <cell_dir>}
 . "$CELL_DIR/cell.env"
@@ -67,6 +68,27 @@ run_phase() {   # run_phase <name> <function> [args...]: skipped when already do
     "$@" || die "phase returned non-zero"
     date -u +%FT%TZ > "$CELL_DIR/phases/$PHASE.done"; log "$PHASE: done"
 }
+
+# A restart cannot resume. meta64 preempts by QOS with PreemptMode=REQUEUE (job 147783, 2026-11-23: preempted in
+# `after`, requeued on two other nodes; `prepare` was skipped as done, so its container did not exist there). The
+# container, and the campaign's kept tree in it, is gone; the node-local cache may be on another node; before and
+# after on two nodes are not apple-to-apple. So an unfinished cell moves its earlier attempt to attempts/<n>/ and
+# starts over, at most MAX_ATTEMPTS times in all.
+ATTEMPT_PATHS="phases before after smoke sessions agent_home arbor campaign_check.json campaign_exit.json logs/campaign.log"
+start_over() {
+    PHASE=restart
+    ls "$CELL_DIR/phases"/*.start >/dev/null 2>&1 || return 0          # first attempt
+    [ "$(cat "$CELL_DIR/state" 2>/dev/null)" = done ] && return 0
+    local n=1 p; while [ -e "$CELL_DIR/attempts/$n" ]; do n=$((n + 1)); done
+    local was; was=$(grep -o 'start on [^ ]*' "$LOGS/runner.log" 2>/dev/null | tail -1 | cut -d' ' -f3)
+    [ "$n" -ge "${MAX_ATTEMPTS:-3}" ] && die "attempt $((n + 1)) of at most ${MAX_ATTEMPTS:-3} (preempted or restarted each time): giving up"
+    mkdir -p "$CELL_DIR/attempts/$n/logs"
+    for p in $ATTEMPT_PATHS; do [ -e "$CELL_DIR/$p" ] && mv "$CELL_DIR/$p" "$CELL_DIR/attempts/$n/$p"; done
+    mkdir -p "$CELL_DIR/phases"
+    log "restart (job ${SLURM_JOB_ID:-none}, restart count ${SLURM_RESTART_COUNT:-?}): attempt $n (on ${was:-?}, stopped" \
+        "in $(cat "$CELL_DIR/state" 2>/dev/null)) moved to attempts/$n/; starting over on $(hostname -s)"
+}
+start_over
 
 # ---- fetch: pinned model / draft / corpus into node-local NVMe ----------------------------------------------------------
 fetch_once() {   # one attempt; fetch.py skips what is already pinned and complete, so a retry resumes
