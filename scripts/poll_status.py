@@ -4,7 +4,8 @@ Usage: python scripts/poll_status.py --run-dir runs/<run_id> [--no-fetch] [--ext
 Per cell: the job's state (normalized: PENDING RUNNING SUCCEEDED FAILED CANCELLED UNKNOWN, plus the scheduler's own
 word), the runner's state file and finished phases, then (unless --no-fetch) the small result files
 (backends.RESULT_FILES) copied into runs/<run_id>/<cell>/. --extend: a running job below the wall time its cell
-needs gets more, where the backend supports it. Writes runs/<run_id>/status.json. Stateless: run it as often as you like.
+needs gets more, where the backend supports it (plain Slurm lets only an operator raise a limit: meta64 refuses;
+the submit already asks for the full time, so this is only for a job whose need grew). Writes runs/<run_id>/status.json. Stateless: run it as often as you like.
 """
 import argparse
 import datetime as dt
@@ -13,6 +14,15 @@ import sys
 from pathlib import Path
 
 from arbor_ab import backends, config
+
+
+def extend_note(result):
+    if not result:
+        return ""
+    if result.startswith("failed"):
+        # plain Slurm lets only an operator raise a time limit (meta64, 2026-11-23: "Access/permission denied")
+        return f" | extend refused ({result}); the job keeps its limit"
+    return f" | extended to {result}"
 
 
 def poll(run_dir, backend=None, fetch=True, extend=False):
@@ -29,7 +39,7 @@ def poll(run_dir, backend=None, fetch=True, extend=False):
         if fetch:
             s["files_fetched"] = backend.fetch(c, run_dir / c["cell"])
         print(f"{s['cell']}: {s['state']} ({s['raw']}) {s['elapsed']} on {s['node']} | runner {s['runner_state']} "
-              f"| done {s['phases_done']}" + (f" | extended to {s['extended_to']}" if s.get("extended_to") else ""), flush=True)
+              f"| done {s['phases_done']}" + extend_note(s.get("extended_to")), flush=True)
     doc = {"run_id": rc["run_id"], "backend": backend.name, "polled_at": dt.datetime.now(dt.timezone.utc).isoformat(),
            "cells": status}
     (run_dir / "status.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8", newline="\n")
