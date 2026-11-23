@@ -1,121 +1,151 @@
-# Arbor A/B test system
+# Arbor CI runner
 
-A regression benchmark for **Arbor itself**: given an Arbor commit, run it on fixed `(model, target)` cells on the
-Crusoe MI355X cluster, re-measure before and after (AgentX replay + GSM8K), and compare with the stored baseline and
-its ceiling. Design: [`docs/design.md`](docs/design.md). Crusoe only.
+Run an Arbor campaign on a GPU cluster, with one command.
 
-## Setup (a fresh clone; nothing else is needed)
+You give two things:
 
-Prerequisites: Python 3.10+, git, ssh access (key login) to each cluster's login node, by its hostname (`local.yaml.example`), a
-node/QOS allocation, gh credentials on a cluster host (for the GitHub API relay), and an LLM gateway key for Arbor's
-agents (only for full runs with a campaign).
+1. an **AgentX CI run** (from InferenceX, Actions, "Run Sweep"): it tells us the model, the docker image, the server
+   flags and the benchmark;
+2. an **Arbor commit**: the Arbor version to test.
 
-1. **Workstation:** `bash scripts/setup_dev.sh`. It makes `.venv` with `requirements.txt`, copies
-   `local.yaml.example` to `local.yaml` (gitignored) and runs the tests. Fill in the `<user>` paths in `local.yaml`.
-2. **Arbor clone:** `git clone https://github.com/AMD-AGI/Arbor ../Arbor` (or set `arbor.clone` in `local.yaml`).
-3. **Cluster:** `.venv/bin/python scripts/setup_remote.py --key-file <file with the gateway key> --test-gateway`.
-   It creates the remote work dirs with the right modes and writes the gateway env file (mode 600). The key never
-   enters the repo, a log or a process argument list. Set `arbor.gateway_env` in `local.yaml` to the path it prints.
-4. **Check:** `.venv/bin/python scripts/check_setup.py`. Every line must be PASS.
+The tool reads the CI run, builds the exact same server launch, finds or downloads the weights, and starts the job on
+the cluster. Everything it decided is saved, so you can check it and run it again.
 
-(On Windows Git Bash the interpreter is `.venv/Scripts/python`.)
+Step-by-step guide: [`docs/how_to_run_a_campaign.md`](docs/how_to_run_a_campaign.md).
 
-## Use
+## Set up (once)
 
-One command for the whole path (submit, wait, report):
+You need: Python 3.10+, git, ssh key login to the cluster login node, and the LLM gateway key (Arbor's agents use it).
 
 ```bash
-.venv/bin/python scripts/run_pr_test.py --request runs/requests/<name>.yaml   # or --run-dir runs/<run_id> to follow one
+bash scripts/setup_dev.sh                       # makes .venv, copies local.yaml.example to local.yaml, runs the tests
+# edit local.yaml: your user name and paths for each cluster (site)
+git clone https://github.com/AMD-AGI/Arbor ../Arbor
+.venv/bin/python scripts/setup_remote.py --site crusoe --key-file <file with the gateway key> --test-gateway
+.venv/bin/python scripts/check_setup.py --site crusoe   # every line must say PASS
 ```
 
-The same steps one at a time:
+On Windows Git Bash, use `.venv/Scripts/python` and put `MSYS_NO_PATHCONV=1` before the command.
+
+## Examples
+
+### 1. Run a campaign from a CI run (the main use)
 
 ```bash
-# 1. write a request (the commit is the PR's head commit)
-cat runs/requests/smoke-dsv41-c1.yaml
-# 2. render it locally and look at runs/<run_id>/ first
-.venv/bin/python scripts/submit_ab_test.py --request runs/requests/smoke-dsv41-c1.yaml --dry-run
-# 3. submit (one job per cell through the execution backend, design.md 5.1; the script exits at once)
-.venv/bin/python scripts/submit_ab_test.py --request runs/requests/smoke-dsv41-c1.yaml
-# 4. poll as often as you like (fetches the small result files)
-.venv/bin/python scripts/poll_status.py --run-dir runs/<run_id>      # --extend: more wall time if needed
-# (stop a run: .venv/bin/python scripts/cancel_run.py --run-dir runs/<run_id>)
-# 5. report: runs/<run_id>/<cell>/comparison.json (verdict stays null: a person reads it)
-.venv/bin/python scripts/generate_report.py --run-dir runs/<run_id>
+.venv/bin/python scripts/run_from_ci.py \
+    --ci-run https://github.com/SemiAnalysisAI/InferenceX/actions/runs/44689368479 \
+    --arbor-commit 020767ac02a7bfad05a37f8ad7fb09419e529584
 ```
 
-Modes: `campaign` (the default: fetch, prepare, an Arbor campaign of `campaign_minutes`; no measurement of our own),
-`full` (before, campaign, after: the A/B measurement) and `smoke` (one 600 s AgentX measurement, no campaign). GSM8K
-runs only with `gsm8k: true` in the request. Step by step, in easy English: [`docs/how_to_run_a_campaign.md`](docs/how_to_run_a_campaign.md). Which cells can run: `render.check_runnable` (see `scripts/check_setup.py` output).
+This starts an 8-hour Arbor campaign. The CI run can be a URL or just the number. If the CI run measured more than one
+of our cells, the tool lists them; then add `--target c1_p90` (and `--tp 4` if needed).
 
-### A node left dirty by someone else (optional `exclude_nodes`)
+### 2. Look before you launch
 
-The runner refuses a node where a GPU is already in use (a foreign server would disturb the measurement); its log
-names the node and the other containers (never touched). Resubmit with that node excluded:
-
-```yaml
-exclude_nodes: [crsuse2-m2m-v3-177]
+```bash
+.venv/bin/python scripts/run_from_ci.py --ci-run 44689368479 --arbor-commit <sha> --dry-run
 ```
 
-### Choosing the QOS per run (optional `backend_options`)
+Nothing is sent. It prints the cell, the image, the weights and the request file it wrote. Read
+`runs/drafts/<cell>__ci<id>/review.md` to see where each value came from.
 
-Backend-specific settings for one run, recorded in `run_config.json`. For `crusoe_slurm`, `qos` and `account`
-override `local.yaml`:
+### 3. Pick the cluster
 
-```yaml
-backend_options: { qos: amd-burst-qos, account: amd-hyperloom }
+```bash
+--site crusoe     # MI355X, burst QOS (the default site)
+--site meta64     # MI350X
 ```
 
-`amd-burst-qos` has a 24 h wall and preempt mode "cancel": fine for smoke runs and short campaigns.
+Sites are in `local.yaml`. Other options: `--qos`, `--partition`, `--nodelist`, `--exclude-nodes`.
 
-### Pre-downloaded weights (optional)
+### 4. Pick what to run
 
-When the served model's weights already sit on the node or on shared storage, skip the download per target:
+```bash
+--mode campaign                                    # default: Arbor campaign only
+--mode full                                        # measure before, campaign, measure after: the A/B result
+--mode smoke                                       # one short measurement, no campaign: "does it start?"
+--mode campaign_smoke --campaign-minutes 15        # a short campaign: "does Arbor start?"
+--campaign-minutes 480                             # campaign length (default 480)
+--gsm8k                                            # add the GSM8K accuracy check (off by default)
+```
+
+### 5. Watch, stop, and get the report
+
+```bash
+.venv/bin/python scripts/poll_status.py --run-dir runs/<run_id>       # state, finished phases, fetches results
+.venv/bin/python scripts/cancel_run.py --run-dir runs/<run_id>        # stop it (your own job only)
+.venv/bin/python scripts/generate_report.py --run-dir runs/<run_id>   # the report
+```
+
+Or add `--follow` to `run_from_ci.py`: it waits for the job and prints the report.
+
+### 6. Run from a launch file instead of a CI run
+
+`run_from_ci.py` saves the full launch as `runs/requests/<name>.record.json` and a request that points to it. You can
+edit the record (for example one server flag) and run the request again:
 
 ```yaml
+# runs/requests/my-test.yaml
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: smoke
+site: meta64
 targets:
-  - { model: dsv41flash, target: c1_p90, weights_path: /shared_nfs/<you>/models/DeepSeek-V4.1-Flash/<rev> }
+  - { model: dsv41flash, target: c1_p90, record: runs/requests/my-test.record.json }
 ```
-
-- `weights_path` is an absolute path, as the node sees it, to a directory holding the model files
-  (`config.json`, `model.safetensors.index.json`, the shards). An HF hub snapshot works directly, e.g. the shared hub's
-  `/shared_nfs/huggingface/hub/models--<org>--<name>/snapshots/<pinned rev>` (its shards are links into `../../blobs`;
-  the runner mounts the whole `models--<org>--<name>` entry). On Crusoe the shared hub holds the pinned weights of
-  DSv4.1 Flash, Kimi K3, MiniMax M3.1 Flash and GLM-5.2 (not Muse Spark; checked 2026-11-19). Without it, nothing changes: the weights are downloaded
-  at the baseline's pinned revision.
-- The weights must be the **pinned** ones: the runner downloads only `config.json` and `model.safetensors.index.json`
-  at the pinned revision and requires both to be byte-identical to yours, and every indexed shard to exist; otherwise
-  the run fails. The launch does not change (the pinned hub entry is linked to your path; it is mounted read-only).
-- Every run records where the weights came from: `runs/<run_id>/<cell>/weights.json` and the `weights` block of
-  `comparison.json` (`weights_source: downloaded | user_path`, the path, the pinned revision, the two files' sha256).
-  If the pinned weights are already on the node, they are used and recorded as `downloaded`, with a note.
-
-New baseline from an InferenceX CI run (vLLM or SGLang; measured on the baseline site, Crusoe; docs/make_baseline_design.md):
 
 ```bash
-.venv/bin/python scripts/make_baseline.py draft --model dsv41flash --target c1_p90 --ci-run 34657748450
-#   read runs/drafts/<...>/review.md: confirm each `copied` (env, launch) and `derived` (corpus rev, digest) row
-.venv/bin/python scripts/make_baseline.py measure --draft runs/drafts/<...> --arbor-commit <sha> [--gsm8k]
-.venv/bin/python scripts/make_baseline.py finalize --draft runs/drafts/<...> --run-dir runs/<run_id>   # stores only on gate pass
+.venv/bin/python scripts/submit_ab_test.py --request runs/requests/my-test.yaml
 ```
 
-Baselines: `scripts/verify_baseline.py` (two-layer gate against the InferenceX CI artifacts) and
-`scripts/check_baseline_health.py` (CI artifact, image digest/tag, mirror). Evidence behind every number:
-[`evidence/README.md`](evidence/README.md).
+### 7. Weights
 
-## Layout
+```bash
+--weights-path auto     # default: the shared hub if it has every file, else the job downloads them
+--weights-path /path    # your own copy (it must match the pinned revision)
+--weights-path none     # always download
+```
+
+The job keeps a cache on the node's local disk and removes your oldest models when space is low.
+
+## What the tool refuses, and why
+
+It stops early, with a clear message, instead of running a bad test:
+
+| Case | Why |
+|---|---|
+| The CI ran on NVIDIA or MI300/MI325 | its image and flags are not for our GPUs (`--allow-other-hw` to force) |
+| The CI cell serves other weights than our baselines (e.g. a `glm5.2` cell that serves GLM-5.3) | it is another model (`--allow-other-model` to force) |
+| The CI used `atom`, `tokenspeed` or a multi-node setup | only single-node vLLM and SGLang are supported |
+| Our launch does not match the args the CI server printed | the CI format may have changed |
+| The CI's docker image is gone from the registry | we cannot get the same image (pick a newer CI run) |
+| The node disk has no room, or a GPU on the node is busy | resubmit; for a busy node add `--exclude-nodes <node>` |
+
+During a run, the job stops the campaign at its time budget, removes its own containers at the end (also after a
+kill), and frees the GPUs.
+
+## Clusters
+
+| Site | GPUs | Notes |
+|---|---|---|
+| `crusoe` | MI355X | default; burst QOS (24 h, can be preempted); baselines are measured only here |
+| `meta64` | MI350X | runner only (no baselines); partitions `meta64` (5 days) and `interactive` (1 day) |
+
+Tested setups and the bugs they found: [`docs/runner_test_matrix.md`](docs/runner_test_matrix.md).
+
+## For maintainers
+
+- New baseline from a CI run (Crusoe only): `scripts/make_baseline.py draft | measure | finalize`
+  ([`docs/make_baseline_design.md`](docs/make_baseline_design.md)).
+- Design: [`docs/design.md`](docs/design.md). Every number in `baselines/` traces to a file in `evidence/`.
 
 | Path | What |
 |---|---|
-| `config/` | matrix (cells, tolerances), per-model facts, cluster facts (QOS, scheduler, gateway format) |
-| `schemas/baseline.schema.json` | the baseline record (v2) |
-| `baselines/<model>/<target>/` | one record per epoch + `latest.json` |
-| `evidence/` | raw ground truth the baselines were built from |
-| `scripts/` | CLIs; `scripts/arbor_ab/` the shared library; `scripts/arbor_ab/backends/` where jobs run (design.md 5.1); `scripts/runner/` what runs on the node |
-| `runs/requests/` | request files (tracked); `runs/<run_id>/` local run dirs (ignored; commit results with `git add -f`) |
-| `skills/` | the two campaign skills the runner was built from |
+| `config/` | models and targets (`matrix.yaml`), cluster facts |
+| `baselines/` | stored baselines (one record per model, target and epoch) |
+| `scripts/` | the commands; `scripts/arbor_ab/` the library; `scripts/runner/` what runs on the node |
+| `runs/requests/` | request files; `runs/<run_id>/` local run folders (not in git) |
 
 ## Contributing
 
-`CLAUDE.md` holds the rules for agents and people. Run `python -m pytest -q tests` before you commit. The team repo is
-`AMD-BRAIN-Internal/arbor-ci` (branch `main`); never force-push.
+Rules for people and agents: [`CLAUDE.md`](CLAUDE.md). Run `python -m pytest -q tests` before each commit. Team repo:
+`AMD-BRAIN-Internal/arbor-ci`, branch `main`. Never force-push.
