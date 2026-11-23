@@ -1,0 +1,12 @@
+# run_from_ci.py: InferenceX CI run 44550646425 (Run Sweep - [AMD][AgentX] run the GLM-5.2 MI355X DCP4 arm on HiCache, on the 20261117 daily image / )
+# launch: dry-44550646425-c16_tput.record.json (from runs/drafts/glm52__c16_tput__ci44550646425/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 480
+ci_run: '44550646425'
+targets:
+- model: glm52
+  target: c16_tput
+  record: runs/requests/dry-44550646425-c16_tput.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--amd--GLM-5.3-Quark-MXFP4-AttnFP8/snapshots/ff022d187ae21f34bee12b44a14f9155fcd1bba6
+site: crusoe

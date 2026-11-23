@@ -12,6 +12,7 @@ commit before the run). Copied from the template (the same model's stored baseli
 loader, workspace paths) and the node-side launch fields.
 """
 import copy
+import json
 import re
 import shlex
 
@@ -334,6 +335,53 @@ GENERIC_BENCH_KEYS = {"AIPERF_DATASET_MMAP_CACHE_DIR", "AIPERF_HTTP_TCP_USER_TIM
                       "RUNNER_TYPE", "SPEC_DECODING", "TOTAL_CPU_DRAM_GB", "TP", "WEKA_LOADER_OVERRIDE", "AGENTX_TOKENIZER"}
 
 
+KV_BACKEND_KEYS = ("KV_OFFLOAD_BACKEND", "KV_OFFLOAD_BACKEND_METADATA", "TOTAL_CPU_DRAM_GB")
+
+
+def point_kv_and_parallel(env, bmk):
+    """KV offload and parallel sizes of the CI point, from its bmk JSON, never the template's (in place).
+    InferenceX's aggregation exits when KV_OFFLOADING=none comes with a KV_OFFLOAD_BACKEND (meta64 147755, 2026-11-23:
+    GLM-5.2 CI point kv none, template baseline dram + hicache: refused after a 77-min benchmark)."""
+    mode, backend = bmk.get("kv_offloading"), bmk.get("kv_offload_backend")
+    if mode == "none":
+        for k in KV_BACKEND_KEYS:      # TOTAL_CPU_DRAM_GB: read only with dram offload
+            env.pop(k, None)
+    elif mode and backend:
+        if env.get("KV_OFFLOAD_BACKEND") != backend:
+            env["KV_OFFLOAD_BACKEND_METADATA"] = json.dumps({"name": backend}, separators=(",", ":"))
+        env["KV_OFFLOAD_BACKEND"] = backend
+        if bmk.get("allocated_cpu_dram_gb"):
+            env["TOTAL_CPU_DRAM_GB"] = str(bmk["allocated_cpu_dram_gb"])
+    for key, field in (("PP_SIZE", "pp"), ("DCP_SIZE", "dcp_size"), ("PCP_SIZE", "pcp_size")):
+        if bmk.get(field) is not None:
+            env[key] = str(bmk[field])
+    problem = kv_env_problem(env)
+    if problem:
+        raise ValueError(f"bench env from CI point: {problem}")
+
+
+def kv_env_problem(env, strict=True):
+    """InferenceX's KV offload env rule (infx/results/agentic/__init__.py _validate_kv_offload_env); None = ok.
+    strict=False: only "none with a backend" (the older lib layout measured dram + hicache with no _METADATA:
+    baselines/glm52/c16_tput d204ac0de2)."""
+    mode = env.get("KV_OFFLOADING")
+    if mode is None:
+        return None
+    has_backend = bool(env.get("KV_OFFLOAD_BACKEND")) or env.get("KV_OFFLOAD_BACKEND_METADATA") is not None
+    if mode == "none":
+        return "KV_OFFLOAD_BACKEND must be empty when KV_OFFLOADING=none" if has_backend else None
+    if not strict:
+        return None
+    backend = env.get("KV_OFFLOAD_BACKEND")
+    if not backend or backend == "none" or env.get("KV_OFFLOAD_BACKEND_METADATA") is None:
+        return f"KV_OFFLOAD_BACKEND is required when KV_OFFLOADING={mode}"
+    try:
+        name = json.loads(env["KV_OFFLOAD_BACKEND_METADATA"]).get("name")
+    except (ValueError, AttributeError):
+        return "KV_OFFLOAD_BACKEND_METADATA is not a JSON object"
+    return None if name == backend else "KV_OFFLOAD_BACKEND must match KV_OFFLOAD_BACKEND_METADATA.name"
+
+
 def template_record(model, target, framework=None):
     """The stored baseline whose launch layout (framework install path, editable packages, GSM8K tool) a draft copies.
     In order: the same model (same target first) with the CI's framework; else another model with that framework
@@ -384,6 +432,7 @@ def build_draft(model, tgt, run, bmk_name, bmk, cmd, model_rev, corpus_id, corpu
         derived = {"AGENTX_TOKENIZER": cmd["model"], "WEKA_LOADER_OVERRIDE": (bmk.get("dataset") or {}).get("loader"),
                    "RUNNER_TYPE": hw or None}
         env.update({k: v for k, v in derived.items() if v and (k in env or k != "AGENTX_TOKENIZER")})
+    point_kv_and_parallel(env, bmk)
     for k, v in CONTAINER_BENCH_ENV.items():   # the container's own paths, whatever the template had
         env.setdefault(k, v)
     tp = cmd["tp"] or bmk.get("tp")

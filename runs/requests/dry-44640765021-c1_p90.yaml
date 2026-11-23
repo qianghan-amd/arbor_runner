@@ -1,0 +1,12 @@
+# run_from_ci.py: InferenceX CI run 44640765021 (Run Sweep - perf(amd): Kimi-K3.1 MI355X vLLM AgentX: released DSpark draft, prefix-match-unit 1152, )
+# launch: dry-44640765021-c1_p90.record.json (from runs/drafts/kimik31pro__c1_p90__ci44640765021/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 020767ac02a7bfad05a37f8ad7fb09419e529584
+mode: campaign_smoke
+campaign_minutes: 480
+ci_run: '44640765021'
+targets:
+- model: kimik31pro
+  target: c1_p90
+  record: runs/requests/dry-44640765021-c1_p90.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--moonshotai--Kimi-K3.1-Pro/snapshots/d9e99b0792a5e93b78ea9bea62a68167e36ddd9e
+site: crusoe

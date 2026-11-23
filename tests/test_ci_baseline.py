@@ -155,3 +155,32 @@ def test_vllm_draft_from_speculative_config():
     assert ci_baseline.vllm_draft("--speculative-config '{\"method\": \"dspark\", \"num_speculative_tokens\": 5}'") is None
     assert ci_baseline.vllm_draft("--speculative-config '{\"model\": \"/local/draft\"}'") is None
     assert ci_baseline.vllm_draft("--max-num-seqs 2") is None
+
+
+def test_point_kv_and_parallel_from_ci_not_template():
+    # meta64 147755: CI point kv none, template (stored GLM-5.2 baseline) dram + hicache -> AgentX aggregation refused
+    tpl = {"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache", "KV_OFFLOAD_BACKEND_METADATA": '{"name":"hicache"}',
+           "TOTAL_CPU_DRAM_GB": "1199", "TP": "4"}
+    env = dict(tpl, KV_OFFLOADING="none")
+    ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "none", "kv_offload_backend": None, "pp": 1, "dcp_size": 4,
+                                            "pcp_size": 1})
+    assert env == {"KV_OFFLOADING": "none", "TP": "4", "PP_SIZE": "1", "DCP_SIZE": "4", "PCP_SIZE": "1"}
+    env = {"KV_OFFLOADING": "dram"}
+    ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "dram", "kv_offload_backend": "lmcache",
+                                            "allocated_cpu_dram_gb": 800})
+    assert env["KV_OFFLOAD_BACKEND"] == "lmcache" and env["TOTAL_CPU_DRAM_GB"] == "800"
+    assert ci_baseline.kv_env_problem(env) is None
+    env = dict(tpl)   # same backend as the template: its metadata kept
+    ci_baseline.point_kv_and_parallel(env, {"kv_offloading": "dram", "kv_offload_backend": "hicache"})
+    assert env["KV_OFFLOAD_BACKEND_METADATA"] == '{"name":"hicache"}'
+    with pytest.raises(ValueError, match="required"):   # dram in the CI, but no backend named anywhere
+        ci_baseline.point_kv_and_parallel({"KV_OFFLOADING": "dram"}, {"kv_offloading": "dram"})
+
+
+def test_kv_env_problem():
+    assert ci_baseline.kv_env_problem({}) is None
+    assert ci_baseline.kv_env_problem({"KV_OFFLOADING": "none"}) is None
+    assert "must be empty" in ci_baseline.kv_env_problem({"KV_OFFLOADING": "none", "KV_OFFLOAD_BACKEND": "hicache"})
+    assert ci_baseline.kv_env_problem({"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache"}, strict=False) is None
+    assert "must match" in ci_baseline.kv_env_problem({"KV_OFFLOADING": "dram", "KV_OFFLOAD_BACKEND": "hicache",
+                                                       "KV_OFFLOAD_BACKEND_METADATA": '{"name":"lmcache"}'})

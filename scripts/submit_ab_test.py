@@ -35,7 +35,7 @@ from pathlib import Path
 
 import yaml
 
-from arbor_ab import REPO_ROOT, backends, baseline, config, render
+from arbor_ab import REPO_ROOT, backends, baseline, ci_baseline, config, render
 
 RUNNER_FILES = ("runner.sh", "serve_cmd.py", "fetch.py")
 SHELL_EXT = (".sh", ".bash", ".sbatch")
@@ -93,6 +93,9 @@ def load_record_file(t):
     why = [f"record {t['record']}: {e}" for e in baseline.validation_errors(r)]
     if not why and (r["model"], r["target"]["key"]) != (t["model"], t["target"]):
         why.append(f"record {t['record']} is for {r['model']}/{r['target']['key']}, the target says {t['model']}/{t['target']}")
+    kv = None if why else ci_baseline.kv_env_problem(r["host"].get("server_env") or {}, strict=False)
+    if kv:   # AgentX's aggregation would refuse it only after the whole benchmark
+        why.append(f"record {t['record']}: host.server_env: {kv}")
     if not why and r["epoch_id"] != baseline.derive_epoch_id(r):   # a hand edit of the image or CI fields
         print(f"note: {t['record']}: epoch_id {r['epoch_id']} does not match its fingerprint; using "
               f"{baseline.derive_epoch_id(r)}")
