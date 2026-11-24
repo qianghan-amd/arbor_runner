@@ -464,16 +464,16 @@ campaign_env() {   # what Arbor's driver and agents run with (skills/legacy/crus
     # the config lives in the cell dir, outside the Arbor tree: without ARBOR_ROOT, Arbor looks for
     # <config dir>/packs/agentx and refuses the start (arbor/cli/iterate.py _find_arbor_root; seen in a P6 preview)
     export ARBOR_ROOT=$ARBOR
-    # One process (standalone), not Arbor's launcher. Since arbor.host 2.59 (Arbor bdd3bc6, 2026-11-19) `arbor run`
-    # starts a launcher that runs the campaign in component mode. Job 302466 (Arbor 020767ac, the first run under it):
-    # every process of the job died at once 25 min in, mid root-baseline bench, with no log line and no exit record;
-    # cause not found (no OOM; not the PID-file stop, which is a no-op with a named container). Reported:
-    # boards/ArborDevelopment#74. All our runs that worked were in one process. ARBOR_STANDALONE=1 is kept "for one
-    # release" (bdd3bc6); the runner's own timeout bounds the time either way.
-    if [ "${ARBOR_LAUNCHER:-0}" = 1 ]; then
-        unset ARBOR_STANDALONE; log "campaign: Arbor under its launcher (request arbor_launcher; #74 test)"
+    # Arbor's launcher (its default since arbor.host 2.59, Arbor bdd3bc6), unless the request asks for one process.
+    # Job 302466 died silently under it once (25 min in, mid root-baseline bench; boards/ArborDevelopment#74). The
+    # 2026-11-24 test runs on Arbor 7c211696 did not repeat it: meta64 149931 and Crusoe 308827 (/shared_nfs) passed
+    # the root-baseline bench and ended by their deadline, rc 0; #74 closed as not reproduced, the one-process guard
+    # removed (agreed on the board). The node-local logs (NL_LOG) stay, so a repeat leaves a trace.
+    # ARBOR_STANDALONE=1 (request arbor_standalone) is kept by Arbor "for one release" only.
+    if [ "${ARBOR_LAUNCHER:-1}" = 1 ]; then
+        unset ARBOR_STANDALONE; log "campaign: Arbor under its launcher"
     else
-        export ARBOR_STANDALONE=1
+        export ARBOR_STANDALONE=1; log "campaign: Arbor in one process (request arbor_standalone)"
     fi
     mkdir -p "$HOME/.claude" && printf '{"env": {"BASH_DEFAULT_TIMEOUT_MS": "7200000", "BASH_MAX_TIMEOUT_MS": "7200000"}}\n' > "$HOME/.claude/settings.json"
     export BASH_DEFAULT_TIMEOUT_MS=7200000 BASH_MAX_TIMEOUT_MS=7200000
@@ -491,7 +491,7 @@ arbor_check() {   # Arbor's AGENTS.md: check first; exit 2 refuses; nothing may 
     arbor_flags
     (cd "$ARBOR" && "$PY" -m arbor check "${ARBOR_FLAGS[@]}") > "$CELL_DIR/campaign_check.json" 2> "$LOGS/campaign_check.err"
     local rc=$?
-    "$PY" - "$CELL_DIR/campaign_check.json" "$rc" "${ALLOW_LACKS:-0}" "${ARBOR_LAUNCHER:-0}" <<'PY' | tee -a "$LOGS/runner.log" || return 1
+    "$PY" - "$CELL_DIR/campaign_check.json" "$rc" "${ALLOW_LACKS:-0}" "${ARBOR_LAUNCHER:-1}" <<'PY' | tee -a "$LOGS/runner.log" || return 1
 import json, sys
 doc = json.load(open(sys.argv[1])); rc = int(sys.argv[2]); allow_lacks = sys.argv[3] == "1"; launcher = sys.argv[4] == "1"
 lacks = (doc.get("makeup") or {}).get("lacks") or []
@@ -500,7 +500,7 @@ print(f"[runner] arbor check rc={rc} ok={doc.get('ok')} refused={doc.get('refuse
       f"lacks={lacks} warnings={len(doc.get('warnings') or [])} runs_under={ru}")
 for w in doc.get("warnings") or []:
     print(f"[runner] arbor check warning: {w}")
-if ru not in (None, "process") and not launcher:   # a launcher / host run only when the request asks (arbor_launcher)
+if ru not in (None, "process") and not launcher:   # the request asked for one process (arbor_standalone)
     print(f"[runner] arbor would run under {ru!r}, not in one process: refused")
     sys.exit(1)
 sys.exit(0 if rc == 0 and doc.get("ok") and not doc.get("waits") and (allow_lacks or not lacks) else 1)

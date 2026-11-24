@@ -94,7 +94,7 @@ def opt_objective(record):
 
 
 def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None,
-             skip_gsm8k=False, arbor_launcher=False):
+             skip_gsm8k=False, arbor_launcher=True):
     """Shell variables for scripts/runner/runner.sh (written as cell.env). weights_path: optional pre-downloaded weights
     of the served model on the node (request `weights_path`); fetch.py checks them against the pin and links them."""
     h, lau, fp = record["host"], record["launch"], record["fingerprint"]
@@ -121,8 +121,8 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         "CAMPAIGN_MINUTES": str(minutes), "OPT_OBJECTIVE": opt_objective(record) or "",
         "GATEWAY_ENV": site.get("gateway_env") or "",
         "WEIGHTS_PATH": weights_path or "",
-        # request `arbor_launcher: true`: `arbor run` under Arbor's launcher (ARBOR_STANDALONE unset), not in one
-        # process (boards/ArborDevelopment#74: the test run decided 2026-11-24); default one process
+        # `arbor run` under Arbor's launcher (its default; #74 closed 2026-11-24, not reproduced); request
+        # `arbor_standalone: true`: one process (ARBOR_STANDALONE=1, kept by Arbor for one release)
         "ARBOR_LAUNCHER": "1" if arbor_launcher else "0",
     }
 

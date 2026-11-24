@@ -46,7 +46,7 @@ If the CI run measured several cells, it lists them: add `--target` (and `--tp`)
 | Cluster | `--site crusoe` (MI355X, default, burst QOS) or `--site meta64` (MI350X, runner only) |
 | Scheduler | `--qos`, `--account`, `--partition` (meta64: `meta64` or `interactive`), `--nodelist`, `--exclude-nodes` |
 | Own hold job | `--hold-job <job id> --nodelist <node>` (a job of yours whose node agent runs `ctrl/node<i>/*.sh`) |
-| Arbor's launcher | `--arbor-launcher`: only for the #74 test; the default runs Arbor in one process |
+| Arbor in one process | `--arbor-standalone` (ARBOR_STANDALONE=1); the default runs Arbor under its launcher |
 | Mode | `--mode campaign` (default), `full` (before, campaign, after), `smoke`, `campaign_smoke` |
 | Length | `--campaign-minutes` (default 480); `--gsm8k` adds the accuracy check |
 | Weights | `--weights-path auto` (default), `none`, or an absolute path at the pinned revision |

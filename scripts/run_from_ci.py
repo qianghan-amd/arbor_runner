@@ -68,8 +68,8 @@ def main():
     ap.add_argument("--partition",help="Slurm partition for this run (e.g. meta64's interactive)")
     ap.add_argument("--nodelist", help="run on this node (Slurm --nodelist)")
     ap.add_argument("--hold-job", help="run on a free node of your own running hold job (its node agent; needs --nodelist)")
-    ap.add_argument("--arbor-launcher", action="store_true",
-                    help="run Arbor under its launcher (ARBOR_STANDALONE unset), not in one process (#74 test)")
+    ap.add_argument("--arbor-standalone", action="store_true",
+                    help="run Arbor in one process (ARBOR_STANDALONE=1) instead of under its launcher (the default)")
     ap.add_argument("--qos")
     ap.add_argument("--account")
     ap.add_argument("--name", help="request name (default ci<ID>-<model>-<target>-<sha8>)")
@@ -168,8 +168,8 @@ def main():
         req.setdefault("backend_options", {})["partition"] = args.partition
     if args.nodelist:
         req.setdefault("backend_options", {})["nodelist"] = args.nodelist
-    if args.arbor_launcher:
-        req["arbor_launcher"] = True
+    if args.arbor_standalone:
+        req["arbor_standalone"] = True
     if args.hold_job:
         req.setdefault("backend_options", {})["hold_job"] = args.hold_job
     rf = REPO_ROOT / "runs" / "requests" / f"{name}.yaml"

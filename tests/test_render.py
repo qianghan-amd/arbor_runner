@@ -67,3 +67,11 @@ def test_archive_crlf_refuses_shell_only(tmp_path):
                         "x.py": b"print(1)\r\n", "ok.sh": b"echo ok\n", "bin.dat": b"\0\r\n"}).read())
     bad, other = submit_ab_test.archive_crlf_files(p)
     assert sorted(bad) == ["run.sh", "tool"] and sorted(other) == ["doc.md", "x.py"]
+
+
+def test_arbor_launcher_is_default():
+    # #74 closed 2026-11-24 (not reproduced): Arbor runs under its launcher unless the request asks arbor_standalone
+    r = baseline.load_latest("dsv41flash", "c1_p90")
+    args = (r, "20261124-000000_7c211696_t", "7c211696", "campaign", "/w/c", "ab_c", 90, SITE, "/w/a.tar", "ab" * 32)
+    assert render.cell_env(*args)["ARBOR_LAUNCHER"] == "1"
+    assert render.cell_env(*args, arbor_launcher=False)["ARBOR_LAUNCHER"] == "0"
