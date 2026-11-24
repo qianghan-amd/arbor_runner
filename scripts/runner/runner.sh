@@ -507,8 +507,23 @@ sys.exit(0 if rc == 0 and doc.get("ok") and not doc.get("waits") and (allow_lack
 PY
 }
 
+analysis_extras() {   # ruppell's analysis side needs duckdb and pyarrow, which the CI images lack
+    # #74 c10021 (jiawei): each campaign's first measure turn spent time installing them (meta64 149931: the agent's
+    # `import duckdb` failed, its editable install failed, it pip-installed both). The user approved (2026-11-24) the
+    # install here: after the pristine `before` measurement (the baseline stays on CI's image as shipped), before the
+    # campaign, --no-deps so no installed package moves; the versions go into runner.log, so the `after` phase's extra
+    # packages are on record. A failure is logged, not fatal: the agent can still install them itself.
+    local out
+    if out=$(in_c 'python3 -m pip install --retries 5 -q --no-deps "duckdb>=2.0" pyarrow >/tmp/analysis_extras.log 2>&1 && python3 -c "import duckdb, pyarrow; print(\"duckdb\", duckdb.__version__, \"pyarrow\", pyarrow.__version__)"'); then
+        log "campaign: analysis extras installed in the container (--no-deps): $out"
+    else
+        log "campaign: analysis extras NOT installed (pip failed; Arbor's agent may install them): $(in_c 'tail -2 /tmp/analysis_extras.log' 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
+    fi
+}
+
 campaign() {
     campaign_env || return 1
+    analysis_extras
     arbor_check || return 1                     # again, right before the start, with the run's own flags
     arbor_flags
     # Arbor checks time_budget_minutes only before an iteration starts, and a standalone agent turn may run 240 min
