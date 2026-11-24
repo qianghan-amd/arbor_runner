@@ -11,7 +11,7 @@
 #         cell moves its earlier attempt to attempts/<n>/ and starts over (start_over below).
 # output: <cell_dir>/<phase>/{agg.json, bench_output.json, gsm8k.log, phase.json, launch.json, cmdline.txt, ...}
 #
-# Sources (each step's proven original): skills/arbor-ci-campaign-setup/templates/{dl,prepare,ab,campaign}.sh and their
+# Sources (each step's proven original): skills/legacy/arbor-ci-campaign-setup/templates/{dl,prepare,ab,campaign}.sh and their
 # filled versions for dsv41f-c1-p90-sa2 / musespark-c16-ab (evidence/2026-11-19_0830_launch). Fixes over those: GSM8K
 # with no result is fatal; the after-launch is Arbor's own live launch (serve_cmd.py), not a hand patch; no HF token in
 # any container; corpus offline-load is a hard gate; arbor check runs first with the same flags as arbor run.
@@ -452,7 +452,7 @@ PY
 }
 
 # ---- campaign: Arbor under test, unattended (design.md section 7) ---------------------------------------------------
-campaign_env() {   # what Arbor's driver and agents run with (the crusoe-arbor-run skill, section 2)
+campaign_env() {   # what Arbor's driver and agents run with (skills/legacy/crusoe-arbor-run, section 2)
     [ -n "$GATEWAY_ENV" ] && [ -f "$GATEWAY_ENV" ] || { log "no LLM gateway env file configured (local.yaml arbor.gateway_env)"; return 1; }
     export HOME=$CELL_DIR/agent_home              # pins ~/.arbor/settings.env and the agents' ~/.claude
     # the config lives in the cell dir, outside the Arbor tree: without ARBOR_ROOT, Arbor looks for

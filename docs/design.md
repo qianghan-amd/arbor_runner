@@ -187,8 +187,8 @@ arbor-ab/
 │   └── cluster/crusoe.yaml        # QOS names, node naming, ssh alias (isolated for future clusters)
 ├── local.yaml.example             # template for the user's own ssh/github-token config (gitignored when filled in)
 ├── skills/
-│   ├── arbor-ci-campaign-setup/   # vendored, not a global-skill dependency
-│   └── crusoe-arbor-run/          # vendored
+│   ├── arbor-ci-run/              # the agent skill: set up, run, watch, triage (copy in .claude/skills/)
+│   └── legacy/                    # the manual-method skills the runner was built from (record of origin)
 ├── scripts/                       # (as built, 2026-11-19)
 │   ├── runner/                    # the backend-neutral job payload: runner.sh (all phases of one cell),
 │   │                              #   serve_cmd.py (launch rendered by the Arbor under test), fetch.py

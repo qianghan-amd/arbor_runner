@@ -10,7 +10,7 @@ import sys
 
 from arbor_ab import REPO_ROOT
 
-SKILLS = ("arbor-ci-campaign-setup", "crusoe-arbor-run")
+SKILLS = ("arbor-ci-run",)   # the legacy manual-method skills are in skills/legacy/
 GITHUB_REPOS = ("SemiAnalysisAI/InferenceX", "AMD-AGI/Arbor")
 
 
