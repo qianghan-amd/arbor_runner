@@ -41,6 +41,8 @@ def resubmit_preempted(run_dir, rc, backend, status):
         if len(c.get("previous_jobs") or []) >= MAX_RESUBMITS:
             notes[c["cell"]] = f"preempted again; not resubmitted (already {MAX_RESUBMITS} times)"
             continue
+        if "JobHoldMaxRequeue" in (s.get("raw") or ""):
+            backend.cancel(c)   # our own held job: end it first, so the cell never has two jobs
         ids, err = backend.submit([c])
         if ids and ids[0]:
             c.setdefault("previous_jobs", []).append(c["job_id"])

@@ -391,7 +391,12 @@ class Slurm(Backend):
             job = r["job"]
             word = (job.get("raw") or "").split("+")[0].upper()
             state = "UNKNOWN" if not job else STATE_MAP.get(word.split()[0] if word else "", "UNKNOWN")
-            out.append({"state": state, "raw": job.get("raw"), "node": job.get("node", ""), "elapsed": job.get("elapsed", ""),
+            raw_word = job.get("raw")
+            if state == "PENDING" and "JobHoldMaxRequeue" in (job.get("reason") or ""):
+                # Spur requeues a --requeue job on preemption or failure up to 5 times, then holds it: it would show
+                # PENDING forever (Crusoe 308822, 2026-11-24: Restarts=5, never reached its batch script). It is over.
+                state, raw_word = "CANCELLED", "PREEMPTED (JobHoldMaxRequeue: requeued 5 times, then held)"
+            out.append({"state": state, "raw": raw_word, "node": job.get("node", ""), "elapsed": job.get("elapsed", ""),
                         "time_limit": job.get("time_limit", ""), "reason": job.get("reason", ""),
                         "runner_state": r["runner_state"], "phases_done": r["phases_done"], "log_tail": r["log_tail"]})
         return out

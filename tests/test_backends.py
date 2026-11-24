@@ -229,3 +229,18 @@ def test_resubmit_preempted(tmp_path):
     assert b.sent == ["a"] and rc["cells"][0]["job_id"] == "new1" and rc["cells"][0]["previous_jobs"] == ["1"]
     assert "resubmitted as job new1" in notes["a"] and "not resubmitted" in notes["d"] and set(notes) == {"a", "d"}
     assert json.loads((tmp_path / "run_config.json").read_text(encoding="utf-8"))["cells"][0]["job_id"] == "new1"
+
+
+def test_resubmit_held_job_cancels_it_first(tmp_path):
+    # Crusoe 308822 (2026-11-24): JobHoldMaxRequeue after 5 requeues; status says PREEMPTED (held), and the resubmit
+    # cancels the held job before submitting a new one
+    class Fake:
+        calls = []
+        def cancel(self, c):
+            self.calls.append(("cancel", c["job_id"])); return "cancelled"
+        def submit(self, cells):
+            self.calls.append(("submit", cells[0]["cell"])); return ["new1"], None
+    rc = {"cells": [{"cell": "a", "job_id": "308822"}]}
+    b = Fake()
+    notes = poll_status.resubmit_preempted(tmp_path, rc, b, [{"raw": "PREEMPTED (JobHoldMaxRequeue: requeued 5 times, then held)"}])
+    assert b.calls == [("cancel", "308822"), ("submit", "a")] and "new1" in notes["a"]
