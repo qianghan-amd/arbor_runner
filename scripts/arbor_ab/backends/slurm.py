@@ -331,7 +331,9 @@ class Slurm(Backend):
             lines.append(f"#SBATCH --exclude={','.join(exclude)}")
         if opts.get("nodelist"):   # a node of one's choice (a test on a given node's cache, or the node of an earlier run)
             lines.append(f"#SBATCH --nodelist={opts['nodelist']}")
-        lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", f"#SBATCH --time={slurm_time(minutes)}",
+        # --requeue: a preempted job goes back to the queue (where the QOS allows it) instead of ending; the runner
+        # then starts the cell over (runner.sh start_over). Crusoe burst preempted every run > 20 min on 2026-11-24.
+        lines += ["#SBATCH --nodes=1", "#SBATCH --exclusive", "#SBATCH --requeue", f"#SBATCH --time={slurm_time(minutes)}",
                   f"#SBATCH --output={cell_dir}/logs/slurm-%j.out",
                   # Spur does not merge stderr into --output: without --error it goes to $HOME/spur-<job>.out
                   f"#SBATCH --error={cell_dir}/logs/slurm-%j.err",

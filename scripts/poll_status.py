@@ -1,11 +1,14 @@
 """Status of a PR-test run, and its result files fetched home (design.md section 6: short calls only).
 
-Usage: python scripts/poll_status.py --run-dir runs/<run_id> [--no-fetch] [--extend]
+Usage: python scripts/poll_status.py --run-dir runs/<run_id> [--no-fetch] [--extend] [--resubmit-preempted]
 Per cell: the job's state (normalized: PENDING RUNNING SUCCEEDED FAILED CANCELLED UNKNOWN, plus the scheduler's own
 word), the runner's state file and finished phases, then (unless --no-fetch) the small result files
 (backends.RESULT_FILES) copied into runs/<run_id>/<cell>/. --extend: a running job below the wall time its cell
 needs gets more, where the backend supports it (plain Slurm lets only an operator raise a limit: meta64 refuses;
-the submit already asks for the full time, so this is only for a job whose need grew). Writes runs/<run_id>/status.json. Stateless: run it as often as you like.
+the submit already asks for the full time, so this is only for a job whose need grew). --resubmit-preempted: a cell
+whose job the scheduler preempted is submitted again (at most MAX_RESUBMITS times); its runner moves the earlier
+attempt to attempts/<n>/ and starts over (Crusoe burst cancels preempted jobs; 2026-11-24 it preempted every run
+longer than 20 min). Writes runs/<run_id>/status.json. Stateless: run it as often as you like.
 """
 import argparse
 import datetime as dt
@@ -25,13 +28,39 @@ def extend_note(result):
     return f" | extended to {result}"
 
 
-def poll(run_dir, backend=None, fetch=True, extend=False):
+MAX_RESUBMITS = 2
+
+
+def resubmit_preempted(run_dir, rc, backend, status):
+    """Submit each preempted cell's job.sbatch again; update run_config.json. Returns the notes to print."""
+    notes = {}
+    for s, c in zip(status, rc["cells"]):
+        word = (s.get("raw") or "").split()[0].upper() if s.get("raw") else ""
+        if word != "PREEMPTED" or (c.get("job_id") or "").startswith("hold:"):
+            continue
+        if len(c.get("previous_jobs") or []) >= MAX_RESUBMITS:
+            notes[c["cell"]] = f"preempted again; not resubmitted (already {MAX_RESUBMITS} times)"
+            continue
+        ids, err = backend.submit([c])
+        if ids and ids[0]:
+            c.setdefault("previous_jobs", []).append(c["job_id"])
+            c["job_id"] = ids[0]
+            notes[c["cell"]] = f"preempted: resubmitted as job {ids[0]} (the runner starts the cell over)"
+        else:
+            notes[c["cell"]] = f"preempted; resubmit failed: {(err or '').strip()[-200:]}"
+    if notes:
+        (run_dir / "run_config.json").write_text(json.dumps(rc, indent=2) + "\n", encoding="utf-8", newline="\n")
+    return notes
+
+
+def poll(run_dir, backend=None, fetch=True, extend=False, resubmit=False):
     """backend: None = the site the run was submitted to (run_config.json `site_name`)."""
     rc = json.loads((run_dir / "run_config.json").read_text(encoding="utf-8"))
     backend = backend or backends.for_run(config.load_local(), rc)
     if not rc.get("submitted"):
         sys.exit(f"{rc['run_id']} was not submitted (dry run or failed submit)")
     status = backend.status(rc["cells"])
+    notes = resubmit_preempted(run_dir, rc, backend, status) if resubmit else {}
     for s, c in zip(status, rc["cells"]):
         s["cell"] = c["cell"]
         if extend:
@@ -39,7 +68,10 @@ def poll(run_dir, backend=None, fetch=True, extend=False):
         if fetch:
             s["files_fetched"] = backend.fetch(c, run_dir / c["cell"])
         print(f"{s['cell']}: {s['state']} ({s['raw']}) {s['elapsed']} on {s['node']} | runner {s['runner_state']} "
-              f"| done {s['phases_done']}" + extend_note(s.get("extended_to")), flush=True)
+              f"| done {s['phases_done']}" + extend_note(s.get("extended_to"))
+              + (f" | {notes[c['cell']]}" if c["cell"] in notes else ""), flush=True)
+        if c["cell"] in notes and "resubmitted as" in notes[c["cell"]]:
+            s["state"] = "PENDING"   # its new job: not terminal
     doc = {"run_id": rc["run_id"], "backend": backend.name, "polled_at": dt.datetime.now(dt.timezone.utc).isoformat(),
            "cells": status}
     (run_dir / "status.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8", newline="\n")
@@ -51,8 +83,9 @@ def main():
     ap.add_argument("--run-dir", type=Path, required=True)
     ap.add_argument("--no-fetch", action="store_true")
     ap.add_argument("--extend", action="store_true")
+    ap.add_argument("--resubmit-preempted", action="store_true")
     args = ap.parse_args()
-    poll(args.run_dir, None, not args.no_fetch, args.extend)
+    poll(args.run_dir, None, not args.no_fetch, args.extend, args.resubmit_preempted)
     return 0
 
 

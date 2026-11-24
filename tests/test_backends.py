@@ -211,3 +211,21 @@ def test_hold_mode_pieces():
     assert ids == [None, None] and "same hold job" in err
     # extend never touches a hold cell
     assert b.extend({"job_id": "hold:1:n1", "job_minutes": 999}, {"state": "RUNNING", "time_limit": "1:00:00"}) is None
+
+
+def test_resubmit_preempted(tmp_path):
+    # Crusoe burst cancels a preempted job (2026-11-24: every run > 20 min): poll_status --resubmit-preempted sends it
+    # again, at most MAX_RESUBMITS times; other states and hold cells are left alone
+    class Fake:
+        sent = []
+        def submit(self, cells):
+            self.sent += [c["cell"] for c in cells]
+            return [f"new{len(self.sent)}"], None
+    rc = {"cells": [{"cell": "a", "job_id": "1"}, {"cell": "b", "job_id": "2"}, {"cell": "c", "job_id": "hold:9:n1"},
+                    {"cell": "d", "job_id": "4", "previous_jobs": ["x", "y"]}]}
+    status = [{"raw": "PREEMPTED"}, {"raw": "FAILED"}, {"raw": "PREEMPTED (hold 9)"}, {"raw": "PREEMPTED"}]
+    b = Fake()
+    notes = poll_status.resubmit_preempted(tmp_path, rc, b, status)
+    assert b.sent == ["a"] and rc["cells"][0]["job_id"] == "new1" and rc["cells"][0]["previous_jobs"] == ["1"]
+    assert "resubmitted as job new1" in notes["a"] and "not resubmitted" in notes["d"] and set(notes) == {"a", "d"}
+    assert json.loads((tmp_path / "run_config.json").read_text(encoding="utf-8"))["cells"][0]["job_id"] == "new1"

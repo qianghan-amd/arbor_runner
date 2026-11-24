@@ -28,7 +28,7 @@ TERMINAL = ("SUCCEEDED", "FAILED", "CANCELLED")
 def follow(run_dir, backend, every_min):
     """Poll until every cell is terminal; returns the last status document."""
     while True:
-        doc = poll_status.poll(run_dir, backend, fetch=True, extend=False)
+        doc = poll_status.poll(run_dir, backend, fetch=True, extend=False, resubmit=True)
         if all(c["state"] in TERMINAL for c in doc["cells"]):
             return doc
         time.sleep(every_min * 60)
