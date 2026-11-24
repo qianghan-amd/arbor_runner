@@ -191,6 +191,8 @@ def cmd_measure(args):
            "targets": [{"model": rec["model"], "target": rec["target"]["key"], "weights_path": args.weights_path}]}
     if args.qos:
         req["backend_options"] = {"qos": args.qos, **({"account": args.account} if args.account else {})}
+    if args.exclude_nodes:   # a node the runner refused as not clean (Crusoe 308407, 2026-11-24: v3-207)
+        req["exclude_nodes"] = args.exclude_nodes
     rc = submit_ab_test.submit(req, f"baseline-{d.name}", backend,
                                (REPO_ROOT / local["arbor"]["clone"]).resolve(), records=[rec])
     if rc["submitted"]:
@@ -259,6 +261,7 @@ def main():
     p.add_argument("--site", help="local.yaml site (default: local.yaml default_site)")
     p.add_argument("--qos")
     p.add_argument("--account")
+    p.add_argument("--exclude-nodes", nargs="*", default=[], help="nodes not to use (e.g. one the runner refused)")
     p = sub.add_parser("finalize")
     p.add_argument("--draft", required=True)
     p.add_argument("--run-dir", required=True)
