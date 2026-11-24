@@ -152,7 +152,8 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         cdir.mkdir(parents=True)
         container = render.container_name(run_id, r["model"], r["target"]["key"])
         env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha,
-                              weights_path=t.get("weights_path"), skip_gsm8k=skip_gsm8k)
+                              weights_path=t.get("weights_path"), skip_gsm8k=skip_gsm8k,
+                              arbor_launcher=bool(req.get("arbor_launcher")))
         write(cdir / "cell.env", render.env_file(env))
         # the exact record this cell runs from (a stored baseline, or a CI draft not stored anywhere): the report reads it
         write(cdir / "baseline_record.json", json.dumps(r, indent=2) + "\n")

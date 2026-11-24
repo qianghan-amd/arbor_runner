@@ -31,7 +31,15 @@ PHASE=start; SERVER_UP=0
 # caches on node-local disk, never in $HOME (meta64's homes are 100 GB and some are full; 2026-11-21)
 export PIP_CACHE_DIR=$NL/pip-cache UV_CACHE_DIR=$NL/uv-cache UV_PYTHON_INSTALL_DIR=$NL/uv-python
 
-log() { echo "[runner] $(date -u +%FT%TZ) $*" | tee -a "$LOGS/runner.log"; }
+# Every log line goes to node-local disk first, then to the cell dir on shared storage: job 302466 (#74) left no
+# FATAL or trap line on /shared_nfs, likely because the node's writes there had stopped; the node-local copy does not
+# depend on shared storage. NL_LOG also gets `arbor run`'s return code (arbor_rc).
+NL_LOG=$NL/runlogs/$(basename "$(dirname "$CELL_DIR")")_$(basename "$CELL_DIR"); mkdir -p "$NL_LOG"
+log() {
+    local line; line="[runner] $(date -u +%FT%TZ) $*"
+    echo "$line" >> "$NL_LOG/runner.log"
+    echo "$line" | tee -a "$LOGS/runner.log"
+}
 die() { log "FATAL ($PHASE): $*"; echo "failed:$PHASE" > "$CELL_DIR/state"; exit 1; }
 in_c() { docker exec "$CONTAINER" bash -c "$1"; }
 # retry <tries> <command...>: for network steps (image pull, downloads, pip). A transient registry/CDN error must not
@@ -89,6 +97,7 @@ start_over() {
         "in $(cat "$CELL_DIR/state" 2>/dev/null)) moved to attempts/$n/; starting over on $(hostname -s)"
 }
 start_over
+log "node-local copy of this log: $NL_LOG on $(hostname -s)"
 
 # ---- fetch: pinned model / draft / corpus into node-local NVMe ----------------------------------------------------------
 fetch_once() {   # one attempt; fetch.py skips what is already pinned and complete, so a retry resumes
@@ -455,7 +464,11 @@ campaign_env() {   # what Arbor's driver and agents run with (the crusoe-arbor-r
     # cause not found (no OOM; not the PID-file stop, which is a no-op with a named container). Reported:
     # boards/ArborDevelopment#74. All our runs that worked were in one process. ARBOR_STANDALONE=1 is kept "for one
     # release" (bdd3bc6); the runner's own timeout bounds the time either way.
-    export ARBOR_STANDALONE=1
+    if [ "${ARBOR_LAUNCHER:-0}" = 1 ]; then
+        unset ARBOR_STANDALONE; log "campaign: Arbor under its launcher (request arbor_launcher; #74 test)"
+    else
+        export ARBOR_STANDALONE=1
+    fi
     mkdir -p "$HOME/.claude" && printf '{"env": {"BASH_DEFAULT_TIMEOUT_MS": "7200000", "BASH_MAX_TIMEOUT_MS": "7200000"}}\n' > "$HOME/.claude/settings.json"
     export BASH_DEFAULT_TIMEOUT_MS=7200000 BASH_MAX_TIMEOUT_MS=7200000
     set -a; . "$GATEWAY_ENV"; set +a             # variables only; never echoed, never written into a container
@@ -472,16 +485,16 @@ arbor_check() {   # Arbor's AGENTS.md: check first; exit 2 refuses; nothing may 
     arbor_flags
     (cd "$ARBOR" && "$PY" -m arbor check "${ARBOR_FLAGS[@]}") > "$CELL_DIR/campaign_check.json" 2> "$LOGS/campaign_check.err"
     local rc=$?
-    "$PY" - "$CELL_DIR/campaign_check.json" "$rc" "${ALLOW_LACKS:-0}" <<'PY' | tee -a "$LOGS/runner.log" || return 1
+    "$PY" - "$CELL_DIR/campaign_check.json" "$rc" "${ALLOW_LACKS:-0}" "${ARBOR_LAUNCHER:-0}" <<'PY' | tee -a "$LOGS/runner.log" || return 1
 import json, sys
-doc = json.load(open(sys.argv[1])); rc = int(sys.argv[2]); allow_lacks = sys.argv[3] == "1"
+doc = json.load(open(sys.argv[1])); rc = int(sys.argv[2]); allow_lacks = sys.argv[3] == "1"; launcher = sys.argv[4] == "1"
 lacks = (doc.get("makeup") or {}).get("lacks") or []
 ru = doc.get("runs_under") or (doc.get("bounds") or {}).get("runs_under")   # arbor.host 2.59+; absent before
 print(f"[runner] arbor check rc={rc} ok={doc.get('ok')} refused={doc.get('refused')} waits={doc.get('waits')} "
       f"lacks={lacks} warnings={len(doc.get('warnings') or [])} runs_under={ru}")
 for w in doc.get("warnings") or []:
     print(f"[runner] arbor check warning: {w}")
-if ru not in (None, "process"):   # the launcher / a host would stop servers by host PID (campaign_env, ARBOR_STANDALONE)
+if ru not in (None, "process") and not launcher:   # a launcher / host run only when the request asks (arbor_launcher)
     print(f"[runner] arbor would run under {ru!r}, not in one process: refused")
     sys.exit(1)
 sys.exit(0 if rc == 0 and doc.get("ok") and not doc.get("waits") and (allow_lacks or not lacks) else 1)
@@ -497,9 +510,16 @@ campaign() {
     # first iteration's dossier:measure at the 140-min job limit. The hard stop is ours: SIGTERM at the budget (Arbor
     # stops its own server, records the iteration as not measured, writes exit.json), KILL 15 min later, so the
     # `after` phase keeps its time.
+    # `arbor run` writes its output to node-local disk only (#74, jiawei c9996: the launcher's last lines, its stop
+    # signals, exit codes and tracebacks, must survive shared storage that stops taking writes); a copy loop puts it in
+    # logs/campaign.log every 30 s, so Arbor never waits on shared storage
+    ( while :; do cp "$NL_LOG/campaign.log" "$LOGS/campaign.log" 2>/dev/null; sleep 30; done ) &
+    local copier=$!
     (cd "$ARBOR" && timeout --signal=TERM --kill-after=15m "${CAMPAIGN_MINUTES}m" \
-        "$PY" -m arbor run "${ARBOR_FLAGS[@]}" --cooldown 30) > "$LOGS/campaign.log" 2>&1
+        "$PY" -m arbor run "${ARBOR_FLAGS[@]}" --cooldown 30) > "$NL_LOG/campaign.log" 2>&1
     local rc=$?
+    kill "$copier" 2>/dev/null; cp "$NL_LOG/campaign.log" "$LOGS/campaign.log"
+    echo "$rc $(date -u +%FT%TZ)" > "$NL_LOG/arbor_rc"
     log "campaign: arbor run rc=$rc$([ $rc = 124 ] && echo " (stopped by the runner at the ${CAMPAIGN_MINUTES}-min budget)")"
     local ex=$CELL_DIR/sessions/full/exit.json
     [ -f "$ex" ] && cp "$ex" "$CELL_DIR/campaign_exit.json" && log "campaign exit: $(tr -d '\n' < "$ex" | cut -c1-300)"
