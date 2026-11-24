@@ -368,13 +368,19 @@ stop_server() {   # returns non-zero if the GPUs are not free afterwards: the ne
     fi
     in_c "pkill -9 -f '[a]iperf' 2>/dev/null; true"
     SERVER_UP=0
-    local vram i
-    for i in $(seq 1 24); do   # wait for the memory to be released, up to 120 s
+    local vram i t0=$SECONDS
+    # wait for the memory to be released: 120 s; SGLang 300 s (meta64 149589, 2026-11-24: GLM-5.3 with dram KV
+    # offload / hicache still held 2 % VRAM 120 s after its process group ended)
+    local tries=24; [ "$FRAMEWORK" = sglang ] && tries=60
+    for i in $(seq 1 $tries); do
         vram=$(rocm-smi --showmemuse 2>/dev/null | awk '/VRAM%/ {print $NF}' | sort -n | tail -1)
-        [ "${vram:-0}" -le 1 ] && { log "$TAG: server stopped, GPUs free"; return 0; }
+        [ "${vram:-0}" -le 1 ] && { log "$TAG: server stopped, GPUs free ($((SECONDS - t0)) s)"; return 0; }
         sleep 5
     done
-    log "$TAG: server stopped but a GPU still holds memory (VRAM ${vram}%)"; return 1
+    log "$TAG: server stopped but a GPU still holds memory (VRAM ${vram}%) after $((SECONDS - t0)) s"
+    log "$TAG: GPU processes: $(rocm-smi --showpids 2>/dev/null | grep -E '^[0-9]+' | tr -s ' ' | head -8 | tr '\n' ';')"
+    log "$TAG: left in the container: $(docker top "$CONTAINER" -eo pid,etime,args 2>/dev/null | tail -n +2 | cut -c1-120 | head -8 | tr '\n' ';')"
+    return 1
 }
 
 measure() {   # measure <tag> <duration_s> <gsm8k_questions>
