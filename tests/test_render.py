@@ -75,3 +75,19 @@ def test_arbor_launcher_is_default():
     args = (r, "20261124-000000_7c211696_t", "7c211696", "campaign", "/w/c", "ab_c", 90, SITE, "/w/a.tar", "ab" * 32)
     assert render.cell_env(*args)["ARBOR_LAUNCHER"] == "1"
     assert render.cell_env(*args, arbor_launcher=False)["ARBOR_LAUNCHER"] == "0"
+
+
+def test_user_objective_and_goal():
+    # the request's objective / goal reach Arbor (arbor/objective.py, arbor/pack/loader.py goal)
+    r = baseline.load_latest("dsv41flash", "c1_p90")
+    cfg = lambda **k: render.arbor_config(r, "20261124-000000_7c211696_t", "7c211696", "/w/c", "ab_c", 60, **k)
+    env = lambda **k: render.cell_env(r, "20261124-000000_7c211696_t", "7c211696", "campaign", "/w/c", "ab_c", 60, SITE,
+                                      "/w/a.tar", "ab" * 32, **k)
+    assert cfg()["goal"].startswith("Optimize ") and "opt_objective" not in cfg()
+    assert env()["OPT_OBJECTIVE"] == "P90 interactivity"                       # the cell's own (P90 cell)
+    assert env(objective="total throughput")["OPT_OBJECTIVE"] == "total throughput"
+    s = {"metric": "e2e_norm_intvty_p50", "bar_pct": 2.0, "guards": [{"metric": "total_token_throughput", "band_pct": 5.0}]}
+    assert cfg(objective=s)["opt_objective"] == s and env(objective=s)["OPT_OBJECTIVE"] == ""   # the flag would override
+    assert cfg(goal="Raise conc16 total throughput; keep P90 within 5 %.")["goal"].startswith("Raise conc16")
+    assert render.check_objective(None) is None and render.check_objective("P50 interactivity") is None
+    assert "metric" in render.check_objective({"bar_pct": 2}) and render.check_objective("  ") is not None

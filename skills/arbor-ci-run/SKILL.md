@@ -47,6 +47,7 @@ If the CI run measured several cells, it lists them: add `--target` (and `--tp`)
 | Scheduler | `--qos`, `--account`, `--partition` (meta64: `meta64` or `interactive`), `--nodelist`, `--exclude-nodes` |
 | Own hold job | `--hold-job <job id> --nodelist <node>` (a job of yours whose node agent runs `ctrl/node<i>/*.sh`) |
 | Arbor in one process | `--arbor-standalone` (ARBOR_STANDALONE=1); the default runs Arbor under its launcher |
+| What Arbor optimizes | `--objective "total throughput"` (or `"P50 interactivity"`, ...; request `objective:` may be `{metric, bar_pct, guards}`), `--goal "<sentence for the agents>"`; concurrency = the target (`c16_tput`) |
 | Mode | `--mode campaign` (default), `full` (before, campaign, after), `smoke`, `campaign_smoke` |
 | Length | `--campaign-minutes` (default 480); `--gsm8k` adds the accuracy check |
 | Weights | `--weights-path auto` (default), `none`, or an absolute path at the pinned revision |

@@ -110,6 +110,8 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     skip_gsm8k = not req.get("gsm8k", False) or bool(req.get("skip_gsm8k"))
     if mode not in render.MODES:
         sys.exit(f"mode must be one of {render.MODES}")
+    if render.check_objective(req.get("objective")):
+        sys.exit(render.check_objective(req.get("objective")))
     minutes = int(req.get("campaign_minutes", 1440)) if mode in render.CAMPAIGN_MODES else 0
     try:
         commit = subprocess.run(["git", "-C", str(clone), "rev-parse", "--verify", f"{req['commit']}^{{commit}}"],
@@ -153,11 +155,13 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         container = render.container_name(run_id, r["model"], r["target"]["key"])
         env = render.cell_env(r, run_id, commit, mode, rcdir, container, minutes, site, f"{remote_run}/arbor.tar", tar_sha,
                               weights_path=t.get("weights_path"), skip_gsm8k=skip_gsm8k,
-                              arbor_launcher=not req.get("arbor_standalone"))
+                              arbor_launcher=not req.get("arbor_standalone"), objective=req.get("objective"))
         write(cdir / "cell.env", render.env_file(env))
         # the exact record this cell runs from (a stored baseline, or a CI draft not stored anywhere): the report reads it
         write(cdir / "baseline_record.json", json.dumps(r, indent=2) + "\n")
-        write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes), indent=2) + "\n")
+        write(cdir / "arbor_config.json", json.dumps(render.arbor_config(r, run_id, commit, rcdir, container, minutes,
+                                                                            objective=req.get("objective"),
+                                                                            goal=req.get("goal")), indent=2) + "\n")
         wall = render.job_minutes(mode, minutes, r)
         jname, jtext = backend.job_script(rcdir, f"ab-{cell}"[:40], wall, exclude=tuple(req.get("exclude_nodes") or ()),
                                           options=req.get("backend_options"))
@@ -175,6 +179,7 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
                   "gateway_configured": bool(site.get("gateway_env")), "reference": req.get("reference"),
                   "exclude_nodes": list(req.get("exclude_nodes") or []), "backend_options": req.get("backend_options"),
                   "skip_gsm8k": skip_gsm8k, "ci_run": req.get("ci_run"),
+                  "objective": req.get("objective"), "goal": req.get("goal"),
                   "site_name": getattr(backend, "site_name", None), "gpu_type": getattr(backend, "gpu_type", None),
                   "cells": cells, "submitted": False}
     rc_path = run_dir / "run_config.json"

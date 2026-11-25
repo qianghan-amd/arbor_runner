@@ -68,6 +68,10 @@ def main():
     ap.add_argument("--partition",help="Slurm partition for this run (e.g. meta64's interactive)")
     ap.add_argument("--nodelist", help="run on this node (Slurm --nodelist)")
     ap.add_argument("--hold-job", help="run on a free node of your own running hold job (its node agent; needs --nodelist)")
+    ap.add_argument("--objective", help='what Arbor optimizes, as Arbor names it: "total throughput", "P50 interactivity", '
+                                        '"P90 interactivity", "output throughput", or a bench key with a direction '
+                                        '("tpot_p50:min"); default: the metric of the target')
+    ap.add_argument("--goal", help="a sentence for Arbor's agents (config `goal`); default: one from the target")
     ap.add_argument("--arbor-standalone", action="store_true",
                     help="run Arbor in one process (ARBOR_STANDALONE=1) instead of under its launcher (the default)")
     ap.add_argument("--qos")
@@ -168,6 +172,10 @@ def main():
         req.setdefault("backend_options", {})["partition"] = args.partition
     if args.nodelist:
         req.setdefault("backend_options", {})["nodelist"] = args.nodelist
+    if args.objective:
+        req["objective"] = args.objective
+    if args.goal:
+        req["goal"] = args.goal
     if args.arbor_standalone:
         req["arbor_standalone"] = True
     if args.hold_job:

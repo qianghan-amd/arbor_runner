@@ -75,6 +75,8 @@ node whose GPUs are in use.
 --mode smoke                                       # one short measurement, no campaign: "does it start?"
 --mode campaign_smoke --campaign-minutes 15        # a short campaign: "does Arbor start?"
 --campaign-minutes 480                             # campaign length (default 480)
+--objective "total throughput"                     # what Arbor optimizes (default: the target's metric)
+--goal "Raise total throughput at conc 16"         # a sentence for Arbor's agents
 --gsm8k                                            # add the GSM8K accuracy check (off by default)
 ```
 

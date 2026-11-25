@@ -50,8 +50,20 @@ def check_runnable(record):
     return why
 
 
-def arbor_config(record, run_id, commit, cell_dir, container, minutes):
-    """The Arbor campaign config (stock packs/agentx of the commit under test; keys per docs/reference.md)."""
+def check_objective(objective):
+    """What is wrong with a request's `objective` (None = fine). Arbor's arbor/objective.py resolves it for real at
+    `arbor check` (it refuses a name it does not know); this only catches the shape early."""
+    if objective is None or (isinstance(objective, str) and objective.strip()):
+        return None
+    if isinstance(objective, dict):
+        return None if objective.get("metric") else "objective: the structured form needs `metric`"
+    return "objective: a metric name (text), or {metric, bar_pct, guards}"
+
+
+def arbor_config(record, run_id, commit, cell_dir, container, minutes, objective=None, goal=None):
+    """The Arbor campaign config (stock packs/agentx of the commit under test; keys per docs/reference.md).
+    objective: the request's (text: passed as --opt-objective, see cell_env; structured: written as opt_objective,
+    arbor/objective.py). goal: the request's sentence for Arbor's agents; else one from the target."""
     h, lau = record["host"], record["launch"]
     env = {k: str(v) for k, v in (h.get("server_env") or {}).items()}
     env["INFMAX_CONTAINER_WORKSPACE"] = INFX_IN_CONTAINER
@@ -61,7 +73,7 @@ def arbor_config(record, run_id, commit, cell_dir, container, minutes):
                   f"scripts/arbor_ab/render.py, not hand-written."),
         "pack": "agentx",
         "identity": f"arbor-ab:{record['model']}:{record['target']['key']}:{run_id}",
-        "goal": f"Optimize {record['target']['primary_metric_path']} at concurrency {record['target']['conc']}.",
+        "goal": goal or f"Optimize {record['target']['primary_metric_path']} at concurrency {record['target']['conc']}.",
         "framework": h["framework"],
         "model_path": h["model_path"],
         "model_name": lau["served_model_name"],
@@ -85,6 +97,7 @@ def arbor_config(record, run_id, commit, cell_dir, container, minutes):
         "session_mount": SESSION_MOUNT,
         "time_budget_minutes": minutes,
         "review_gate": False,
+        **({"opt_objective": objective} if isinstance(objective, dict) else {}),
     }
 
 
@@ -94,7 +107,7 @@ def opt_objective(record):
 
 
 def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None,
-             skip_gsm8k=False, arbor_launcher=True):
+             skip_gsm8k=False, arbor_launcher=True, objective=None):
     """Shell variables for scripts/runner/runner.sh (written as cell.env). weights_path: optional pre-downloaded weights
     of the served model on the node (request `weights_path`); fetch.py checks them against the pin and links them."""
     h, lau, fp = record["host"], record["launch"], record["fingerprint"]
@@ -118,7 +131,9 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         # skip_gsm8k (request): 0 questions = no GSM8K in any phase; phase.json and the report say "skipped"
         "DUR_FULL": "3600", "NQ_FULL": "0" if skip_gsm8k else str(lau["gsm8k"].get("num_questions") or 1319),
         "DUR_SMOKE": "600", "NQ_SMOKE": "0" if skip_gsm8k else "200",
-        "CAMPAIGN_MINUTES": str(minutes), "OPT_OBJECTIVE": opt_objective(record) or "",
+        "CAMPAIGN_MINUTES": str(minutes), # --opt-objective: the request's text objective; none when it is structured (in the config, which the flag
+        # would override); else the cell's (P90 cells)
+        "OPT_OBJECTIVE": objective if isinstance(objective, str) else "" if objective else (opt_objective(record) or ""),
         "GATEWAY_ENV": site.get("gateway_env") or "",
         "WEIGHTS_PATH": weights_path or "",
         # `arbor run` under Arbor's launcher (its default; #74 closed 2026-11-24, not reproduced); request

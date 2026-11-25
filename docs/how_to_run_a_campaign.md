@@ -53,6 +53,8 @@ You set these in the request or in your one-time setup:
 | Campaign length | `--campaign-minutes` / `campaign_minutes` | The runner stops Arbor at this time. Default 480 (8 h); see "How long it takes". |
 | Cluster | `--site` / `site:` | `crusoe` (default, MI355X) or `meta64` (MI350X). Also `--qos`, `--partition`, `--nodelist`, `--exclude-nodes`, `--hold-job`. |
 | Weights | `--weights-path` / `weights_path` | `auto` (shared hub when complete, else download), a folder of the pinned revision, or `none`. |
+| Objective | `--objective` / `objective:` | What Arbor optimizes, as Arbor names it: `"total throughput"`, `"P50 interactivity"`, `"P90 interactivity"`, `"output throughput"`, or a bench key with a direction (`"tpot_p50:min"`). In a request it can also be `{metric, bar_pct, guards}`: e.g. raise P50 by 2 % while total throughput stays within 5 %. Default: the target's metric. `arbor check` refuses a name Arbor does not know. |
+| Goal | `--goal` / `goal:` | A sentence for Arbor's agents, e.g. "Raise total throughput at concurrency 16; keep P90 within 5 %." Default: one made from the target. The concurrency itself comes from the target (`c16_tput` = the CI run's concurrency-16 point). |
 | GSM8K | `--gsm8k` / `gsm8k: true` | Off by default. |
 | One process | `--arbor-standalone` / `arbor_standalone: true` | Off by default: Arbor runs under its launcher. |
 | LLM gateway key | one-time setup, step 5 | Arbor's agents call the LLM through it. A campaign cannot start without it. |

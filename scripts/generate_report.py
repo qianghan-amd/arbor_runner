@@ -77,6 +77,11 @@ def main():
                                           f"weights {comp['weights']['weights_source']}"))
         if args.print:
             print(json.dumps(comp, indent=2))
+    if rc.get("objective") or rc.get("goal"):
+        # the request asked Arbor for its own objective/goal: the rows above still compare the cell's primary metric;
+        # the campaign's effective objective is <cell>/sessions/full/objective.json (arbor/objective.py)
+        print(f"note: the request set objective={rc.get('objective')!r} goal={rc.get('goal')!r}; 'primary' above is "
+              "the cell's metric, compare the asked one in comparison.json deltas")
     for r in rows:
         print(" | ".join(map(str, r)))
     return 0
