@@ -41,6 +41,39 @@ Refused up front, as intended (`run_from_ci --dry-run`): NVIDIA runs (GB200 4490
 | `make_baseline measure` + `finalize` | crusoe | 303240 | pass (gate refused +5.9 %, as designed) |
 | SIGKILL / cancel while the server starts: container gone, GPUs free | both | 303340, 147007, 147008 | pass |
 
+## Restart, preemption, launcher, full mode (2026-11-23/24)
+
+| What | Site | Job | Result |
+|---|---|---|---|
+| Restart after a requeue (requeued by hand in smoke) | meta64 | 149586 | pass: attempt 1 archived, started over on another node |
+| Attempt limit (3 requeues) | meta64 | 149688 | pass: "attempt 4 of at most 3 ... giving up", FAILED, no endless requeue |
+| SIGKILL on Crusoe: which cleanup ran | crusoe | 308348 + probe 308361 | pass: the dead-man switch (no trap line in the node-local log) |
+| `poll_status --extend` | both | 147758, 308285 | Spur: owner may raise the limit; meta64 Slurm: refused (operator only) |
+| `full` via run_from_ci, SGLang GLM-5.2 C16 | meta64 | 148019 | pass: A/A +0.2 % |
+| `full` via run_from_ci, MiniMax C1 | crusoe | 309597 | pass after 2 automatic resubmits (JobHoldMaxRequeue): A/A -0.55 % |
+| #74: Arbor 7c211696 under its launcher, DSv4.1 C1 | meta64, crusoe | 149931, 308827 | pass: root-baseline bench passed, exit deadline rc 0 (3 Crusoe tries before: burst preemption) |
+| Baseline store path (`make_baseline measure` + `finalize`) | crusoe | 308511 | pass: gate -0.24 %, stored, then baselines/ restored |
+| duckdb/pyarrow before the campaign | meta64 | 150380 | pass: duckdb 2.0.1, pyarrow 23.0.1 |
+
+## User objective, start methods, newest CI (2026-11-24/25, Arbor 7c211696)
+
+| Test | Site | Job | Result |
+|---|---|---|---|
+| `--objective "P50 interactivity"` (DSv4.1 C1, a P90 cell) | meta64 | 151742 | pass: objective.json e2e_norm_intvty_p50, asked "P50 interactivity" |
+| `--objective "total throughput" --goal ...` at conc 16 (GLM-5.2 c16_tput) | meta64 | 151743 | pass: total_throughput; the goal in session.json |
+| structured `objective:` P50 +2 % with two guards (MiniMax C1) | meta64 | 151749 | pass: threshold 1.02, guards total_token_throughput 5 %, request_error_rate 10 % |
+| `--objective "banana speed"` | meta64 | 151747 | refused at `arbor check` with Arbor's message (intended) |
+| stored baseline GLM-5.2 c1 (SGLang) | meta64 | 151756 | pass: AgentX ok 36/47 |
+| stored baseline Muse Spark c1 (SGLang, draft) | meta64 | 151757 | pass: AgentX ok 80/91 |
+| stored baseline DSv4.1 c32 | meta64 | 151758 | failed: no bench_client_commit -> now refused before submit |
+| stored baseline Kimi K3 c1 (1.56 TB, shared hub) | crusoe | 311115 | pass after a preemption resubmit: AgentX ok 59/71 |
+| hand-edited SGLang launch record (GLM-5.2 C16, env added) | meta64 | 151751 | pass: the env in launch.json and serve.sh; AgentX ok |
+| newest CI 45233004275 (MiniMax 11-23) | meta64 | 151754 | pass: arbor run rc 0 |
+
+Stored baselines usable as a start (`check_runnable`): 5 of 12 (dsv41flash c1, glm52 c1, kimik3 c1, minimax c1,
+muse c1). The others lack a launch block, the corpus pins, bench env or the bench client commit: start them from a
+CI run.
+
 ## Runner bugs these runs found (all fixed)
 
 | Found by | Bug | Fix |
@@ -59,3 +92,12 @@ Refused up front, as intended (`run_from_ci --dry-run`): NVIDIA runs (GB200 4490
 | G2 | disk eviction freed nothing (shared `<hub>/blobs`) | blob-level eviction, orphan cleanup |
 | K2 | shared hub snapshot without shards | every shard checked before use |
 | G3 | piped output out of order | flush before the report |
+| meta64 147754 | orphan scan saw only the sharded blob store's prefix dirs | recursive walk, sidecars removed |
+| meta64 147755 | CI drafts kept the template's KV backend (none + hicache) | KV + PP/DCP/PCP from the CI point; refused at submit |
+| meta64 147783 | a requeued job resumed on another node without its container | start over (attempts/<n>), max 3 |
+| meta64 149589 | SGLang (hicache) held 2 % VRAM > 120 s after stop | 300 s for SGLang; holders logged |
+| CI 44550646425 | a glm5.2 cell served GLM-5.3 weights | refused unless --allow-other-model; KV backend as an object |
+| Crusoe 308407 | make_baseline measure could not skip a refused node | --exclude-nodes |
+| Crusoe burst | every run > 20 min preempted | --requeue + poll_status --resubmit-preempted |
+| Crusoe 308822 | Spur held a requeued job forever (JobHoldMaxRequeue) | reported as over; resubmit cancels it first |
+| meta64 151758 | stored baseline without bench_client_commit passed the check | check_runnable requires it |
