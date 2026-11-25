@@ -155,6 +155,7 @@ Tested setups and the bugs they found: [`docs/runner_test_matrix.md`](docs/runne
 | `baselines/` | stored baselines (one record per model, target and epoch) |
 | `scripts/` | the commands; `scripts/arbor_ab/` the library; `scripts/runner/` what runs on the node |
 | `runs/requests/` | request files; `runs/<run_id>/` local run folders (not in git) |
+| `agentx_db/` | AgentX results on B300 and MI355X: `official/` (what InferenceX ingested; `scripts/agentx_db.py sync / query / compare`) |
 | `skills/arbor-ci-run/` | the agent skill: an agent (Claude Code, Codex, Cursor) follows it to set up and run |
 
 ## Contributing
