@@ -25,19 +25,19 @@ unless you set `gsm8k: true`.
 
 ## The inputs of a campaign
 
-**These inputs decide what a campaign tests. Get them right first.** A campaign has three main inputs:
+**These inputs decide what a campaign tests. Get them right first.** You give two things:
 
-| # | Input | What it is | Where it comes from |
+| # | Input | What it is | How you give it |
 |---|---|---|---|
-| 1 | **The starting point** (the "baseline") | The server launch Arbor starts from: framework (vLLM or SGLang), TP/EP, server flags, server env, concurrency. | One **AgentX CI run** of InferenceX. `scripts/make_baseline.py` turns a CI run into a baseline record in `baselines/<model>/<target>/`. |
-| 2 | **The Docker image** | The serving image (vLLM or SGLang build), pinned by its digest. | The same AgentX CI run: the image that run used. |
-| 3 | **The Arbor commit** | The Arbor code under test. | You. `commit:` in the request. |
+| 1 | **The starting point** | The server launch Arbor starts from: framework (vLLM or SGLang), Docker image (pinned by digest), TP/EP, server flags, server env, concurrency. | One of: an **AgentX CI run** of InferenceX (`run_from_ci.py --ci-run <URL or id>`, the usual way); a **launch JSON** (request `record:`, e.g. one `run_from_ci.py` saved and you edited); or a cell's **stored baseline** (request `model` + `target` only). |
+| 2 | **The Arbor commit** | The Arbor code under test. | `--arbor-commit <sha>` (or `commit:` in a request). |
 
-You pick 1 and 2 together, by picking a cell (`model` + `target`). Each cell has a stored baseline, and the baseline
-holds the image. To start from a different CI run or a different image, first make a new baseline from that CI run
-(`make_baseline.py draft`, `measure`, `finalize`; vLLM or SGLang; measured on Crusoe only). After that, every request for that cell uses the new baseline.
+`run_from_ci.py` reads the CI run and writes the launch JSON for you (`runs/requests/<name>.record.json`, with
+`runs/drafts/<cell>__ci<id>/review.md` saying where each value came from). It refuses a CI run it cannot repeat here:
+another GPU architecture, a framework other than vLLM/SGLang, other weights than the model's baselines, or an image
+gone from the registry. A stored baseline is only needed for `make_baseline.py` (new baselines, Crusoe only).
 
-The baseline also pins these inputs. They come from the same CI run, and you do not set them in a request:
+The starting point also pins these inputs. They come from the same CI run (or launch JSON), and you do not set them:
 
 - **Model weights**: the model and its exact Hugging Face revision.
 - **Test data** (the "corpus"): the AgentX dataset and its revision.
@@ -49,13 +49,13 @@ You set these in the request or in your one-time setup:
 
 | Input | Where | Note |
 |---|---|---|
-| Campaign length | `campaign_minutes` in the request | The runner stops Arbor at this time. 8 h is a good start (see "How long it takes"). |
-| Weights folder | `weights_path` in the request (optional) | Saves the download. The files must match the pinned revision. |
-| Cluster and QOS | `local.yaml` (or `backend_options` in the request) | One node per cell. |
+| Mode | `--mode` / `mode:` | `campaign` (default), `full` (before + campaign + after: the A/B result), `smoke`, `campaign_smoke`. |
+| Campaign length | `--campaign-minutes` / `campaign_minutes` | The runner stops Arbor at this time. Default 480 (8 h); see "How long it takes". |
+| Cluster | `--site` / `site:` | `crusoe` (default, MI355X) or `meta64` (MI350X). Also `--qos`, `--partition`, `--nodelist`, `--exclude-nodes`, `--hold-job`. |
+| Weights | `--weights-path` / `weights_path` | `auto` (shared hub when complete, else download), a folder of the pinned revision, or `none`. |
+| GSM8K | `--gsm8k` / `gsm8k: true` | Off by default. |
+| One process | `--arbor-standalone` / `arbor_standalone: true` | Off by default: Arbor runs under its launcher. |
 | LLM gateway key | one-time setup, step 5 | Arbor's agents call the LLM through it. A campaign cannot start without it. |
-
-What is not possible yet: starting from a hand-written full config, without a CI run. The closest way today is to run
-`make_baseline.py draft` on a CI run and edit the `draft.json` it writes before `measure`.
 
 ## One-time setup
 
