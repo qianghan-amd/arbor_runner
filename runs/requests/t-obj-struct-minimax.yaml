@@ -1,0 +1,16 @@
+# Test (2026-11-24): a structured objective with guards (arbor/objective.py): raise P50 interactivity by >= 2 %, while
+# total throughput stays within 5 % and the error rate under 10 %. MiniMax M3.1 Flash C1 from CI 43171131215 (its saved
+# launch record), meta64, 15-min campaign smoke on Arbor 7c211696. Expect: arbor check ok, objective.json = the guards.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: campaign_smoke
+campaign_minutes: 15
+site: meta64
+objective:
+  metric: P50 interactivity
+  bar_pct: 2.0
+  guards:
+    - { metric: total_token_throughput, band_pct: 5.0 }
+    - { metric: request_error_rate, max_pct: 10.0 }
+goal: Raise P50 interactivity at concurrency 1 by at least 2 % without losing more than 5 % total throughput.
+targets:
+  - { model: minimax_m31_flash, target: c1_p90, record: runs/requests/t-full-crusoe-minimax2.record.json }

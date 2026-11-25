@@ -42,6 +42,10 @@ def check_runnable(record):
     why += [f"host.server_env lacks {k} (the pack's bench needs it)" for k in BENCH_ENV_REQUIRED if k not in env]
     if not record["host"].get("model_path"):
         why.append("host.model_path missing")
+    if not (record.get("measured") or {}).get("bench_client_commit"):
+        # the InferenceX client the bench runs (runner.sh INFX_SHA): without it prepare stops after the fetch
+        # (meta64 151758, 2026-11-24, stored dsv41flash c32_tput: "InferenceX  not in ...")
+        why.append("measured.bench_client_commit missing (start from a CI run, or re-baseline)")
     gpus = [g for g in str(lau.get("gpu_ids") or "").split(",") if g.strip()]
     if len(gpus) != record["host"]["num_gpus"]:
         why.append(f"launch.gpu_ids {lau.get('gpu_ids')} != host.num_gpus {record['host']['num_gpus']}")

@@ -1,0 +1,6 @@
+# Test (2026-11-24): start method 3 on Kimi K3 c1 (stored baseline, vLLM, 1.56 TB weights from the shared hub), Crusoe.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+site: crusoe
+targets:
+  - { model: kimik3, target: c1_p90, weights_path: /shared_nfs/huggingface/hub/models--moonshotai--Kimi-K3/snapshots/f831ab66814297da540d832a5235f8e904f29d06 }

@@ -1,0 +1,10 @@
+# Test (2026-11-24): start method 3, a cell's stored baseline (model + target only), on the runnable baselines never
+# run by the runner before: GLM-5.2 c1 (SGLang), Muse Spark c1 (SGLang, draft model), DSv4.1 Flash c32 (vLLM).
+# (GLM-5.2 c16, MiniMax c32, Kimi c32, Kimi K3.1 c1 and Muse c16 baselines are not runnable: refused before submit.)
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+site: meta64
+targets:
+  - { model: glm52, target: c1_p90 }
+  - { model: muse_spark, target: c1_p90 }
+  - { model: dsv41flash, target: c32_tput }

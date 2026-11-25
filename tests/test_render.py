@@ -18,7 +18,9 @@ def test_check_runnable_on_real_records():
     assert any("corpus_id" in w for w in render.check_runnable(baseline.load_latest("glm52", "c16_tput")))
     # corpus pins recovered from evidence (evidence/2026-11-19_0830_launch/corpus_pins.yaml)
     assert render.check_runnable(baseline.load_latest("glm52", "c1_p90")) == []
-    assert render.check_runnable(baseline.load_latest("dsv41flash", "c32_tput")) == []
+    # c32 has no measured.bench_client_commit: refused before submit (meta64 151758 stopped in prepare without it)
+    assert render.check_runnable(baseline.load_latest("dsv41flash", "c32_tput")) == [
+        "measured.bench_client_commit missing (start from a CI run, or re-baseline)"]
 
 
 def test_arbor_config_dsv41_c1():
@@ -91,3 +93,13 @@ def test_user_objective_and_goal():
     assert cfg(goal="Raise conc16 total throughput; keep P90 within 5 %.")["goal"].startswith("Raise conc16")
     assert render.check_objective(None) is None and render.check_objective("P50 interactivity") is None
     assert "metric" in render.check_objective({"bar_pct": 2}) and render.check_objective("  ") is not None
+
+
+def test_runnable_needs_the_bench_client_commit():
+    # meta64 151758 (2026-11-24): stored dsv41flash c32_tput has no bench_client_commit; prepare stopped after the fetch
+    import copy
+    r = copy.deepcopy(baseline.load_latest("dsv41flash", "c1_p90"))
+    assert render.check_runnable(r) == []
+    r["measured"]["bench_client_commit"] = None
+    assert any("bench_client_commit" in w for w in render.check_runnable(r))
+    assert any("bench_client_commit" in w for w in render.check_runnable(baseline.load_latest("dsv41flash", "c32_tput")))

@@ -1,0 +1,7 @@
+# Test (2026-11-24): start method 2 with a hand-edited SGLang launch JSON: the GLM-5.2 C16 record from CI 43487923974
+# (t-c2) plus server_env ARBOR_AB_EDIT_TEST=1. Expect: the server's env (launch.json server_env) carries it.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+site: meta64
+targets:
+  - { model: glm52, target: c16_tput, record: runs/requests/t-edit-sglang-glm.record.json }
