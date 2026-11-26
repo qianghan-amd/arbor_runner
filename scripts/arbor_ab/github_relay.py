@@ -57,10 +57,10 @@ for r in REQS:
                 code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
                 members = {}
                 if code == 200:
-                    z = zipfile.ZipFile(zp)
-                    for n in z.namelist():
-                        if n.endswith(".json") and z.getinfo(n).file_size < 4_000_000:
-                            members[n] = json.loads(z.read(n))
+                    with zipfile.ZipFile(zp) as z:   # closed before TemporaryDirectory's rmtree, else NFS silly-
+                        for n in z.namelist():        # renames the still-open file and rmdir sees "not empty" (Errno 39)
+                            if n.endswith(".json") and z.getinfo(n).file_size < 4_000_000:
+                                members[n] = json.loads(z.read(n))
             res.append({"http": code, "data": members})
         elif r["op"] == "artifact_text":
             # only the named members (matched by base name); a big one returns only its lines matching r["grep"][name]
@@ -70,14 +70,14 @@ for r in REQS:
                 zp = os.path.join(d, "a.zip")
                 code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
                 if code == 200:
-                    z = zipfile.ZipFile(zp)
-                    for n in z.namelist():
-                        base = os.path.basename(n)
-                        if base not in r["names"]:
-                            continue
-                        text = z.read(n).decode("utf-8", "replace")
-                        pat = (r.get("grep") or {}).get(base)
-                        out[base] = "\n".join(l for l in text.splitlines() if re.search(pat, l))[:200000] if pat else text[:200000]
+                    with zipfile.ZipFile(zp) as z:   # closed first: see the artifact_json note above
+                        for n in z.namelist():
+                            base = os.path.basename(n)
+                            if base not in r["names"]:
+                                continue
+                            text = z.read(n).decode("utf-8", "replace")
+                            pat = (r.get("grep") or {}).get(base)
+                            out[base] = "\n".join(l for l in text.splitlines() if re.search(pat, l))[:200000] if pat else text[:200000]
             res.append({"http": code, "data": out})
         elif r["op"] == "artifact_tar":
             # a .tar.gz member of the zip (srtctl CI runs: srt-single-node-logs.tar.gz): its member list, and the text
@@ -88,23 +88,26 @@ for r in REQS:
                 zp = os.path.join(d, "a.zip")
                 code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
                 if code == 200:
-                    z = zipfile.ZipFile(zp)
-                    n = next((x for x in z.namelist() if os.path.basename(x) == r["member"]), None)
-                    if n:
-                        t = tarfile.open(fileobj=io.BytesIO(z.read(n)), mode="r:*")
-                        for m in t.getmembers():
-                            out["members"].append([m.name, m.size])
-                            if m.isfile() and r.get("pattern") and re.search(r["pattern"], m.name):
-                                text = t.extractfile(m).read().decode("utf-8", "replace")
-                                if r.get("grep"):
-                                    text = "\n".join(l for l in text.splitlines() if re.search(r["grep"], l))
-                                out["text"][m.name] = text[:200000]
+                    with zipfile.ZipFile(zp) as z:   # closed first: see the artifact_json note above
+                        n = next((x for x in z.namelist() if os.path.basename(x) == r["member"]), None)
+                        if n:
+                            t = tarfile.open(fileobj=io.BytesIO(z.read(n)), mode="r:*")
+                            for m in t.getmembers():
+                                out["members"].append([m.name, m.size])
+                                if m.isfile() and r.get("pattern") and re.search(r["pattern"], m.name):
+                                    text = t.extractfile(m).read().decode("utf-8", "replace")
+                                    if r.get("grep"):
+                                        text = "\n".join(l for l in text.splitlines() if re.search(r["grep"], l))
+                                    out["text"][m.name] = text[:200000]
             res.append({"http": code, "data": out})
         elif r["op"] == "artifact_names":
             with tempfile.TemporaryDirectory() as d:
                 zp = os.path.join(d, "a.zip")
                 code, _ = curl(f"{API}/repos/{r['repo']}/actions/artifacts/{r['artifact_id']}/zip", out=zp)
-                names = [[i.filename, i.file_size] for i in zipfile.ZipFile(zp).infolist()] if code == 200 else []
+                names = []
+                if code == 200:
+                    with zipfile.ZipFile(zp) as z:   # closed first: see the artifact_json note above
+                        names = [[i.filename, i.file_size] for i in z.infolist()]
             res.append({"http": code, "data": names})
         else:
             res.append({"http": 0, "error": "unknown op"})
