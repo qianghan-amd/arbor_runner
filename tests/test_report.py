@@ -67,3 +67,34 @@ def test_gsm8k_check_fail_and_missing():
     assert report.gsm8k_check(m(0.96, 0.95), m(0.94, 0.95), 0.01)["status"] == "fail"
     assert report.gsm8k_check(m(0.96, 0.95), m(None, 0.95), 0.01)["status"] == "missing"
     assert report.gsm8k_check(m(None, None), m(None, None), 0.01)["status"] == "missing"
+
+
+def report_of(tmp_path, mode, layout):
+    """generate_report on a smoke / bench run built from the real DSv4.1 C1 before agg (evidence bundle)."""
+    raw = json.loads(RAW.read_text(encoding="utf-8"))
+    run = tmp_path / mode
+    for sub in layout:
+        d = run / "dsv41flash__c1_p90" / sub
+        d.mkdir(parents=True)
+        (d / "agg.json").write_text(json.dumps(raw["before_agg"][0]["json"]), encoding="utf-8")
+    rc = {"run_id": mode, "commit": "x", "mode": mode, "cells": [{"model": "dsv41flash", "target": "c1_p90", "epoch_id": EPOCH}]}
+    if mode == "bench":
+        (run / "dsv41flash__c1_p90" / "bench" / "phase.json").write_text(json.dumps({"concurrencies": [1, 4, 16],
+                                                                                   "duration_s": 300}))
+    (run / "run_config.json").write_text(json.dumps(rc), encoding="utf-8")
+    p = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "generate_report.py"), "--run-dir", str(run)],
+                       capture_output=True, text=True)
+    assert p.returncode == 0, p.stderr
+    return p.stdout
+
+
+def test_report_smoke_row(tmp_path):
+    # B2 (2026-11-25): a smoke run was reported "incomplete | missing before, after"
+    out = report_of(tmp_path, "smoke", ["smoke"])
+    assert "| smoke | tput/GPU" in out and "e2e_norm P50" in out and "incomplete" not in out
+
+
+def test_report_bench_rows(tmp_path):
+    out = report_of(tmp_path, "bench", ["bench/c1", "bench/c4"])        # c16 has no result
+    assert "| bench c1 | tput/GPU" in out and "| bench c4 | tput/GPU" in out and "300 s each" in out
+    assert "| bench c16 | no result" in out

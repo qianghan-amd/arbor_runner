@@ -70,7 +70,9 @@ def test_index_rows_latest_and_compare(tmp_path):
     assert [r["run_id"] for r in rs] == [2, 2, 1]                                  # newest first
     old = next(r for r in rs if r["run_id"] == 1)
     assert old["tput_per_gpu"] == 100.0 and old["e2e_norm_intvty_p90"] == 10.0 and old["gsm8k_em_strict"] == 0.97
-    assert old["ttft_p50_ms"] == 900.0 and old["output_tput_per_gpu"] == 1.0
+    assert old["ttft_p50_ms"] == 900.0 and old["output_tput_per_gpu"] == 1.0 and old["status"] == "ok"
+    ev = (db / "evals.csv").read_text(encoding="utf-8").splitlines()
+    assert ev[0].split(",") == agentx_db.EVAL_COLUMNS and len(ev) == 2 and ev[1].endswith(",True")
     latest = agentx_db.select(rs, model="dsv41flash", latest=True)
     assert sorted((r["hw"], r["run_id"]) for r in latest) == [("b300-dsxe", 2), ("mi355x-amds", 2)]
     assert [r["run_id"] for r in agentx_db.select(rs, branch="main")] == [1]

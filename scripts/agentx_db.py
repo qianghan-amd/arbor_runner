@@ -49,7 +49,9 @@ COLUMNS = ["merged_at", "pr", "run_id", "date", "branch", "hw", "model_prefix", 
            "kv_offload_backend", "image", "recipe_fingerprint", "requests_ok", "requests_total",
            "tput_per_gpu", "output_tput_per_gpu", "total_tput_tps", "e2e_norm_intvty_p50", "e2e_norm_intvty_p90",
            "intvty_p50", "intvty_p90", "ttft_p50_ms", "tpot_p50_ms", "gsm8k_em_strict", "avg_power_w",
-           "joules_per_output_token", "power_valid"]
+           "joules_per_output_token", "power_valid", "status"]
+EVAL_COLUMNS = ["merged_at", "pr", "run_id", "hw", "model_prefix", "framework", "precision", "spec_decoding", "tp", "ep",
+                "dp_attention", "conc", "task", "em_strict", "em_strict_se", "em_flexible", "n_eff", "has_bench_point"]
 
 
 def hw_name(hw):
@@ -255,7 +257,9 @@ def point_row(rec, p, evals):
             "intvty_p50": m["intvty"]["p50"], "intvty_p90": m["intvty"]["p90"],
             "ttft_p50_ms": (lat.get("ttft") or {}).get("p50"), "tpot_p50_ms": (lat.get("tpot") or {}).get("p50"),
             "gsm8k_em_strict": ev.get("em_strict"), "avg_power_w": p.get("avg_power_w"),
-            "joules_per_output_token": p.get("joules_per_output_token"), "power_valid": p.get("power_valid")}
+            "joules_per_output_token": p.get("joules_per_output_token"), "power_valid": p.get("power_valid"),
+            # failed: the point ran but no request succeeded (no metrics), e.g. run 36567581989 minimaxm3 c48
+            "status": "ok" if p.get("num_requests_successful") and m.get("tput_per_gpu") is not None else "failed"}
 
 
 def load_runs(db=DB):
@@ -272,12 +276,35 @@ def rows(db=DB):
     return sorted(out, key=lambda r: (r["merged_at"], r["run_id"]), reverse=True)
 
 
-def write_index(db=DB):
-    rs = rows(db)
-    with open(db / "points.csv", "w", encoding="utf-8", newline="\n") as f:
-        w = csv.DictWriter(f, fieldnames=COLUMNS, lineterminator="\n")
+def eval_rows(db=DB):
+    """Every official GSM8K result (eval_results_all), also those at a configuration with no bench point (InferenceX
+    evaluates a few points; 30 of 139 had no matching bench point on 2026-11-25)."""
+    out = []
+    for rec in load_runs(db):
+        if not rec.get("official"):
+            continue
+        keys = {eval_key(p) for p in rec["points"]}
+        off = rec["official"]
+        for e in rec.get("evals") or []:
+            out.append({"merged_at": (off.get("merged_at") or "")[:16], "pr": off.get("pr"), "run_id": rec["run"]["id"],
+                        "hw": hw_name(e.get("hw")), "model_prefix": e.get("model_prefix"),
+                        **{k: e.get(k) for k in ("framework", "precision", "spec_decoding", "tp", "ep", "dp_attention",
+                                                 "conc", "task", "em_strict", "em_strict_se", "em_flexible", "n_eff")},
+                        "has_bench_point": eval_key(e) in keys})
+    return sorted(out, key=lambda r: (r["merged_at"], r["run_id"]), reverse=True)
+
+
+def write_csv(path, columns, rs):
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        w = csv.DictWriter(f, fieldnames=columns, lineterminator="\n")
         w.writeheader()
         w.writerows(rs)
+
+
+def write_index(db=DB):
+    rs = rows(db)
+    write_csv(db / "points.csv", COLUMNS, rs)
+    write_csv(db / "evals.csv", EVAL_COLUMNS, eval_rows(db))
     return len(rs)
 
 

@@ -1,0 +1,8 @@
+# Test (2026-11-25): the one-command path a user is likely to try first: `run_pr_test.py --request <this>` (submit,
+# wait, report) on a stored baseline (DSv4.1 Flash c1_p90), smoke, Crusoe burst named explicitly in backend_options.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+site: crusoe
+backend_options: { qos: amd-burst-qos, account: amd-hyperloom }
+targets:
+  - { model: dsv41flash, target: c1_p90 }

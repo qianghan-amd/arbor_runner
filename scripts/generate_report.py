@@ -45,6 +45,16 @@ def main():
                   or baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json"))
         src = report.baseline_source(record)
         src_txt = f"from {src['source_type']} run {src['ci_run_id']} ({src['ci_commit_date']})"
+        if rc.get("mode") == "smoke":     # one measurement, no before/after (B2 t-burst-runprtest-dsv41, 2026-11-25:
+            m, ph = read_phase(d / "smoke")  # it was reported "incomplete | missing before, after")
+            if m is None:
+                rows.append((model, target, "smoke", "no result (see logs/runner.log)"))
+            else:
+                g = m["gsm8k"].get("accuracy")
+                rows.append((model, target, "smoke", f"tput/GPU {m['tput_per_gpu']}, e2e_norm P50 {m['e2e_norm_intvty']['p50']} "
+                             f"P90 {m['e2e_norm_intvty']['p90']}; launch {src_txt}, {(ph or {}).get('duration_s')} s"
+                             + (f", GSM8K {g}" if g is not None else ", GSM8K skipped")))
+            continue
         if rc.get("mode") == "bench":     # one row per concurrency (runner.sh bench_sweep: bench/c<N>/agg.json)
             ph = read_json(d / "bench" / "phase.json") or {}
             for c in ph.get("concurrencies") or (rc.get("bench") or {}).get("concurrencies") or []:

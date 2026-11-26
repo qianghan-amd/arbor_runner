@@ -1,0 +1,9 @@
+# Test (2026-11-25): one request, two cells, two start methods: a hand-edited launch record (GLM-5.2 c16_tput, SGLang,
+# CI 43487923974 + server_env ARBOR_AB_EDIT_TEST=1) and a stored baseline (GLM-5.2 c1_p90). Smoke on Crusoe burst
+# (the site default). Expect: two jobs, both AgentX ok, the edit in the first cell's launch.json.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+site: crusoe
+targets:
+  - { model: glm52, target: c16_tput, record: runs/requests/t-edit-sglang-glm.record.json }
+  - { model: glm52, target: c1_p90 }
