@@ -19,7 +19,9 @@ STATES = ("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED", "UNKNOWN")
 # What the runner writes that is small enough to bring home (relative to a cell dir). No model data, no traces.
 RESULT_FILES = ("state", "phases", "logs/runner.log", "weights.json", "campaign_check.json", "campaign_exit.json",
                 "*/agg.json", "*/bench_output.json", "*/gsm8k.log", "*/phase.json", "*/launch.json", "*/cmdline.txt",
-                "*/tree.txt", "*/gsm8k/results_*.json", "*/gsm8k/*/results_*.json")
+                "*/tree.txt", "*/gsm8k/results_*.json", "*/gsm8k/*/results_*.json",
+                # mode bench: one dir per concurrency, and the summary
+                "bench/summary.json", "bench/c*/agg.json", "bench/c*/bench_output.json")
 
 
 class Backend:

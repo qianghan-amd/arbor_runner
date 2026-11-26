@@ -14,7 +14,9 @@ P90_OBJECTIVE = "P90 interactivity"                          # arbor/objective.p
 # campaign (the default, user decision 2026-11-20): fetch, prepare, the Arbor campaign; no before/after measurement.
 # full: before, campaign, after (the A/B comparison). campaign_smoke: campaign with a short budget (same steps).
 # smoke: one short measurement, no campaign. baseline: fetch, prepare, before (make_baseline.py).
-MODES = ("campaign", "full", "smoke", "campaign_smoke", "baseline")
+# bench: the AgentX bench alone at the request's concurrencies, one server for all (request `bench:`).
+MODES = ("campaign", "full", "smoke", "campaign_smoke", "baseline", "bench")
+BENCH_DEFAULT_DURATION_S = 600
 CAMPAIGN_MODES = ("campaign", "full", "campaign_smoke")
 
 
@@ -111,7 +113,7 @@ def opt_objective(record):
 
 
 def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, arbor_tar, arbor_tar_sha256, weights_path=None,
-             skip_gsm8k=False, arbor_launcher=True, objective=None):
+             skip_gsm8k=False, arbor_launcher=True, objective=None, bench=None):
     """Shell variables for scripts/runner/runner.sh (written as cell.env). weights_path: optional pre-downloaded weights
     of the served model on the node (request `weights_path`); fetch.py checks them against the pin and links them."""
     h, lau, fp = record["host"], record["launch"], record["fingerprint"]
@@ -143,6 +145,10 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         # `arbor run` under Arbor's launcher (its default; #74 closed 2026-11-24, not reproduced); request
         # `arbor_standalone: true`: one process (ARBOR_STANDALONE=1, kept by Arbor for one release)
         "ARBOR_LAUNCHER": "1" if arbor_launcher else "0",
+        # mode bench: the concurrencies (default: the cell's), the duration of each run, GSM8K once (0 = skipped)
+        "BENCH_CONCS": " ".join(str(c) for c in bench_concurrencies(record, bench)),
+        "BENCH_DUR": str((bench or {}).get("duration_s") or BENCH_DEFAULT_DURATION_S),
+        "NQ_BENCH": "0" if skip_gsm8k else str(lau["gsm8k"].get("num_questions") or 1319),
     }
 
 
@@ -150,11 +156,22 @@ def env_file(env):
     return "".join(f"{k}={shlex.quote(str(v))}\n" for k, v in env.items())
 
 
-def job_minutes(mode, minutes, record):
+def bench_concurrencies(record, bench):
+    """The request's bench concurrencies (positive ints, in its order, no repeats), else the cell's."""
+    concs = (bench or {}).get("concurrencies") or [record["launch"]["concurrency"]]
+    if not all(isinstance(c, int) and c > 0 for c in concs):
+        raise ValueError(f"bench.concurrencies: positive integers, got {concs!r}")
+    return list(dict.fromkeys(concs))
+
+
+def job_minutes(mode, minutes, record, bench=None):
     """Wall clock the cell's job needs (the backend turns it into its own time limit). Fetch <= 60, prepare <= 30, one measurement <= 75 + GSM8K (vLLM C1: 70)."""
     meas = 75 + (75 if record["host"]["framework"] == "vllm" else 10)
     if mode == "smoke":
         return 60 + 30 + 30 + 30
+    if mode == "bench":      # fetch, prepare, one server start (<= 40), each run + 10 min, GSM8K, margin
+        dur = (bench or {}).get("duration_s") or BENCH_DEFAULT_DURATION_S
+        return 60 + 30 + 40 + sum(dur // 60 + 10 for _ in bench_concurrencies(record, bench)) + 75 + 30
     if mode in ("campaign", "campaign_smoke"):
         return 60 + 30 + minutes + 30
     if mode == "baseline":

@@ -189,3 +189,27 @@ def test_analysis_extras_failure_is_not_fatal(tmp_path):
     p, _, log = run(tmp_path, body)
     assert "rc=0" in p.stdout
     assert "analysis extras NOT installed" in log and "ERROR: no network" in log
+
+
+# ---- bench_sweep (mode bench) -----------------------------------------------------------------------------------------
+
+def test_bench_sweep_one_server_all_concurrencies_and_a_failure(tmp_path):
+    # the real bench_sweep with its steps stubbed: one serve_up/stop_server, an agentx_bench per concurrency, the
+    # failed one (4) does not stop the others, the phase fails, summary.json lists every concurrency
+    py = Path(sys.executable).as_posix()
+    stubs = (f'PY="{py}"\nBENCH_CONCS="1 4 16"; BENCH_DUR=300; NQ_BENCH=0\n'
+             'serve_up() { OUT=$CELL_DIR/$1; CIN=/workspace/exp/$1; mkdir -p "$OUT"; echo serve_up >> $CELL_DIR/calls; }\n'
+             'stop_server() { echo stop >> $CELL_DIR/calls; }\n'
+             'gsm8k_eval() { echo "gsm8k $1" >> $CELL_DIR/calls; }\n'
+             'phase_record() { echo "phase $*" >> $CELL_DIR/calls; }\n'
+             'agentx_bench() { echo "bench $1 $3" >> $CELL_DIR/calls; mkdir -p "$2"; [ "$1" = 4 ] && return 1; '
+             'echo "{\\"status\\": \\"ok\\", \\"total_throughput_per_gpu\\": $1000, \\"e2e_norm_intvty_p90\\": 9.5, '
+             '\\"num_requests_successful\\": 9, \\"num_requests_total\\": 10}" > "$2/bench_output.json"; echo "{}" > "$2/agg.json"; }\n')
+    p, cell, log = run(tmp_path, stubs + func("bench_sweep") + "\nbench_sweep\necho rc=$?\n")
+    assert "rc=1" in p.stdout, p.stdout + p.stderr
+    calls = (cell / "calls").read_text().splitlines()
+    assert calls == ["serve_up", "bench 1 /workspace/exp/bench/c1", "bench 4 /workspace/exp/bench/c4",
+                     "bench 16 /workspace/exp/bench/c16", "gsm8k 0", "stop", "phase 300 0 1 4 16"]
+    s = json.loads((cell / "bench" / "summary.json").read_text())
+    assert [(r["concurrency"], r["ok"]) for r in s["concurrencies"]] == [(1, True), (4, False), (16, True)]
+    assert s["concurrencies"][2]["total_throughput_per_gpu"] == 16000 and "bench c4: ok=False" in log

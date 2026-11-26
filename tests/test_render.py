@@ -103,3 +103,17 @@ def test_runnable_needs_the_bench_client_commit():
     r["measured"]["bench_client_commit"] = None
     assert any("bench_client_commit" in w for w in render.check_runnable(r))
     assert any("bench_client_commit" in w for w in render.check_runnable(baseline.load_latest("dsv41flash", "c32_tput")))
+
+
+def test_bench_mode_env_and_wall_time():
+    import pytest
+    r = baseline.load_latest("dsv41flash", "c1_p90")
+    env = lambda **k: render.cell_env(r, "20261125-000000_7c211696_t", "7c211696", "bench", "/w/c", "ab_c", 0, SITE,
+                                      "/w/a.tar", "ab" * 32, skip_gsm8k=True, **k)
+    assert (env()["BENCH_CONCS"], env()["BENCH_DUR"], env()["NQ_BENCH"]) == ("1", "600", "0")   # the cell's conc
+    e = env(bench={"concurrencies": [1, 4, 16, 4], "duration_s": 300})
+    assert (e["BENCH_CONCS"], e["BENCH_DUR"]) == ("1 4 16", "300")                             # in order, no repeats
+    assert render.job_minutes("bench", 0, r, {"concurrencies": [1, 4, 16], "duration_s": 600}) == 60 + 30 + 40 + 3 * 20 + 75 + 30
+    with pytest.raises(ValueError, match="positive"):
+        render.bench_concurrencies(r, {"concurrencies": [0]})
+    assert "bench" in render.MODES and "bench" not in render.CAMPAIGN_MODES

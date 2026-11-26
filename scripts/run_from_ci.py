@@ -56,7 +56,10 @@ def main():
     ap.add_argument("--model", help="matrix model key, when the CI run measured several models")
     ap.add_argument("--target", help="matrix target, e.g. c1_p90, when several match")
     ap.add_argument("--tp", type=int, help="TP of the CI point, when several match")
-    ap.add_argument("--mode", default="campaign", choices=("campaign", "full", "campaign_smoke", "smoke"))
+    ap.add_argument("--mode", default="campaign", choices=("campaign", "full", "campaign_smoke", "smoke", "bench"))
+    ap.add_argument("--conc", type=int, nargs="+",
+                    help="mode bench: the concurrencies to bench, one server for all (default: the CI point's)")
+    ap.add_argument("--duration", type=int, help="mode bench: seconds of each AgentX run (default 600)")
     ap.add_argument("--campaign-minutes", type=int, default=480)
     ap.add_argument("--gsm8k", action="store_true", help="GSM8K in the measured phases (full mode)")
     ap.add_argument("--weights-path", default="auto", help="auto (shared hub when present), none (download), or a path")
@@ -160,6 +163,11 @@ def main():
     req = {"commit": sha, "mode": args.mode, "campaign_minutes": args.campaign_minutes, "ci_run": str(args.ci_run),
            "targets": [{"model": model, "target": target, "record": record.relative_to(REPO_ROOT).as_posix(),
                         **({"weights_path": weights} if weights else {})}]}
+    if args.mode == "bench" and (args.conc or args.duration):
+        req["bench"] = {**({"concurrencies": args.conc} if args.conc else {}),
+                        **({"duration_s": args.duration} if args.duration else {})}
+    elif args.conc or args.duration:
+        sys.exit("--conc / --duration are for --mode bench")
     if args.gsm8k:
         req["gsm8k"] = True
     if args.site:

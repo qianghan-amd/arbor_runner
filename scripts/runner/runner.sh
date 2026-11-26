@@ -82,7 +82,7 @@ run_phase() {   # run_phase <name> <function> [args...]: skipped when already do
 # container, and the campaign's kept tree in it, is gone; the node-local cache may be on another node; before and
 # after on two nodes are not apple-to-apple. So an unfinished cell moves its earlier attempt to attempts/<n>/ and
 # starts over, at most MAX_ATTEMPTS times in all.
-ATTEMPT_PATHS="phases before after smoke sessions agent_home arbor campaign_check.json campaign_exit.json logs/campaign.log"
+ATTEMPT_PATHS="phases before after smoke bench sessions agent_home arbor campaign_check.json campaign_exit.json logs/campaign.log"
 start_over() {
     PHASE=restart
     ls "$CELL_DIR/phases"/*.start >/dev/null 2>&1 || return 0          # first attempt
@@ -383,15 +383,16 @@ stop_server() {   # returns non-zero if the GPUs are not free afterwards: the ne
     return 1
 }
 
-measure() {   # measure <tag> <duration_s> <gsm8k_questions>
-    TAG=$1; local dur=$2 nq=$3 out=$CELL_DIR/$1 cin=/workspace/exp/$1
+# A measured phase is serve_up (launch, health, bench env), one agentx_bench per concurrency, gsm8k_eval, stop_server
+# and phase_record. measure = one bench at the cell's CONC; bench_sweep = one server, a bench per BENCH_CONCS entry.
+serve_up() {   # serve_up <tag> <duration_s>: sets OUT (host) and CIN (container) to the phase dir
+    TAG=$1; local dur=$2; OUT=$CELL_DIR/$1; CIN=/workspace/exp/$1
+    local out=$OUT cin=$CIN
     mkdir -p "$out" && chmod 777 "$out"
-    [ -f "$out/agg.json" ] && { log "$TAG: $out already has a result"; return 1; }
     in_c "curl -sf -m 3 localhost:$PORT/health >/dev/null" && { log "$TAG: a server already answers on $PORT"; return 1; }
     in_c "git -C '$WORKSPACE_ROOT' log -1 --format='%H %s'; git -C '$WORKSPACE_ROOT' status --porcelain --untracked-files=no | head -20" > "$out/tree.txt"
     (cd "$ARBOR" && PYTHONPATH=$ARBOR "$PY" "$CELL_DIR/serve_cmd.py" "$CELL_DIR/arbor_config.json" "$out" "$cin" --set "DURATION=$dur") \
         | tee -a "$LOGS/runner.log" || return 1
-    local t0; t0=$(date -u +%FT%TZ)
     docker exec -d "$CONTAINER" bash "$cin/serve.sh" || return 1
     SERVER_UP=1; local T0; T0=$(date +%s)
     for i in $(seq 1 160); do
@@ -410,11 +411,17 @@ c = json.load(open(sys.argv[1])); env = {k: str(v) for k, v in c["server_env"].i
 env["DURATION"] = sys.argv[2]
 print("".join(f"export {k}={shlex.quote(v)}\n" for k, v in env.items()), end="")
 PY
+}
+
+agentx_bench() {   # agentx_bench <concurrency> <host dir> <container dir>: one AgentX run on the server serve_up started
+    local conc=$1 out=$2 cin=$3
+    mkdir -p "$out" && chmod 777 "$out"
+    [ -f "$out/agg.json" ] && { log "$TAG: $out already has a result"; return 1; }
     local T1; T1=$(date +%s)
-    timeout "$BENCH_TIMEOUT" docker exec "$CONTAINER" bash -c ". $cin/bench.env; export PORT=$PORT MODEL_PATH='$MODEL_PATH' \
-        MODEL_NAME='$MODEL_NAME' CONCURRENCY=$CONC NUM_PROMPTS=$NUM_PROMPTS BENCH_OUTPUT=$cin/bench_output.json; \
+    timeout "$BENCH_TIMEOUT" docker exec "$CONTAINER" bash -c ". $CIN/bench.env; export PORT=$PORT MODEL_PATH='$MODEL_PATH' \
+        MODEL_NAME='$MODEL_NAME' CONCURRENCY=$conc NUM_PROMPTS=$NUM_PROMPTS BENCH_OUTPUT=$cin/bench_output.json; \
         cd /tmp && bash /workspace/Arbor/packs/agentx/validator/bench_agentx.sh" > "$out/bench.log" 2>&1
-    log "$TAG: AgentX rc=$? after $(( $(date +%s) - T1 )) s"
+    log "$TAG: AgentX (concurrency $conc) rc=$? after $(( $(date +%s) - T1 )) s"
     "$PY" - "$out" "$cin" <<'PY' | tee -a "$LOGS/runner.log" || { log "$TAG: no AgentX aggregate"; return 1; }
 import json, shutil, sys
 out, cin = sys.argv[1:3]
@@ -426,7 +433,10 @@ shutil.copyfile(host, f"{out}/agg.json")
 print(f"[runner] AgentX status={b.get('status')} total_throughput_per_gpu={b.get('total_throughput_per_gpu')} "
       f"e2e_norm_intvty_p90={b.get('e2e_norm_intvty_p90')} requests={b.get('num_requests_successful')}/{b.get('num_requests_total')}")
 PY
+}
 
+gsm8k_eval() {   # gsm8k_eval <questions>: on the server serve_up started; results in $OUT (0 = skipped)
+    local nq=$1 out=$OUT cin=$CIN
     local T2; T2=$(date +%s)
     if [ "$nq" = 0 ]; then   # request skip_gsm8k: recorded in phase.json (gsm8k_questions 0); the report says "skipped"
         log "$TAG: GSM8K skipped (request skip_gsm8k)"
@@ -445,16 +455,62 @@ PY
         grep -qa '^Accuracy:' "$out/gsm8k.log" || { log "$TAG: GSM8K printed no accuracy"; return 1; }
     fi
     [ "$nq" = 0 ] || log "$TAG: GSM8K ($nq) after $(( $(date +%s) - T2 )) s: $(grep -aE '^Accuracy:|^\|.*(flexible-extract|strict-match)' "$out/gsm8k.log" | tr -s ' ' | tr '\n' ' ' | cut -c1-200)"
-    stop_server || return 1
+}
 
-    "$PY" - "$out/phase.json" "$TAG" "$t0" "$(date -u +%FT%TZ)" "$(head -1 "$out/tree.txt")" "$out/launch.json" \
-        "$(hostname -s)" "${SLURM_JOB_ID:-}" "$dur" "$nq" <<'PY'
+phase_record() {   # phase_record <duration_s> <gsm8k_questions> [concurrencies]: $OUT/phase.json
+    "$PY" - "$OUT/phase.json" "$TAG" "$PHASE_T0" "$(date -u +%FT%TZ)" "$(head -1 "$OUT/tree.txt")" "$OUT/launch.json" \
+        "$(hostname -s)" "${SLURM_JOB_ID:-}" "$1" "$2" "${3:-$CONC}" <<'PY'
 import json, sys
-p, tag, t0, t1, tree, launch, node, job, dur, nq = sys.argv[1:11]
+p, tag, t0, t1, tree, launch, node, job, dur, nq, concs = sys.argv[1:12]
 kept = json.load(open(launch))["live_workspace_config"]
 json.dump({"phase": tag, "started_at": t0, "ended_at": t1, "tree": tree, "launch_from": "kept" if kept else "pristine",
-           "node": node, "job": job, "duration_s": int(dur), "gsm8k_questions": int(nq)}, open(p, "w"), indent=2)
+           "node": node, "job": job, "duration_s": int(dur), "gsm8k_questions": int(nq),
+           "concurrencies": [int(c) for c in concs.split()]}, open(p, "w"), indent=2)
 PY
+}
+
+measure() {   # measure <tag> <duration_s> <gsm8k_questions>: one AgentX run at the cell's CONC
+    PHASE_T0=$(date -u +%FT%TZ)
+    [ -f "$CELL_DIR/$1/agg.json" ] && { log "$1: $CELL_DIR/$1 already has a result"; return 1; }
+    serve_up "$1" "$2" || return 1
+    agentx_bench "$CONC" "$OUT" "$CIN" || return 1
+    gsm8k_eval "$3" || return 1
+    stop_server || return 1
+    phase_record "$2" "$3"
+}
+
+# ---- bench: the AgentX bench alone, at the concurrencies the request names (mode bench) -------------------------------
+# One server for all of them (a start costs 4-35 min: Kimi K3 1997 s, 2026-11-25), then GSM8K once if asked. Each
+# concurrency writes bench/c<N>/{bench.log, bench_output.json, agg.json}; bench/summary.json lists them. A failed
+# concurrency does not stop the others; the phase fails if any failed.
+bench_sweep() {
+    PHASE_T0=$(date -u +%FT%TZ)
+    serve_up bench "$BENCH_DUR" || return 1
+    local c failed=""
+    for c in $BENCH_CONCS; do
+        agentx_bench "$c" "$OUT/c$c" "$CIN/c$c" || { failed="$failed $c"; log "bench: concurrency $c failed"; }
+    done
+    gsm8k_eval "$NQ_BENCH" || failed="$failed gsm8k"
+    stop_server || return 1
+    phase_record "$BENCH_DUR" "$NQ_BENCH" "$BENCH_CONCS"
+    "$PY" - "$OUT" "$BENCH_CONCS" "$failed" <<'PY' | tee -a "$LOGS/runner.log"
+import json, os, sys
+out, concs, failed = sys.argv[1], sys.argv[2].split(), sys.argv[3].split()
+rows = []
+for c in concs:
+    b = os.path.join(out, f"c{c}", "bench_output.json")
+    d = json.load(open(b)) if os.path.exists(b) else {}
+    rows.append({"concurrency": int(c), "ok": c not in failed and os.path.exists(os.path.join(out, f"c{c}", "agg.json")),
+                 **{k: d.get(k) for k in ("status", "total_throughput_per_gpu", "output_throughput_per_gpu",
+                                          "e2e_norm_intvty_p50", "e2e_norm_intvty_p90", "num_requests_successful",
+                                          "num_requests_total")}})
+json.dump({"concurrencies": rows, "gsm8k_failed": "gsm8k" in failed}, open(os.path.join(out, "summary.json"), "w"), indent=2)
+for r in rows:
+    print(f"[runner] bench c{r['concurrency']}: ok={r['ok']} tput/GPU={r['total_throughput_per_gpu']} "
+          f"e2e_norm P50={r['e2e_norm_intvty_p50']} P90={r['e2e_norm_intvty_p90']} "
+          f"requests={r['num_requests_successful']}/{r['num_requests_total']}")
+PY
+    [ -z "$failed" ]
 }
 
 # ---- campaign: Arbor under test, unattended (design.md section 7) ---------------------------------------------------
@@ -564,6 +620,7 @@ case "$MODE" in
     full)  run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL"
            run_phase campaign campaign; run_phase after measure after "$DUR_FULL" "$NQ_FULL" ;;
     campaign|campaign_smoke) run_phase fetch fetch; run_phase prepare prepare; run_phase campaign campaign ;;
+    bench) run_phase fetch fetch; run_phase prepare prepare; run_phase bench bench_sweep ;;
     baseline) run_phase fetch fetch; run_phase prepare prepare; run_phase before measure before "$DUR_FULL" "$NQ_FULL" ;;
     *) die "unknown MODE '$MODE'" ;;
 esac

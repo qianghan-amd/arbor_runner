@@ -49,7 +49,8 @@ You set these in the request or in your one-time setup:
 
 | Input | Where | Note |
 |---|---|---|
-| Mode | `--mode` / `mode:` | `campaign` (default), `full` (before + campaign + after: the A/B result), `smoke`, `campaign_smoke`. |
+| Mode | `--mode` / `mode:` | `campaign` (default), `full` (before + campaign + after: the A/B result), `smoke`, `campaign_smoke`, `bench`. |
+| Bench | `--conc N [N ...] --duration S` / `bench: {concurrencies: [...], duration_s: S}` | Mode `bench`: the AgentX bench alone, no Arbor campaign, no LLM key. One server start for all the concurrencies (default: the CI point's), `duration_s` each (default 600). Results: `<cell>/bench/c<N>/`, `bench/summary.json`; `generate_report.py` prints one row per concurrency. The launch stays the CI point's: flags tuned for one concurrency (e.g. max running requests) also hold at the others. |
 | Campaign length | `--campaign-minutes` / `campaign_minutes` | The runner stops Arbor at this time. Default 480 (8 h); see "How long it takes". |
 | Cluster | `--site` / `site:` | `crusoe` (default, MI355X) or `meta64` (MI350X). Also `--qos`, `--partition`, `--nodelist`, `--exclude-nodes`, `--hold-job`. |
 | Weights | `--weights-path` / `weights_path` | `auto` (shared hub when complete, else download), a folder of the pinned revision, or `none`. |

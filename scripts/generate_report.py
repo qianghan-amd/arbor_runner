@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from arbor_ab import baseline, config, report
+from arbor_ab import agentx, baseline, config, report
 
 
 def read_json(p):
@@ -45,6 +45,21 @@ def main():
                   or baseline.load(baseline.cell_dir(model, target) / f"{cell['epoch_id']}.json"))
         src = report.baseline_source(record)
         src_txt = f"from {src['source_type']} run {src['ci_run_id']} ({src['ci_commit_date']})"
+        if rc.get("mode") == "bench":     # one row per concurrency (runner.sh bench_sweep: bench/c<N>/agg.json)
+            ph = read_json(d / "bench" / "phase.json") or {}
+            for c in ph.get("concurrencies") or (rc.get("bench") or {}).get("concurrencies") or []:
+                m, _ = read_phase(d / "bench" / f"c{c}")
+                if m is None:
+                    rows.append((model, target, f"bench c{c}", "no result (see logs/runner.log)"))
+                    continue
+                rows.append((model, target, f"bench c{c}", f"tput/GPU {m['tput_per_gpu']}, e2e_norm P50 "
+                             f"{m['e2e_norm_intvty']['p50']} P90 {m['e2e_norm_intvty']['p90']}, intvty P90 "
+                             f"{m['intvty']['p90']}; launch {src_txt}, {ph.get('duration_s')} s each"))
+            log = d / "bench" / "gsm8k.log"
+            if log.exists():
+                g = agentx.gsm8k_from_log(log.read_text(encoding="utf-8", errors="replace").replace("\r", "\n").splitlines())
+                rows.append((model, target, "bench GSM8K", str(g)))
+            continue
         if rc.get("mode") in ("campaign", "campaign_smoke"):   # no before/after by design: the campaign's own result
             ex = read_json(d / "campaign_exit.json") or {}
             rows.append((model, target, "campaign", f"baseline {src_txt}; Arbor exit {ex.get('reason')}, "
