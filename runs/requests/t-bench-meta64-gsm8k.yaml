@@ -1,0 +1,17 @@
+# run_from_ci.py: InferenceX CI run 43487923974 (Run Sweep - perf: use Gluon for GLM-5.2 TP8 AgentX on 1111 daily / perf: GLM-5.2 TP8 AgentX 使用 Gluon)
+# launch: t-bench-meta64-gsm8k.record.json (from runs/drafts/glm52__c16_tput__ci43487923974/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: bench
+campaign_minutes: 480
+ci_run: '43487923974'
+targets:
+- model: glm52
+  target: c16_tput
+  record: runs/requests/t-bench-meta64-gsm8k.record.json
+bench:
+  concurrencies:
+  - 8
+  - 16
+  duration_s: 300
+gsm8k: true
+site: meta64

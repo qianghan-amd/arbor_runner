@@ -74,6 +74,25 @@ Stored baselines usable as a start (`check_runnable`): 5 of 12 (dsv41flash c1, g
 muse c1). The others lack a launch block, the corpus pins, bench env or the bench client commit: start them from a
 CI run.
 
+## Startup methods and mode bench (2026-11-25/26, Arbor 7c211696)
+
+| Test | How it was started | Site | Job | Result |
+|---|---|---|---|---|
+| B1 | `run_from_ci --mode bench --conc 1 2 4 --duration 300`, a job URL | crusoe | 312862 | pass: one server, bench/c1 c2 c4, summary.json, a report row each |
+| B2 | `run_pr_test.py --request` (submit, wait, report), stored DSv4.1 c1, smoke | crusoe | 312869 | pass; the report said "incomplete" -> a smoke row (fixed) |
+| B3 | `run_from_ci` with no `--site` (default crusoe) and `--follow` | crusoe | 312871 | pass |
+| B4 | one request, two cells: an edited record + a stored baseline (GLM-5.2) | crusoe | 312916, 312917 | pass: the edit in launch.json |
+| B5 | `cancel_run` on a running smoke | crusoe | 312964, 313020, 313303 | Spur's scancel is a SIGKILL (no trap) -> TERM to the runner: 313303 stopped its server and removed its container |
+| T1 | `run_from_ci --mode bench`, no `--conc` (the CI's 32), `--follow` | crusoe | 313154 | pass |
+| T2 | request `record:` (launch JSON), mode bench, `submit_ab_test.py` | crusoe | 313396 | pass (after a preemption and a dirty node, v3-172) |
+| T3 | stored baseline, mode bench, `run_pr_test.py --request` | crusoe | 313506 | pass |
+| T4 | meta64, mode bench, `--gsm8k` | meta64 | 153110 | refused in prepare (infx layout has no benchmark_lib.sh) -> now refused before submit |
+| - | dry run; `--conc` without mode bench; `--conc 0` | - | - | pass; both refused with a clear message |
+
+Mode bench caveat: on one server the second concurrency read much lower than the first (B1 c2 5041 < c1 11136
+tok/s/GPU; T3 c2 1990 < c1 5779) at 300 s each: likely state carried between runs and runs too short. Use 1800 s or
+more; a restart per concurrency is the next change.
+
 ## Runner bugs these runs found (all fixed)
 
 | Found by | Bug | Fix |
@@ -101,3 +120,8 @@ CI run.
 | Crusoe burst | every run > 20 min preempted | --requeue + poll_status --resubmit-preempted |
 | Crusoe 308822 | Spur held a requeued job forever (JobHoldMaxRequeue) | reported as over; resubmit cancels it first |
 | meta64 151758 | stored baseline without bench_client_commit passed the check | check_runnable requires it |
+| B2 312869 | a smoke run reported "incomplete" | a smoke row in generate_report |
+| B5 312964, 313020 | Spur's scancel kills with SIGKILL: no cleanup trap | cancel TERMs the runner (srun --overlap pkill), scancel after 90 s; state "cancelled" |
+| Crusoe v3-179 | python3 without ensurepip; a half-built venv reused; no docker | uv fallback, .ok venv markers, docker checked first, bad_nodes |
+| Crusoe v3-172 | another user's container holds the GPUs | bad_nodes |
+| meta64 153110 | --gsm8k with the infx layout failed after the fetch | refused before submit |

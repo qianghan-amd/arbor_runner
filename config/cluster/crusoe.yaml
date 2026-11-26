@@ -30,6 +30,11 @@ qos_fallback: { qos: amd-agentx-qos, account: amd-agentx }
 qos_max_wall_minutes: { amd-burst-qos: 1440, amd-agentx-qos: 2880, amd-hyperloom-qos: 2880 }
 # MaxSubmitPU per QOS (sacctmgr, 2026-11-20): every job of the user counts, not only this project's
 qos_max_submit_per_user: { amd-burst-qos: 4, amd-agentx-qos: 4 }
+# Nodes a cell cannot run on, with the evidence: every job excludes them (backends/slurm.py job_script) unless the
+# request pins one (nodelist). Check again before you trust an old entry; remove it when the node is fixed.
+bad_nodes:
+  crsuse2-m2m-v3-179: "no working docker daemon, python3 without ensurepip (2026-11-26: jobs 308137, 313035, 313218)"
+  crsuse2-m2m-v3-172: "another user's container (yitiwang_atom_172, up since 2026-11-19) holds ~72 % of every GPU (job 313249, 2026-11-26)"
 # LLM gateway for Arbor's agents (format of the earlier campaigns' gateway.env, verified 2026-11-19). The subscription
 # key itself is never here: scripts/setup_remote.py writes it into <work_root>/secrets/gateway.env (mode 600).
 llm_gateway:

@@ -53,6 +53,9 @@ retry() {
 }
 
 cleanup() {
+    # 143 = ended by SIGTERM: cancel_run stops the runner that way (the scheduler then records the job FAILED, rc 143;
+    # Crusoe 313303, 2026-11-26), so the state says it was cancelled, and poll_status reports CANCELLED
+    [ "$?" = 143 ] && { echo cancelled > "$CELL_DIR/state"; log "cancelled (SIGTERM) in $PHASE"; }
     [ "$SERVER_UP" = 1 ] && stop_server
     # our container only (by its unique name); other users' containers are never touched
     docker rm -f "$CONTAINER" >/dev/null 2>&1 && log "container $CONTAINER removed"
@@ -117,10 +120,12 @@ fetch_once() {   # one attempt; fetch.py skips what is already pinned and comple
     return "${PIPESTATUS[0]}"
 }
 
-# host_python: prints a python >= 3.10 for the host-side venvs (Arbor and claude-agent-sdk, fetch.py). Crusoe's nodes
-# have one; meta64's have 3.9 (probe job 146738, 2026-11-21): then uv brings 3.12 onto node-local disk.
+# host_python: prints a python >= 3.10 that can make a venv, for the host-side venvs (Arbor and claude-agent-sdk,
+# fetch.py). Most Crusoe nodes have one; meta64's have 3.9 (probe job 146738, 2026-11-21), and Crusoe v3-179's python3
+# has no ensurepip (python3.12-venv missing; jobs 308137, 313035: fetch failed at once): then uv brings 3.12 onto
+# node-local disk.
 host_python() {
-    if python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then command -v python3; return 0; fi
+    if python3 -c 'import sys, ensurepip; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then command -v python3; return 0; fi
     mkdir -p "$NL" || return 1
     if [ ! -x "$NL/uv/uv" ]; then
         retry 3 bash -c "curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR='$NL/uv' UV_NO_MODIFY_PATH=1 sh" \
@@ -132,11 +137,17 @@ host_python() {
 }
 
 fetch() {
+    # a node without a working docker cannot run the cell: say so before any download (Crusoe v3-179, job 313218,
+    # 2026-11-26: fetch done, then prepare found "no working docker daemon")
+    docker info >/dev/null 2>&1 || { log "no working docker daemon on $(hostname -s): resubmit with exclude_nodes"; return 1; }
     mkdir -p "$NL" || return 1
-    if [ ! -x "$NL/dlvenv/bin/python" ]; then
+    # .ok is written last: a venv a failed build left (v3-179: `python3 -m venv` made bin/python, then ensurepip failed;
+    # job 313074 reused it and had no huggingface_hub) is rebuilt
+    if [ ! -f "$NL/dlvenv/.ok" ]; then
         local hp; hp=$(host_python) || return 1
         rm -rf "$NL/dlvenv"
-        "$hp" -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' || return 1
+        "$hp" -m venv "$NL/dlvenv" && retry 3 "$NL/dlvenv/bin/pip" -q install 'huggingface_hub==2.4.0' \
+            && touch "$NL/dlvenv/.ok" || return 1
     fi
     # rc 3 = not enough room on the node (fetch.py make_room): final, a retry cannot change it (meta64 Kimi K3 1.57 TB)
     fetch_once; local rc=$?
@@ -231,11 +242,13 @@ prepare() {
     fi
     log "InferenceX client $INFX_SHA at $INFX (layout $INFX_LAYOUT${INFX_HOME_C:+, $INFX_HOME_C})"
 
-    if [ ! -x "$PY" ]; then   # also when a venv made on another node points at that node's uv python
+    # rebuilt when its python does not run here (a venv made on another node points at that node's uv python) or its
+    # build did not finish (.ok, written last)
+    if [ ! -f "$VENV/.ok" ] || ! "$PY" -c 'import yaml' 2>/dev/null; then
         local hp; hp=$(host_python) || return 1
         rm -rf "$VENV"
         "$hp" -m venv "$VENV" && retry 3 "$PY" -m pip install -q --upgrade pip \
-            && retry 3 "$PY" -m pip install -q pyyaml claude-agent-sdk || return 1
+            && retry 3 "$PY" -m pip install -q pyyaml claude-agent-sdk && touch "$VENV/.ok" || return 1
     fi
     "$PY" -c 'import importlib.metadata as m; print("[runner] venv: pyyaml", m.version("pyyaml"), "claude-agent-sdk", m.version("claude-agent-sdk"))'
 

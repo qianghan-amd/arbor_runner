@@ -1,0 +1,8 @@
+# Test (2026-11-26): mode bench from a launch JSON (request `record:`, MiniMax M3.1 Flash C1 from CI 43171131215),
+# submit_ab_test.py, Crusoe burst: concurrencies 1 and 8, 300 s each, one server.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: bench
+site: crusoe
+bench: { concurrencies: [1, 8], duration_s: 300 }
+targets:
+  - { model: minimax_m31_flash, target: c1_p90, record: runs/requests/t-full-crusoe-minimax2.record.json }

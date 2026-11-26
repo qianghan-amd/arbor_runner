@@ -244,3 +244,30 @@ def test_resubmit_held_job_cancels_it_first(tmp_path):
     b = Fake()
     notes = poll_status.resubmit_preempted(tmp_path, rc, b, [{"raw": "PREEMPTED (JobHoldMaxRequeue: requeued 5 times, then held)"}])
     assert b.calls == [("cancel", "308822"), ("submit", "a")] and "new1" in notes["a"]
+
+
+def test_cancel_sends_term_first(monkeypatch):
+    # Spur's scancel defaults to SIGKILL (no EXIT trap): cancel sends TERM to the batch step, waits, then cancels
+    from arbor_ab.backends import slurm
+    s = slurm.cancel_script("312964", "/w/runs/r/c")
+    assert "srun --jobid=$J --overlap" in s and "pkill -TERM -f 'runner[.]sh /w/runs/r/c$'" in s
+    assert "seq 1 18" in s and s.strip().endswith("scancel $J && echo killed") and s.startswith("J=312964;")
+    assert "echo already-ended" in s.splitlines()[0]
+    b = crusoe_slurm.CrusoeSlurm(LOCAL, CLUSTER)
+    seen = []
+    class P:
+        def __init__(self, out): self.stdout, self.stderr, self.returncode = out.encode(), b"", 0
+    monkeypatch.setattr(slurm.remote, "run_bash", lambda host, script, timeout=None: seen.append(script) or P("ended-on-term\n"))
+    assert b.cancel({"job_id": "312964", "remote_dir": "/w/c"}) == "cancelled (runner stopped on SIGTERM)" and "pkill -TERM" in seen[0]
+    monkeypatch.setattr(slurm.remote, "run_bash", lambda host, script, timeout=None: P("killed\n"))
+    assert "SIGKILL after 90 s" in b.cancel({"job_id": "312964", "remote_dir": "/w/c"})
+    monkeypatch.setattr(slurm.remote, "run_bash", lambda host, script, timeout=None: P("already-ended\n"))
+    assert b.cancel({"job_id": "312964", "remote_dir": "/w/c"}) == "not cancelled: the job had already ended"
+
+
+def test_bad_nodes_excluded_unless_pinned():
+    # Crusoe v3-179 (2026-11-26): no docker, no ensurepip; config bad_nodes keeps jobs off it
+    b = crusoe_slurm.CrusoeSlurm(LOCAL, {**CLUSTER, "bad_nodes": {"n9": "no docker"}})
+    assert "#SBATCH --exclude=n1,n9" in b.job_script("/w/c", "ab-c", 150, exclude=("n1",))[1]
+    pinned = b.job_script("/w/c", "ab-c", 150, options={"nodelist": "n9"})[1]
+    assert "--exclude" not in pinned and "#SBATCH --nodelist=n9" in pinned

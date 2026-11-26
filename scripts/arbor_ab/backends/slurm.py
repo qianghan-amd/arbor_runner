@@ -158,7 +158,10 @@ for s in PAYLOAD["shas"]:
                     subprocess.run(["git", "clone", "-q", "--no-checkout", url, sub], capture_output=True, timeout=900)
                 subs[path] = fetch(sub, gsha)
     # only the submodules the runner requires decide (runner.sh REQUIRED_SUBMODULES); others are reported
-    out[s] = {"ok": ok and all(subs.get(p, False) for p in PAYLOAD["required"] if p in subs), "submodules": subs}
+    out[s] = {"ok": ok and all(subs.get(p, False) for p in PAYLOAD["required"] if p in subs), "submodules": subs,
+              # the runner's GSM8K needs benchmarks/benchmark_lib.sh (the older `lib` layout); the infx layout lacks it
+              "benchmark_lib": ok and subprocess.run(["git", "-C", PAYLOAD["clone"], "cat-file", "-e",
+                                                      f"{s}:benchmarks/benchmark_lib.sh"], capture_output=True).returncode == 0}
 print(json.dumps(out))
 '''
 
@@ -228,6 +231,20 @@ def hold_script(cell_dir, minutes):
             "mkdir -p $d/logs; date -u +%FT%TZ > $d/hold_start; hostname -s > $d/hold_node\n"
             f"timeout --signal=TERM --kill-after=15m {minutes}m bash $d/job.sbatch > $d/logs/hold.out 2>&1\n"
             "echo $? > $d/hold_exit\n")
+
+
+def cancel_script(job_id, cell_dir):
+    """A running job: SIGTERM to our runner on its node (a step in the job: srun --overlap; pkill on the runner's
+    unique cell path), so its EXIT trap stops the server and removes the container; wait up to 90 s for the job to
+    leave the queue; else (or a pending job) scancel. Spur's scancel kills with SIGKILL whatever -s says (Crusoe
+    312964, 313020 with -s TERM -b, 2026-11-25: ExitCode 0:9), which skips the trap."""
+    return (f"J={job_id}; [ -z \"$(squeue -h -j $J -o %T 2>/dev/null)\" ] && {{ echo already-ended; exit 0; }}\n"
+            f"N=$(squeue -h -j $J -o %N 2>/dev/null)\n"
+            f"if [ -n \"$N\" ] && [ \"$(squeue -h -j $J -o %T 2>/dev/null)\" = RUNNING ] && timeout 90 srun --jobid=$J "
+            f"--overlap -w \"$N\" -N1 -n1 pkill -TERM -f 'runner[.]sh {cell_dir}$' >/dev/null 2>&1; then\n"
+            f"  for i in $(seq 1 18); do [ -z \"$(squeue -h -j $J -o %T 2>/dev/null)\" ] && {{ echo ended-on-term; exit 0; }}; sleep 5; done\n"
+            f"fi\n"
+            f"scancel $J && echo killed\n")
 
 
 def hold_options(opts):
@@ -327,6 +344,9 @@ class Slurm(Backend):
             lines.append(f"#SBATCH --qos={qos}")
         if account:
             lines.append(f"#SBATCH --account={account}")
+        # the cluster's known-bad nodes (config bad_nodes) too, unless the request pins one on purpose
+        bad = [n for n in (self.cluster.get("bad_nodes") or {}) if n not in (opts.get("nodelist") or "").split(",")]
+        exclude = list(dict.fromkeys([*exclude, *bad]))
         if exclude:
             lines.append(f"#SBATCH --exclude={','.join(exclude)}")
         if opts.get("nodelist"):   # a node of one's choice (a test on a given node's cache, or the node of an earlier run)
@@ -392,6 +412,8 @@ class Slurm(Backend):
             word = (job.get("raw") or "").split("+")[0].upper()
             state = "UNKNOWN" if not job else STATE_MAP.get(word.split()[0] if word else "", "UNKNOWN")
             raw_word = job.get("raw")
+            if r["runner_state"] == "cancelled":   # cancel_run TERMed the runner: the scheduler says FAILED (rc 143)
+                state = "CANCELLED"
             if state == "PENDING" and "JobHoldMaxRequeue" in (job.get("reason") or ""):
                 # Spur requeues a --requeue job on preemption or failure up to 5 times, then holds it: it would show
                 # PENDING forever (Crusoe 308822, 2026-11-24: Restarts=5, never reached its batch script). It is over.
@@ -432,8 +454,18 @@ class Slurm(Backend):
             out = p.stdout.decode(errors="replace")
             return ("cancelled (not started)" if "taken-back" in out else "cancelled (runner stopped)" if "stopped" in out
                     else f"cancel failed: {(out + p.stderr.decode(errors='replace')).strip()[-200:]}")
-        p = self._ssh("scancel", str(cell["job_id"]))
-        return "cancelled" if p.returncode == 0 else f"scancel failed: {p.stderr.decode(errors='replace').strip()[-200:]}"
+        # SIGTERM to our runner first, so its EXIT trap stops the server and removes the container (cancel_script);
+        # a plain scancel on Spur is a SIGKILL that leaves the cleanup to the dead-man switch.
+        j = str(int(cell["job_id"]))
+        p = remote.run_bash(self.host, cancel_script(j, cell["remote_dir"]), timeout=300)
+        out = p.stdout.decode(errors="replace")
+        if "already-ended" in out:
+            return "not cancelled: the job had already ended"
+        if "ended-on-term" in out:
+            return "cancelled (runner stopped on SIGTERM)"
+        if "killed" in out:
+            return "cancelled (SIGKILL after 90 s: the dead-man switch removes the container)"
+        return f"scancel failed: {(out + p.stderr.decode(errors='replace')).strip()[-200:]}"
 
     def extend(self, cell, status):
         """A RUNNING job below the wall time its cell needs gets `scontrol update TimeLimit`."""

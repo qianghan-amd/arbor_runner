@@ -1,0 +1,8 @@
+# Test (2026-11-26): mode bench from a stored baseline (GLM-5.2 c1_p90, model + target only), the one-command path
+# run_pr_test.py --request (submit, wait, report), Crusoe burst: concurrencies 1 and 2, 300 s each.
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: bench
+site: crusoe
+bench: { concurrencies: [1, 2], duration_s: 300 }
+targets:
+  - { model: glm52, target: c1_p90 }

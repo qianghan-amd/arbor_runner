@@ -145,8 +145,17 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
         records.append(r)
     if refusals:
         sys.exit("not submitted, cells not runnable:\n  " + "\n  ".join(refusals))
+    if not skip_gsm8k and not dry_run:
+        # the runner's GSM8K needs benchmarks/benchmark_lib.sh; the newer infx layout lacks it (meta64 153110,
+        # 2026-11-26: refused in prepare after a 6-min fetch). Checked on the cluster's InferenceX clone, before submit.
+        shas = sorted({r["measured"]["bench_client_commit"] for r in records if r["measured"].get("bench_client_commit")})
+        got = backend.ensure_bench_commits(shas) if shas else {}
+        no_lib = [s[:10] for s in shas if (got.get(s) or {}).get("benchmark_lib") is False]
+        if no_lib:
+            sys.exit(f"gsm8k: InferenceX {', '.join(no_lib)} (the bench client of a cell) has the newer infx layout "
+                     "without benchmarks/benchmark_lib.sh, which the runner's GSM8K needs: drop `gsm8k: true`")
 
-    run_id = f"{(now or dt.datetime.now(dt.timezone.utc)):%Y%m%d-%H%M%S}_{commit[:8]}_{Path(request_file).stem}"
+    run_id =f"{(now or dt.datetime.now(dt.timezone.utc)):%Y%m%d-%H%M%S}_{commit[:8]}_{Path(request_file).stem}"
     run_dir, remote_run = REPO_ROOT / "runs" / run_id, backend.run_dir(run_id)
     tmp = Path(tempfile.mkdtemp(prefix="arbor-ab-"))
     tar = tmp / "arbor.tar"

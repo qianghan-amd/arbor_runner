@@ -1,0 +1,11 @@
+# run_from_ci.py: InferenceX CI run 44689368479 (Run Sweep - [AMD][AgentX] DeepSeek-V4.1-Flash MI355X vLLM: rerun the whole curve on the 11-19 nightl)
+# launch: t-burst-cancel3.record.json (from runs/drafts/dsv41flash__c1_p90__ci44689368479/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 7c2116960686426d3e93ac5b479ae980341e24a2
+mode: smoke
+campaign_minutes: 480
+ci_run: '44689368479'
+targets:
+- model: dsv41flash
+  target: c1_p90
+  record: runs/requests/t-burst-cancel3.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6

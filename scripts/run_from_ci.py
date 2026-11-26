@@ -152,6 +152,10 @@ def main():
     if got is not None and not got["ok"]:
         sys.exit(f"InferenceX {bench} (the CI's bench client) or a submodule of it could not be fetched into the "
                  f"cluster's InferenceX clone: {got}")
+    if args.gsm8k and got is not None and got.get("benchmark_lib") is False:
+        # found before any node time (meta64 153110, 2026-11-26: refused in prepare after a 6-min fetch)
+        sys.exit(f"--gsm8k: InferenceX {bench[:10]} (this CI run's bench client) has the newer infx layout without "
+                 "benchmarks/benchmark_lib.sh, and the runner's GSM8K needs it: run without --gsm8k")
     print(f"4. Arbor {sha}; InferenceX bench client {bench[:10]} {'present' if got else '(not checked by this backend)'}")
 
     # 5. request file, then submit

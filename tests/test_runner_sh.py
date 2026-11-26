@@ -58,7 +58,9 @@ def run(tmp_path, body, env=None):
     script = ("set -uo pipefail\n" + f"CELL_DIR={cell.as_posix()}\nLOGS=$CELL_DIR/logs\n" + STUBS + body + "\n")
     f = tmp_path / "t.sh"
     f.write_bytes(script.encode("utf-8"))
-    p = subprocess.run([BASH, f.as_posix()], capture_output=True, text=True, timeout=300,
+    # 900 s: a bash start can take minutes on a loaded Windows box (2026-11-26: two of these at 300 s timed out in a
+    # 37-min suite run); the scripts themselves do no waiting (sleep is stubbed)
+    p = subprocess.run([BASH, f.as_posix()], capture_output=True, text=True, timeout=900,
                        env={**os.environ, "MSYS_NO_PATHCONV": "1", **(env or {})})
     log = (cell / "logs" / "runner.log").read_text(encoding="utf-8") if (cell / "logs" / "runner.log").exists() else ""
     return p, cell, log
