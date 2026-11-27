@@ -114,6 +114,10 @@ def test_bench_mode_env_and_wall_time():
     e = env(bench={"concurrencies": [1, 4, 16, 4], "duration_s": 300})
     assert (e["BENCH_CONCS"], e["BENCH_DUR"]) == ("1 4 16", "300")                             # in order, no repeats
     assert render.job_minutes("bench", 0, r, {"concurrencies": [1, 4, 16], "duration_s": 600}) == 60 + 30 + 40 + 3 * 20 + 75 + 30
+    # restart_each: a server start (<= 40 min) per concurrency
+    assert (env()["BENCH_RESTART"], env(bench={"restart_each": True})["BENCH_RESTART"]) == ("0", "1")
+    assert render.job_minutes("bench", 0, r, {"concurrencies": [1, 4, 16], "duration_s": 600, "restart_each": True}) \
+        == 60 + 30 + 3 * 40 + 3 * 20 + 75 + 30
     with pytest.raises(ValueError, match="positive"):
         render.bench_concurrencies(r, {"concurrencies": [0]})
     assert "bench" in render.MODES and "bench" not in render.CAMPAIGN_MODES

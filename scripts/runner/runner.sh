@@ -397,7 +397,8 @@ stop_server() {   # returns non-zero if the GPUs are not free afterwards: the ne
 }
 
 # A measured phase is serve_up (launch, health, bench env), one agentx_bench per concurrency, gsm8k_eval, stop_server
-# and phase_record. measure = one bench at the cell's CONC; bench_sweep = one server, a bench per BENCH_CONCS entry.
+# and phase_record. measure = one bench at the cell's CONC; bench_sweep = a bench per BENCH_CONCS entry, on one
+# server (default) or a fresh server each (BENCH_RESTART=1).
 serve_up() {   # serve_up <tag> <duration_s>: sets OUT (host) and CIN (container) to the phase dir
     TAG=$1; local dur=$2; OUT=$CELL_DIR/$1; CIN=/workspace/exp/$1
     local out=$OUT cin=$CIN
@@ -496,19 +497,37 @@ measure() {   # measure <tag> <duration_s> <gsm8k_questions>: one AgentX run at 
 # One server for all of them (a start costs 4-35 min: Kimi K3 1997 s, 2026-11-25), then GSM8K once if asked. Each
 # concurrency writes bench/c<N>/{bench.log, bench_output.json, agg.json}; bench/summary.json lists them. A failed
 # concurrency does not stop the others; the phase fails if any failed.
+# BENCH_RESTART=1 (request bench.restart_each): a fresh server for each concurrency, GSM8K on the last one. On one
+# server the second concurrency read far lower than the first (B1 c2 5041 < c1 11136, T3 c2 1990 < c1 5779
+# tok/s/GPU, 2026-11-26): state left by the run before is the suspect; a restart rules it out, at a server start each.
 bench_sweep() {
     PHASE_T0=$(date -u +%FT%TZ)
-    serve_up bench "$BENCH_DUR" || return 1
-    local c failed=""
-    for c in $BENCH_CONCS; do
-        agentx_bench "$c" "$OUT/c$c" "$CIN/c$c" || { failed="$failed $c"; log "bench: concurrency $c failed"; }
-    done
-    gsm8k_eval "$NQ_BENCH" || failed="$failed gsm8k"
-    stop_server || return 1
+    local c failed="" last=${BENCH_CONCS##* }
+    if [ "${BENCH_RESTART:-0}" = 1 ]; then
+        # a fresh server per concurrency (bench.restart_each); a failed start is stopped too: it may still hold the GPUs
+        for c in $BENCH_CONCS; do
+            if serve_up bench "$BENCH_DUR"; then
+                agentx_bench "$c" "$OUT/c$c" "$CIN/c$c" || { failed="$failed $c"; log "bench: concurrency $c failed"; }
+                [ "$c" = "$last" ] && { gsm8k_eval "$NQ_BENCH" || failed="$failed gsm8k"; }
+            else
+                failed="$failed $c"; log "bench: server for concurrency $c did not start"
+                [ "$c" = "$last" ] && [ "$NQ_BENCH" != 0 ] && failed="$failed gsm8k"
+            fi
+            stop_server || return 1
+            mkdir -p "$OUT/c$c"; mv -f "$OUT/server.log" "$OUT/c$c/server.log" 2>/dev/null   # next start overwrites it
+        done
+    else
+        serve_up bench "$BENCH_DUR" || return 1
+        for c in $BENCH_CONCS; do
+            agentx_bench "$c" "$OUT/c$c" "$CIN/c$c" || { failed="$failed $c"; log "bench: concurrency $c failed"; }
+        done
+        gsm8k_eval "$NQ_BENCH" || failed="$failed gsm8k"
+        stop_server || return 1
+    fi
     phase_record "$BENCH_DUR" "$NQ_BENCH" "$BENCH_CONCS"
-    "$PY" - "$OUT" "$BENCH_CONCS" "$failed" <<'PY' | tee -a "$LOGS/runner.log"
+    "$PY" - "$OUT" "$BENCH_CONCS" "$failed" "${BENCH_RESTART:-0}" <<'PY' | tee -a "$LOGS/runner.log"
 import json, os, sys
-out, concs, failed = sys.argv[1], sys.argv[2].split(), sys.argv[3].split()
+out, concs, failed, restart = sys.argv[1], sys.argv[2].split(), sys.argv[3].split(), sys.argv[4] == "1"
 rows = []
 for c in concs:
     b = os.path.join(out, f"c{c}", "bench_output.json")
@@ -517,7 +536,8 @@ for c in concs:
                  **{k: d.get(k) for k in ("status", "total_throughput_per_gpu", "output_throughput_per_gpu",
                                           "e2e_norm_intvty_p50", "e2e_norm_intvty_p90", "num_requests_successful",
                                           "num_requests_total")}})
-json.dump({"concurrencies": rows, "gsm8k_failed": "gsm8k" in failed}, open(os.path.join(out, "summary.json"), "w"), indent=2)
+json.dump({"concurrencies": rows, "gsm8k_failed": "gsm8k" in failed, "server_per_concurrency": restart},
+          open(os.path.join(out, "summary.json"), "w"), indent=2)
 for r in rows:
     print(f"[runner] bench c{r['concurrency']}: ok={r['ok']} tput/GPU={r['total_throughput_per_gpu']} "
           f"e2e_norm P50={r['e2e_norm_intvty_p50']} P90={r['e2e_norm_intvty_p90']} "

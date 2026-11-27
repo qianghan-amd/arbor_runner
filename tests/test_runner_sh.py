@@ -215,3 +215,29 @@ def test_bench_sweep_one_server_all_concurrencies_and_a_failure(tmp_path):
     s = json.loads((cell / "bench" / "summary.json").read_text())
     assert [(r["concurrency"], r["ok"]) for r in s["concurrencies"]] == [(1, True), (4, False), (16, True)]
     assert s["concurrencies"][2]["total_throughput_per_gpu"] == 16000 and "bench c4: ok=False" in log
+    assert s["server_per_concurrency"] is False
+
+
+def test_bench_sweep_restart_each_server_per_concurrency(tmp_path):
+    # BENCH_RESTART=1: serve_up/stop_server around each concurrency, GSM8K once on the last server, each server log kept
+    # in its c<N>/; a server that does not start (4) is still stopped (it may hold the GPUs) and the sweep goes on
+    py = Path(sys.executable).as_posix()
+    stubs = (f'PY="{py}"\nBENCH_CONCS="1 4 16"; BENCH_DUR=300; NQ_BENCH=5; BENCH_RESTART=1; N=0\n'
+             'serve_up() { OUT=$CELL_DIR/$1; CIN=/workspace/exp/$1; mkdir -p "$OUT"; N=$((N+1)); echo "server $N" > "$OUT/server.log"; '
+             'echo serve_up >> $CELL_DIR/calls; [ $N = 2 ] && return 1; true; }\n'
+             'stop_server() { echo stop >> $CELL_DIR/calls; }\n'
+             'gsm8k_eval() { echo "gsm8k $1" >> $CELL_DIR/calls; }\n'
+             'phase_record() { echo "phase $*" >> $CELL_DIR/calls; }\n'
+             'agentx_bench() { echo "bench $1" >> $CELL_DIR/calls; mkdir -p "$2"; '
+             'echo "{\\"status\\": \\"ok\\", \\"total_throughput_per_gpu\\": $1000}" > "$2/bench_output.json"; echo "{}" > "$2/agg.json"; }\n')
+    p, cell, log = run(tmp_path, stubs + func("bench_sweep") + "\nbench_sweep\necho rc=$?\n")
+    assert "rc=1" in p.stdout, p.stdout + p.stderr
+    calls = (cell / "calls").read_text().splitlines()
+    assert calls == ["serve_up", "bench 1", "stop", "serve_up", "stop", "serve_up", "bench 16", "gsm8k 5", "stop",
+                     "phase 300 5 1 4 16"]
+    s = json.loads((cell / "bench" / "summary.json").read_text())
+    assert [(r["concurrency"], r["ok"]) for r in s["concurrencies"]] == [(1, True), (4, False), (16, True)]
+    assert s["server_per_concurrency"] is True and s["gsm8k_failed"] is False
+    assert [(cell / "bench" / f"c{c}" / "server.log").read_text().strip() for c in (1, 4, 16)] == \
+        ["server 1", "server 2", "server 3"]
+    assert "server for concurrency 4 did not start" in log

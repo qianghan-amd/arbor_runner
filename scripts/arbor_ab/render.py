@@ -149,6 +149,8 @@ def cell_env(record, run_id, commit, mode, cell_dir, container, minutes, site, a
         "BENCH_CONCS": " ".join(str(c) for c in bench_concurrencies(record, bench)),
         "BENCH_DUR": str((bench or {}).get("duration_s") or BENCH_DEFAULT_DURATION_S),
         "NQ_BENCH": "0" if skip_gsm8k else str(lau["gsm8k"].get("num_questions") or 1319),
+        # bench.restart_each: a fresh server for each concurrency (GSM8K on the last one), else one shared server
+        "BENCH_RESTART": "1" if (bench or {}).get("restart_each") else "0",
     }
 
 
@@ -171,7 +173,9 @@ def job_minutes(mode, minutes, record, bench=None):
         return 60 + 30 + 30 + 30
     if mode == "bench":      # fetch, prepare, one server start (<= 40), each run + 10 min, GSM8K, margin
         dur = (bench or {}).get("duration_s") or BENCH_DEFAULT_DURATION_S
-        return 60 + 30 + 40 + sum(dur // 60 + 10 for _ in bench_concurrencies(record, bench)) + 75 + 30
+        concs = bench_concurrencies(record, bench)
+        starts = len(concs) if (bench or {}).get("restart_each") else 1
+        return 60 + 30 + 40 * starts + sum(dur // 60 + 10 for _ in concs) + 75 + 30
     if mode in ("campaign", "campaign_smoke"):
         return 60 + 30 + minutes + 30
     if mode == "baseline":

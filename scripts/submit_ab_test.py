@@ -113,10 +113,12 @@ def submit(req, request_file, backend, clone, gateway_needed=True, dry_run=False
     if render.check_objective(req.get("objective")):
         sys.exit(render.check_objective(req.get("objective")))
     bench = req.get("bench")
-    if bench is not None and (not isinstance(bench, dict) or set(bench) - {"concurrencies", "duration_s"}
+    if bench is not None and (not isinstance(bench, dict) or set(bench) - {"concurrencies", "duration_s", "restart_each"}
                               or not (isinstance(bench.get("duration_s", 600), int) and bench.get("duration_s", 600) > 0)
-                              or not all(isinstance(c, int) and c > 0 for c in bench.get("concurrencies") or [])):
-        sys.exit("bench: {concurrencies: [N, ...], duration_s: S} (both optional; positive integers)")
+                              or not all(isinstance(c, int) and c > 0 for c in bench.get("concurrencies") or [])
+                              or not isinstance(bench.get("restart_each", False), bool)):
+        sys.exit("bench: {concurrencies: [N, ...], duration_s: S, restart_each: true|false} "
+                 "(all optional; positive integers)")
     minutes = int(req.get("campaign_minutes", 1440)) if mode in render.CAMPAIGN_MODES else 0
     try:
         commit = subprocess.run(["git", "-C", str(clone), "rev-parse", "--verify", f"{req['commit']}^{{commit}}"],

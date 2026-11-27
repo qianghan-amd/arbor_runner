@@ -74,6 +74,7 @@ node whose GPUs are in use.
 --mode full                                        # measure before, campaign, measure after: the A/B result
 --mode smoke                                       # one short measurement, no campaign: "does it start?"
 --mode bench --conc 1 4 16 32 --duration 600       # the AgentX bench alone at these concurrencies, one server
+--bench-restart                                    # bench: a fresh server for each concurrency (+~40 min each)
 --mode campaign_smoke --campaign-minutes 15        # a short campaign: "does Arbor start?"
 --campaign-minutes 480                             # campaign length (default 480)
 --objective "total throughput"                     # what Arbor optimizes (default: the target's metric)

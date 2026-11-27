@@ -60,6 +60,8 @@ def main():
     ap.add_argument("--conc", type=int, nargs="+",
                     help="mode bench: the concurrencies to bench, one server for all (default: the CI point's)")
     ap.add_argument("--duration", type=int, help="mode bench: seconds of each AgentX run (default 600)")
+    ap.add_argument("--bench-restart", action="store_true",
+                    help="mode bench: a fresh server for each concurrency (+~40 min each; GSM8K on the last)")
     ap.add_argument("--campaign-minutes", type=int, default=480)
     ap.add_argument("--gsm8k", action="store_true", help="GSM8K in the measured phases (full mode)")
     ap.add_argument("--weights-path", default="auto", help="auto (shared hub when present), none (download), or a path")
@@ -167,11 +169,12 @@ def main():
     req = {"commit": sha, "mode": args.mode, "campaign_minutes": args.campaign_minutes, "ci_run": str(args.ci_run),
            "targets": [{"model": model, "target": target, "record": record.relative_to(REPO_ROOT).as_posix(),
                         **({"weights_path": weights} if weights else {})}]}
-    if args.mode == "bench" and (args.conc or args.duration):
+    if args.mode == "bench" and (args.conc or args.duration or args.bench_restart):
         req["bench"] = {**({"concurrencies": args.conc} if args.conc else {}),
-                        **({"duration_s": args.duration} if args.duration else {})}
-    elif args.conc or args.duration:
-        sys.exit("--conc / --duration are for --mode bench")
+                        **({"duration_s": args.duration} if args.duration else {}),
+                        **({"restart_each": True} if args.bench_restart else {})}
+    elif args.conc or args.duration or args.bench_restart:
+        sys.exit("--conc / --duration / --bench-restart are for --mode bench")
     if args.gsm8k:
         req["gsm8k"] = True
     if args.site:
