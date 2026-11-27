@@ -1,0 +1,159 @@
+{
+  "schema_version": 2,
+  "model": "dsv41flash",
+  "target": {
+    "key": "c1_p90",
+    "conc": 1,
+    "direction": "max",
+    "primary_metric_path": "metrics.e2e_norm_intvty.p90",
+    "primary_metric_per_gpu_path": null,
+    "secondary_metric_path": "metrics.e2e_norm_intvty.p50"
+  },
+  "host": {
+    "framework": "vllm",
+    "tp": 4,
+    "ep": 1,
+    "dcp": 1,
+    "num_gpus": 4,
+    "recipe_sh": null,
+    "recipe_point": null,
+    "model_path": "/hf-hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6",
+    "server_flags": "--language-model-only --tokenizer-mode deepseek_v41 --tool-call-parser deepseek_v41 --enable-auto-tool-choice --reasoning-parser deepseek_v41 --moe-backend aiter --gpu-memory-utilization 0.9 --attention-config '{\"indexer_kv_dtype\":\"mxfp4\",\"indexer_sparse_logits\":true}' --block-size 128 --speculative-config '{\"method\": \"dspark\", \"num_speculative_tokens\": 5, \"draft_sample_method\": \"probabilistic\", \"rejection_sample_method\": \"synthetic\", \"enable_adaptive_verification\": false, \"synthetic_acceptance_length\": 3.51}' --max-model-len 1048576 --monokernel --disable-uvicorn-access-log --engram-config '{\"cpu_offload\":false}' --max-cudagraph-capture-size 8 --max-num-batched-tokens 32768 --max-num-seqs 1",
+    "server_env": {
+      "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+      "PYTHONUNBUFFERED": "1",
+      "HF_HUB_CACHE": "/hf-hub",
+      "HF_HUB_OFFLINE": "1",
+      "AGENTX_TOKENIZER": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "MODEL_PREFIX": "dsv41flash",
+      "FRAMEWORK": "vllm",
+      "PRECISION": "fp4",
+      "SPEC_DECODING": "mtp",
+      "RUNNER_TYPE": "mi355x",
+      "IMAGE": "vllm/vllm-openai-rocm:nightly-c2cc003c5b644095cabcd5212d2967546ce344f8",
+      "TP": "4",
+      "EP_SIZE": "1",
+      "DP_ATTENTION": "false",
+      "KV_OFFLOADING": "none",
+      "DURATION": "3600",
+      "WEKA_LOADER_OVERRIDE": "semianalysis_cc_traces_weka_062126",
+      "INFMAX_CONTAINER_WORKSPACE": "/workspace/InferenceX",
+      "AIPERF_DATASET_MMAP_CACHE_DIR": "/aiperf_mmap_cache",
+      "VLLM_ROCM_USE_AITER": "1",
+      "VLLM_ROCM_USE_AITER_MOE": "1",
+      "VLLM_ROCM_QUICK_REDUCE_QUANTIZATION": "NONE",
+      "AITER_TRITON_LOG_LEVEL": "ERROR",
+      "VLLM_ROCM_USE_AITER_TRITON_SPARSE_MLA": "True",
+      "VLLM_USE_BREAKABLE_CUDAGRAPH": "1",
+      "OMP_NUM_THREADS": "1",
+      "VLLM_USE_RUST_FRONTEND": "1",
+      "PP_SIZE": "1",
+      "DCP_SIZE": "1",
+      "PCP_SIZE": "1"
+    }
+  },
+  "fingerprint": {
+    "source_type": "agentx_ci",
+    "image": "vllm/vllm-openai-rocm:nightly-c2cc003c5b644095cabcd5212d2967546ce344f8",
+    "image_digest": "sha256:1dd7481dddd4f71bc3fa61cb86e713a6547aec7e607c26b2af16a04f8001b271",
+    "local_mirror_path": null,
+    "ci_commit": "7d82619914debcb4bf9a81925ee9d9c177ce894b",
+    "ci_run_id": "45587499093",
+    "ci_commit_date": "2026-11-25",
+    "recipe_fingerprint": "648d15225a1985c3a81313b34f3f669f4a2ce2dc4af3a45a848a077146e161d9"
+  },
+  "epoch_id": "dsv41flash__c1_p90__7d82619914_495cfc8a",
+  "health": {
+    "ci_artifact_available": true,
+    "image_available": null,
+    "local_mirror_exists": false,
+    "checked_at": null
+  },
+  "verification": {
+    "ci_verified": false,
+    "unverified_against_ci": false,
+    "structural": {
+      "status": "not_run",
+      "checked_at": null,
+      "detail": null
+    },
+    "numeric": {
+      "status": "not_run",
+      "checked_at": null,
+      "ci_artifact": null,
+      "ci_value": null,
+      "measured_value": null,
+      "delta_pct": null,
+      "tolerance_pct": null
+    }
+  },
+  "measured": {
+    "date": null,
+    "cluster": null,
+    "node": null,
+    "job": null,
+    "replays": null,
+    "duration_s": null,
+    "bench_client_commit": "7d82619914debcb4bf9a81925ee9d9c177ce894b",
+    "arbor_commit": null
+  },
+  "metrics": {
+    "total_tput_tps": null,
+    "tput_per_gpu": null,
+    "intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "e2e_norm_intvty": {
+      "p50": null,
+      "p90": null,
+      "p95": null
+    },
+    "gsm8k": {
+      "flexible_extract": null,
+      "strict_match": null,
+      "accuracy": null,
+      "num_questions": null
+    }
+  },
+  "ceiling": null,
+  "artifacts": {
+    "bench_output": null,
+    "agg_json": null,
+    "gsm8k_log": null
+  },
+  "provenance": {
+    "_source": "make_baseline.py draft from InferenceX CI run 45587499093"
+  },
+  "superseded_by": null,
+  "data_quality_warning": null,
+  "launch": {
+    "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "model_rev": "314113f8a7dadb388215396ba5fbee2c610a04d6",
+    "draft_id": null,
+    "draft_rev": null,
+    "corpus_id": "semianalysisai/cc-traces-weka-062126",
+    "corpus_rev": "23f152f6f0f9399a85901b89a6458def0ef16729",
+    "served_model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "workspace_root": "/usr/local/lib/python3.12/dist-packages/vllm",
+    "editable_packages": [
+      {
+        "name": "aiter",
+        "path": "/usr/local/lib/python3.12/dist-packages/aiter",
+        "rebuild": null
+      }
+    ],
+    "gpu_ids": "0,1,2,3",
+    "concurrency": 1,
+    "num_prompts": 320,
+    "bench_timeout_s": 7200,
+    "gsm8k": {
+      "tool": "infx_lm_eval",
+      "num_questions": 1319,
+      "concurrency": 16
+    },
+    "missing": [],
+    "source": "InferenceX CI run 45587499093 (bmk_agentic_dsv41flash_tp4_conc1_kvnone_spec-mtp_fp4_vllm_tp4-pp1-dcp1-pcp1-ep1-dpafalse_disagg-false_spec-mtp_-2ba12714db0c4861a410) + env/launch copied from dsv41flash__c1_p90__86699be610_55915fb0"
+  }
+}

@@ -89,6 +89,11 @@ CI run.
 | T4 | meta64, mode bench, `--gsm8k` | meta64 | 153110 | refused in prepare (infx layout has no benchmark_lib.sh) -> now refused before submit |
 | - | dry run; `--conc` without mode bench; `--conc 0` | - | - | pass; both refused with a clear message |
 
+Formal live test (approved by the user, 2026-11-26): CI 45587499093 (DSv4.1 Flash vLLM, 11-25), Arbor main
+619dd4ce, campaign mode, Crusoe 314584: SUCCEEDED 7:10:59, arbor run rc 0, exit deadline, 6 iterations, kept 0
+(one candidate, m-prefill-warmup, was "not_measured" three times inside Arbor). Found on the way: github_relay
+left zip files open, so NFS refused the temp-dir cleanup and the hardware check read "None" (fixed, 7c16670).
+
 Mode bench caveat: on one server the second concurrency read much lower than the first (B1 c2 5041 < c1 11136
 tok/s/GPU; T3 c2 1990 < c1 5779) at 300 s each: likely state carried between runs and runs too short. Use 1800 s or
 more; a restart per concurrency is the next change.

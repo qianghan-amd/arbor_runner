@@ -1,0 +1,11 @@
+# run_from_ci.py: InferenceX CI run 45587499093 (Run Sweep - [Klaud Cold] Update DeepSeek-V4.1-Flash FP4 MI355X vLLM AgentX DSpark image to nightly-c)
+# launch: live-dsv41-45587499093.record.json (from runs/drafts/dsv41flash__c1_p90__ci45587499093/draft.json; review.md there says where each field came from). Rerun: python scripts/submit_ab_test.py --request <this file>
+commit: 619dd4ce55fe07a70cba63dd9e7eaa80c8d53d2d
+mode: campaign
+campaign_minutes: 480
+ci_run: '45587499093'
+targets:
+- model: dsv41flash
+  target: c1_p90
+  record: runs/requests/live-dsv41-45587499093.record.json
+  weights_path: /shared_nfs/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/314113f8a7dadb388215396ba5fbee2c610a04d6
